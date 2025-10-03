@@ -6,3 +6,9 @@
 @theme {
 	--font-sans: 'SUIT Variable';
 }
+
+@custom-variant coarse {
+	@media (pointer: coarse) {
+		@slot;
+	}
+}

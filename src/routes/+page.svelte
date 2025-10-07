@@ -23,8 +23,7 @@
 			type="button"
 			onclick={() => {
 				addId.fields.uuid.set(self.crypto.randomUUID());
-				// FIXME Programmatically validate after setting input
-				// Reference https://github.com/sveltejs/kit/issues/14630
+				addId.validate();
 			}}
 		>
 			Generate

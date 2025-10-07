@@ -35,13 +35,9 @@
 		</fieldset>
 	</form>
 	<ol class="mt-8 list-decimal pl-8 font-mono">
-		<!-- TODO Remove unnecessary svelte:boundary -->
-		<!-- Reference github.com/sveltejs/svelte/issues/16905 -->
-		<svelte:boundary>
-			{#each await getIds() as id (id)}
-				<li>{id}</li>
-			{/each}
-		</svelte:boundary>
+		{#each await getIds() as id (id)}
+			<li>{id}</li>
+		{/each}
 	</ol>
 </main>
 

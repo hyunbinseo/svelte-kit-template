@@ -1,54 +1,28 @@
 <script lang="ts">
 	import { FormSchema } from './ids';
-	import { addId, getIds } from './ids.remote';
+	import { addId } from './ids.remote';
 </script>
 
-<main class="p-8">
-	<form {...addId.preflight(FormSchema)} oninput={() => addId.validate()}>
-		<fieldset disabled={!!addId.pending}>
-			<label class="flex flex-col *:w-fit">
-				<span>UUID</span>
-				<input
-					{...addId.fields.uuid.as('text')}
-					required
-					size="36"
-					autocomplete="off"
-					class="font-mono"
-				/>
-			</label>
-			<!-- eslint-disable-next-line svelte/require-each-key -->
-			{#each addId.fields.uuid.issues() ?? [] as issue}
-				<p>{issue.message}</p>
-			{/each}
-			<div class="mt-2 flex gap-x-2">
-				<button
-					type="button"
-					onclick={() => {
-						addId.fields.uuid.set(self.crypto.randomUUID());
-						addId.validate();
-					}}
-				>
-					Generate
-				</button>
-				<button>Submit</button>
-			</div>
-		</fieldset>
-	</form>
-	<ol class="mt-8 list-decimal pl-8 font-mono">
-		{#each await getIds() as id (id)}
-			<li>{id}</li>
-		{/each}
-	</ol>
-</main>
-
-<style lang="postcss">
-	fieldset {
-		button {
-			padding: var(--spacing);
-			background-color: var(--color-blue-100);
-		}
-		*:disabled {
-			background-color: var(--color-gray-200);
-		}
-	}
-</style>
+<form {...addId.preflight(FormSchema)}>
+	<label>
+		<span>UUID</span>
+		<br />
+		<input {...addId.fields.uuid.as('text')} />
+	</label>
+	<!-- eslint-disable-next-line svelte/require-each-key -->
+	{#each addId.fields.uuid.issues() ?? [] as issue}
+		<p>{issue.message}</p>
+	{/each}
+	<br />
+	<button
+		type="button"
+		onclick={() => {
+			addId.fields.uuid.set(self.crypto.randomUUID());
+			addId.validate();
+		}}
+	>
+		Generate
+	</button>
+	<br />
+	<button>Submit</button>
+</form>

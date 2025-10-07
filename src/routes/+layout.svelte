@@ -6,7 +6,13 @@
 </script>
 
 <svelte:head>
-	<link rel="preload" href={suitVariableWoff2} as="font" type="font/woff2" />
+	<link
+		rel="preload"
+		href={suitVariableWoff2}
+		as="font"
+		type="font/woff2"
+		crossorigin="anonymous"
+	/>
 </svelte:head>
 
 {@render children?.()}

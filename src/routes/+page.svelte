@@ -5,9 +5,9 @@
 
 <main class="p-8">
 	<form {...addId.preflight(FormSchema)} oninput={() => addId.validate()}>
-		<fieldset disabled={!!addId.pending}>
+		<fieldset disabled={!!addId.pending} class="w-fit">
 			<label class="flex flex-col *:w-fit">
-				<span>UUID</span>
+				<span class="font-bold">UUID</span>
 				<input
 					{...addId.fields.uuid.as('text')}
 					required
@@ -20,7 +20,12 @@
 			{#each addId.fields.uuid.issues() ?? [] as issue}
 				<p>{issue.message}</p>
 			{/each}
-			<div class="mt-2 flex gap-x-2">
+			<div
+				class={[
+					'mt-2 flex justify-between',
+					'*:rounded *:bg-blue-100 *:px-2 *:py-1 *:text-sm *:disabled:bg-gray-200',
+				]}
+			>
 				<button
 					type="button"
 					onclick={() => {
@@ -30,7 +35,7 @@
 				>
 					Generate
 				</button>
-				<button>Submit</button>
+				<button class="disabled:after:content-['ing']">Submit</button>
 			</div>
 		</fieldset>
 	</form>
@@ -40,15 +45,3 @@
 		{/each}
 	</ol>
 </main>
-
-<style lang="postcss">
-	fieldset {
-		button {
-			padding: var(--spacing);
-			background-color: var(--color-blue-100);
-		}
-		*:disabled {
-			background-color: var(--color-gray-200);
-		}
-	}
-</style>

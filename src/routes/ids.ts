@@ -1,5 +1,5 @@
-import { object, pipe, string, uuid } from 'valibot';
+import { object, picklist } from 'valibot';
 
-export const FormSchema = object({
-	uuid: pipe(string(), uuid()),
-});
+export const osArray = ['windows', 'mac', 'linux'] as const;
+
+export const FormSchema = object({ os: picklist(osArray) });

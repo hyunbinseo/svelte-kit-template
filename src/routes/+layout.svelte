@@ -1,7 +1,7 @@
 <script lang="ts">
 	import suitVariableWoff2 from '@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.woff2?url';
 	import { checkBrowserScript } from '.';
-	import '../app.css';
+	import '$lib/app.css';
 
 	let { children } = $props();
 </script>

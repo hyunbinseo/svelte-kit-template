@@ -12,3 +12,30 @@
 		@slot;
 	}
 }
+
+label {
+	&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		column-gap: calc(var(--spacing) * 2);
+	}
+	> span {
+		&:first-child {
+			+ select,
+			+ textarea,
+			/* Reference https://tailwindcss-forms.vercel.app/kitchen-sink.html */
+			+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
+				display: block;
+				width: 100%;
+				margin-top: calc(var(--spacing) * 1);
+			}
+		}
+		&.required-indicator::after {
+			content: '*';
+			position: relative;
+			top: calc(var(--spacing) * -1.5);
+			color: var(--color-red-800);
+		}
+	}
+}

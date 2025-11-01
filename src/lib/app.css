@@ -7,6 +7,13 @@
 	--font-sans: 'SUIT Variable';
 }
 
+@utility required-indicator {
+	content: '*';
+	color: var(--color-red-800);
+	position: relative;
+	top: calc(var(--spacing) * -1.5);
+}
+
 @custom-variant coarse {
 	@media (pointer: coarse) {
 		@slot;
@@ -20,22 +27,13 @@ label {
 		align-items: center;
 		column-gap: calc(var(--spacing) * 2);
 	}
-	> span {
-		&:first-child {
-			+ select,
+	> span:first-child {
+		+ select,
 			+ textarea,
 			/* Reference https://tailwindcss-forms.vercel.app/kitchen-sink.html */
 			+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
-				display: block;
-				width: 100%;
-				margin-top: calc(var(--spacing) * 1);
-			}
-		}
-		&.required-indicator::after {
-			content: '*';
-			position: relative;
-			top: calc(var(--spacing) * -1.5);
-			color: var(--color-red-800);
+			display: block;
+			margin-top: calc(var(--spacing) * 1);
 		}
 	}
 }

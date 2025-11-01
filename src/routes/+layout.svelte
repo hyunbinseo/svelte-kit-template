@@ -29,7 +29,7 @@
 	<p transition:slide>인터넷에 연결되어 있지 않습니다.</p>
 {/if}
 
-{@render children?.()}
+{@render children()}
 
 <style>
 	noscript,

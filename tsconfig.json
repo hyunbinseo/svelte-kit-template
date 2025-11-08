@@ -1,6 +1,9 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
+		// "paths" - set this in the SvelteKit's alias configuration
+		// Reference https://svelte.dev/docs/kit/configuration#alias
+		"allowImportingTsExtensions": true,
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -21,9 +24,8 @@
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 	}
-	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
-	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
-	//
-	// To make changes to top-level options such as include and exclude, we recommend extending
-	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
+	// "include": []
+	// "exclude": []
+	// set these options in the SvelteKit's TypeScript configuration
+	// Reference https://svelte.dev/docs/kit/configuration#typescript
 }

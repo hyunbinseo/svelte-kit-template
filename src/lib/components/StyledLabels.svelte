@@ -8,7 +8,7 @@
 	{@render children()}
 </div>
 
-<style>
+<style lang="postcss">
 	div :global label {
 		&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
 			display: flex;

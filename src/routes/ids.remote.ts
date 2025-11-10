@@ -1,11 +1,11 @@
 import { form, query } from '$app/server';
-import { db } from '$lib/db.server';
+import { mockDB } from '$lib/server/db';
 import { FormSchema } from './ids';
 
-export const getIds = query(() => db.select());
+export const getIds = query(() => mockDB.select());
 
 export const addId = form(FormSchema, async ({ uuid }) => {
-	await new Promise((resolve) => setTimeout(resolve, 2000));
-	db.insert(uuid);
+	await new Promise((resolve) => setTimeout(resolve, 500 * (1 + Math.random())));
+	mockDB.insert(uuid);
 	await getIds().refresh();
 });

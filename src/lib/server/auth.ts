@@ -4,7 +4,6 @@ import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$env/static/private';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_EXPIRES_IN, JWT_ALGORITHM } from '$lib/config';
 import { error, redirect } from '@sveltejs/kit';
 import { jwtVerify, SignJWT } from 'jose';
-import { randomUUID } from 'node:crypto';
 
 const SECRET_NEW = new TextEncoder().encode(JWT_SECRET_NEW);
 const SECRET_OLD = new TextEncoder().encode(JWT_SECRET_OLD);
@@ -25,7 +24,7 @@ export const authenticate = async (_input: PayloadInput) => {
 
 	const jwt = await new SignJWT(input)
 		.setProtectedHeader({ alg: JWT_ALGORITHM })
-		.setJti(randomUUID())
+		.setJti(crypto.randomUUID())
 		.setIssuedAt()
 		.setExpirationTime(expiresAt)
 		.sign(SECRET_NEW);

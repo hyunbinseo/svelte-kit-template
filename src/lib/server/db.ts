@@ -1,7 +1,5 @@
-import { randomUUID } from 'node:crypto';
-
 export const mockDB = {
-	records: Array.from({ length: 10 }, (): string => randomUUID()),
+	records: Array.from({ length: 10 }, (): string => crypto.randomUUID()),
 	select() {
 		return this.records;
 	},

@@ -7,6 +7,16 @@
 	--font-sans: 'SUIT Variable';
 }
 
+@layer base {
+	button:not(:disabled),
+	[role='button']:not(:disabled) {
+		cursor: pointer;
+	}
+}
+
+/* Create component utilities instead of adding them in the @layer CSS at-rules */
+/* Reference https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
+
 @utility required-indicator {
 	content: '*';
 	color: var(--color-red-800);

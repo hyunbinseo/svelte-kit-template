@@ -8,7 +8,9 @@ declare global {
 				sub: string;
 			};
 		}
-		// interface PageData {}
+		interface PageData {
+			title: string;
+		}
 		// interface PageState {}
 		// interface Platform {}
 	}

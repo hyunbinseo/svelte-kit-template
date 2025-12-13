@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$env/static/private';
@@ -45,7 +46,14 @@ export const authenticate = async (_input: PayloadInput) => {
 		.sign(SECRET_NEW);
 
 	const event = getRequestEvent();
-	event.cookies.set(AUTH_COOKIE_NAME, jwt, { path: '/', expires: expiresAt });
+
+	event.cookies.set(AUTH_COOKIE_NAME, jwt, {
+		path: '/',
+		expires: expiresAt,
+		// See https://github.com/sveltejs/kit/issues/10438
+		secure: !dev || event.url.protocol === 'https:',
+	});
+
 	event.locals.session = input;
 
 	redirect(307, resolve('/')); // NOTE Update as needed

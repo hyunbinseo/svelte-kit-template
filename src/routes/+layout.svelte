@@ -9,9 +9,9 @@
 
 	let { children } = $props();
 
-	// Reference https://svelte.dev/docs/svelte/context
 	let app = $state<AppState>({ isOnline: undefined });
-	setAppState(app);
+
+	setAppState(app); // See https://svelte.dev/docs/svelte/context
 </script>
 
 <svelte:head>

@@ -15,5 +15,5 @@ export default defineConfig({
 // | Safari  | 16     | 16.4   |
 // | Firefox | 104    | 115\*  |
 //
-// Reference https://caniuse.com/sr_es14
-// Reference https://vite.dev/guide/build.html
+// See https://caniuse.com/sr-es14
+// See https://vite.dev/guide/build.html

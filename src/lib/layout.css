@@ -14,8 +14,8 @@
 	}
 }
 
-/* Create component utilities instead of adding them in the @layer CSS at-rules */
-/* Reference https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
+/* Component utilities support autocomplete unlike `@layer` CSS at-rules */
+/* See https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
 
 @utility required-indicator {
 	content: '*';

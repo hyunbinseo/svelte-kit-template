@@ -9,7 +9,7 @@
 </div>
 
 <style lang="postcss">
-	div :global label {
+	div.contents :global label {
 		&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
 			display: flex;
 			flex-direction: row;
@@ -19,7 +19,7 @@
 		> span:first-child {
 			+ select,
 				+ textarea,
-				/* Reference https://tailwindcss-forms.vercel.app/kitchen-sink.html */
+				/* See https://tailwindcss-forms.vercel.app/kitchen-sink.html */
 				+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
 				display: block;
 				margin-top: calc(var(--spacing) * 1);

@@ -11,6 +11,6 @@ writeFileSync(
 	envFile,
 	`
 JWT_SECRET_NEW="${randomBytes(32).toString('base64')}"
-JWT_SECRET_OLD="${randomBytes(32).toString('base64')}"
+JWT_SECRET_OLD=""
 `.slice(1),
 );

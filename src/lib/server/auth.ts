@@ -4,9 +4,24 @@ import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$env/static/private';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_EXPIRES_IN, JWT_ALGORITHM } from '$lib/config';
 import { error, redirect } from '@sveltejs/kit';
 import { jwtVerify, SignJWT } from 'jose';
+import { minLength, parse, pipe, string, transform } from 'valibot';
 
-const SECRET_NEW = new TextEncoder().encode(JWT_SECRET_NEW);
-const SECRET_OLD = new TextEncoder().encode(JWT_SECRET_OLD);
+const SECRET_NEW = parse(
+	pipe(
+		string(),
+		minLength(1),
+		transform((value) => new TextEncoder().encode(value)),
+	),
+	JWT_SECRET_NEW,
+);
+
+const SECRET_OLD = parse(
+	pipe(
+		string(),
+		transform((value) => (!value ? null : new TextEncoder().encode(value))),
+	),
+	JWT_SECRET_OLD,
+);
 
 export type PayloadInput = {
 	sub: string; // Subject
@@ -37,6 +52,9 @@ export const authenticate = async (_input: PayloadInput) => {
 };
 
 export const verifyJWT = async (jwt: string) => {
+	if (!SECRET_OLD) {
+		return await jwtVerify<Payload>(jwt, SECRET_NEW);
+	}
 	try {
 		return await jwtVerify<Payload>(jwt, SECRET_NEW);
 	} catch {

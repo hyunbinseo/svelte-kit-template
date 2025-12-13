@@ -14,11 +14,11 @@ const self = globalThis.self as unknown as ServiceWorkerGlobalScope;
 const assets: ReadonlySet<string> = new Set([...build, ...files]);
 
 self.addEventListener('install', (event) => {
-	return;
+	return; // NOTE Delete this to cache all static assets
 	event.waitUntil(
 		(async () => {
 			const cache = await caches.open(version);
-			await cache.addAll([]);
+			await cache.addAll(Array.from(assets));
 		})(),
 	);
 });

@@ -1,13 +1,18 @@
 <script lang="ts">
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
-	import { FormSchema } from './ids';
+	import { PublicAddIdSchema } from './ids';
 	import { addId, getIds } from './ids.remote';
 </script>
 
 <main class="p-8">
 	<h2 class="text-xl font-bold">Remote Functions</h2>
 	<StyledLabels>
-		<form {...addId.preflight(FormSchema)} oninput={() => addId.validate()} class="mt-4">
+		<form
+			{...addId.preflight(PublicAddIdSchema)}
+			oninput={() => addId.validate({ preflightOnly: true })}
+			onchange={() => addId.validate()}
+			class="mt-4"
+		>
 			<fieldset disabled={!!addId.pending} class="w-fit">
 				<label>
 					<span class="text-sm font-bold after:required-indicator">UUID</span>

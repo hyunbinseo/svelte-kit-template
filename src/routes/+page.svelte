@@ -25,7 +25,7 @@
 					/>
 				</label>
 				<!-- eslint-disable-next-line svelte/require-each-key -->
-				{#each addId.fields.uuid.issues() ?? [] as issue}
+				{#each addId.fields.uuid.issues() as issue}
 					<p>{issue.message}</p>
 				{/each}
 				<div

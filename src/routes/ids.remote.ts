@@ -1,19 +1,19 @@
 import { form, query } from '$app/server';
 import { mockDB } from '$lib/server/db';
-import { check, object, pipe, string, uuid } from 'valibot';
+import { invalid } from '@sveltejs/kit';
+import { PublicAddIdSchema } from './ids';
 
 export const getIds = query(() => mockDB.select());
 
-const AddIdSchema = object({
-	uuid: pipe(
-		string(),
-		uuid(),
-		check((uuid) => !mockDB.select().has(uuid), 'Existing UUID'),
-	),
-});
+// NOTE A separate private schema can be used (e.g. verifying JWT)
+export const addId = form(PublicAddIdSchema, async (data, issue) => {
+	const delay = Math.round(500 * (1 + Math.random()));
+	await new Promise((resolve) => setTimeout(resolve, delay));
 
-export const addId = form(AddIdSchema, async ({ uuid }) => {
-	await new Promise((resolve) => setTimeout(resolve, 500 * (1 + Math.random())));
-	mockDB.insert(uuid);
+	if (mockDB.select().has(data.uuid)) {
+		invalid(issue.uuid('Existing UUID'));
+	}
+
+	mockDB.insert(data.uuid);
 	await getIds().refresh();
 });

@@ -10,6 +10,10 @@
 
 <style lang="postcss">
 	div.contents :global label {
+		:user-invalid,
+		[aria-invalid='true'] {
+			border-color: var(--color-red-800);
+		}
 		&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
 			display: flex;
 			flex-direction: row;
@@ -21,8 +25,9 @@
 				+ textarea,
 				/* See https://tailwindcss-forms.vercel.app/kitchen-sink.html */
 				+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
-				display: block;
 				margin-top: calc(var(--spacing) * 1);
+				display: block;
+				width: 100%;
 			}
 		}
 	}

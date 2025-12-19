@@ -1,6 +1,12 @@
 import { dev } from '$app/environment';
 import { AUTH_COOKIE_NAME } from '$lib/config';
 import { verifyJWT } from '$lib/server/auth';
+import '@valibot/i18n/kr';
+import * as v from 'valibot';
+
+export const init = () => {
+	v.setGlobalConfig({ lang: 'kr' });
+};
 
 export const handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
@@ -16,6 +22,9 @@ export const handle = async ({ event, resolve }) => {
 		}
 	}
 
-	const response = await resolve(event);
+	const response = await resolve(event, {
+		transformPageChunk: ({ html }) => html.replace('%lang%', 'ko'),
+	});
+
 	return response;
 };

@@ -2,8 +2,9 @@ import { dev } from '$app/environment';
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { env } from '$env/dynamic/private';
+import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_EXPIRES_IN, JWT_ALGORITHM } from '$lib/config';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { jwtVerify, SignJWT } from 'jose';
 import { minLength, optional, parse, pipe, string, transform } from 'valibot';
 
@@ -48,7 +49,7 @@ export const authenticate = async (_input: PayloadInput) => {
 
 	event.locals.session = input;
 
-	redirect(307, resolve('/')); // NOTE Update as needed
+	redirect(307, PUBLIC_LOGIN_REDIRECT);
 };
 
 export const verifyJWT = async (jwt: string) => {
@@ -64,6 +65,6 @@ export const verifyJWT = async (jwt: string) => {
 
 export const getSession = () => {
 	const event = getRequestEvent();
-	if (!event.locals.session) error(401);
+	if (!event.locals.session) redirect(307, resolve('/login'));
 	return event.locals.session;
 };

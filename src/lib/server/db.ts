@@ -1,9 +1,9 @@
-export const mockDB = {
-	records: new Set(Array.from({ length: 10 }, (): string => crypto.randomUUID())),
-	select() {
-		return this.records;
-	},
-	insert(uuid: string) {
-		this.records.add(uuid);
-	},
+type LoginAttempt = {
+	id: string;
+	code: string;
+	createdAt: number;
+	expiresAt: number;
+	attempts?: number;
 };
+
+export const mockDB = new Map<string, LoginAttempt>();

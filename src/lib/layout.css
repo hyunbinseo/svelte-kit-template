@@ -5,6 +5,17 @@
 
 @theme {
 	--font-sans: 'SUIT Variable';
+
+	--animate-loop-background: loop-background 3s infinite;
+
+	@keyframes loop-background {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
+	}
 }
 
 @layer base {
@@ -18,11 +29,26 @@
 /* See https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
 
 @utility btn {
-	@apply rounded px-3.5 py-2.25 text-[15px] font-bold shadow outline transition-colors disabled:opacity-30;
+	@apply rounded px-3.5 py-2.25 text-[15px] font-bold shadow outline transition-colors disabled:grayscale-100;
+}
+
+@utility btn-busy {
+	@apply motion-safe:animate-loop-background;
+}
+
+@utility btn-bg-* {
+	background-size: 200% 100%;
+	background-image: linear-gradient(
+		90deg,
+		--value(--color-*) 0%,
+		--value(--color-*) 50%,
+		white 75%,
+		--value(--color-*) 100%
+	);
 }
 
 @utility btn-primary {
-	@apply bg-amber-200 outline-amber-300 not-disabled:hover:bg-amber-300;
+	@apply btn-bg-amber-200 outline-amber-300 not-disabled:hover:bg-amber-300;
 }
 
 @custom-variant coarse {

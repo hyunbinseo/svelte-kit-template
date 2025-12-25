@@ -46,7 +46,7 @@
 							/>
 							{@render formIssues(sendCode.fields.email.issues())}
 						</label>
-						<button class="btn btn-primary">인증번호 전송</button>
+						<button class="btn btn-primary disabled:btn-busy">인증번호 전송</button>
 					</fieldset>
 				</form>
 			{:else}
@@ -74,7 +74,7 @@
 							/>
 							{@render formIssues(validateCode.fields.code.issues())}
 						</label>
-						<button class="btn btn-primary">로그인</button>
+						<button class="btn btn-primary disabled:btn-busy">로그인</button>
 					</fieldset>
 				</form>
 			{/if}

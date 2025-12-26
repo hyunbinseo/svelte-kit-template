@@ -1,5 +1,5 @@
 import { CODE_LENGTH } from '$lib/config';
-import { digits, email, length, object, pipe, string, uuid } from 'valibot';
+import { digits, email, length, object, pipe, string, ulid } from 'valibot';
 
 export const CODE_BLOCKED = '새로운 인증번호로 재시도해주세요.';
 export const CODE_EXPIRED = '만료된 인증번호입니다.';
@@ -11,7 +11,7 @@ export const PublicSendCodeSchema = object({
 });
 
 export const PublicValidateCodeSchema = object({
-	id: pipe(string(), uuid()),
+	id: pipe(string(), ulid()),
 	code: pipe(string(), digits(), length(CODE_LENGTH)),
 	email: pipe(string(), email()),
 });

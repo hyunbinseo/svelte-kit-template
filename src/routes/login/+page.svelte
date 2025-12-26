@@ -3,7 +3,8 @@
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
 	import { CODE_LENGTH } from '$lib/config';
 	import { CODE_BLOCKED, CODE_EXPIRED, PublicSendCodeSchema, PublicValidateCodeSchema } from '.';
-	import { sendCode as _sendCode, validateCode as _validateCode } from './index.remote';
+	import { sendCode as _sendCode } from './send.remote';
+	import { validateCode as _validateCode } from './validate.remote';
 
 	const { data } = $props();
 

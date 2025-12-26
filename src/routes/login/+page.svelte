@@ -3,10 +3,18 @@
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
 	import { CODE_LENGTH } from '$lib/config';
 	import { CODE_BLOCKED, CODE_EXPIRED, PublicSendCodeSchema, PublicValidateCodeSchema } from '.';
-	import { sendCode, validateCode } from './index.remote';
+	import { sendCode as _sendCode, validateCode as _validateCode } from './index.remote';
 
-	// FIXME Previous attempt persists on logout redirect
+	const { data } = $props();
+
+	// NOTE Previous attempt persists on logout redirect
 	// See https://github.com/sveltejs/kit/issues/14802
+
+	// svelte-ignore state_referenced_locally
+	const sendCode = _sendCode.for(data.formId);
+
+	// svelte-ignore state_referenced_locally
+	const validateCode = _validateCode.for(data.formId);
 
 	$effect(() => {
 		if (sendCode.result) {

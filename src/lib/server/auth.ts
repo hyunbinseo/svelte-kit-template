@@ -21,7 +21,7 @@ export type PayloadInput = {
 	sub: string; // Subject
 };
 
-type Payload = PayloadInput & {
+export type Payload = PayloadInput & {
 	jti: string; // JWT ID
 	iat: number; // Issued At
 	exp: number; // Expiration Time

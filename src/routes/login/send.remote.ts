@@ -13,13 +13,13 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 		(await db.query.userTable.findFirst({
 			orderBy: { id: 'desc' },
 			where: {
-				contact: data.email,
+				contact: data.contact,
 				deactivatedAt: { isNull: true },
 			},
 		})) ??
 		(await db
 			.insert(userTable)
-			.values({ contact: data.email })
+			.values(data)
 			.returning()
 			.then((users) => users[0]))!;
 
@@ -39,7 +39,7 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 	});
 
 	if (existingLogin && !existingLogin.attempts.some((a) => a.isSuccessful)) {
-		invalid(issue.email(RATE_LIMITED));
+		invalid(issue.contact(RATE_LIMITED));
 	}
 
 	const login = (await db
@@ -54,11 +54,11 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 		})
 		.then((login) => login[0]))!;
 
-	// TODO Implement email send logic
-	if (dev) console.table({ email: data.email, code: login.code });
+	// TODO Implement actual send logic
+	if (dev) console.table({ contact: data.contact, code: login.code });
 
 	return {
 		id: login.id,
-		email: data.email,
+		contact: data.contact,
 	};
 });

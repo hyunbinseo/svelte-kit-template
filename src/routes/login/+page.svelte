@@ -43,11 +43,11 @@
 						<label>
 							<span>이메일</span>
 							<input
-								{...sendCode.fields.email.as('email')}
+								{...sendCode.fields.contact.as('email')}
 								placeholder="username@example.com"
 								autocomplete="email"
 							/>
-							{@render formIssues(sendCode.fields.email.issues())}
+							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>
 						<button class="btn btn-primary disabled:btn-busy">인증번호 전송</button>
 					</fieldset>
@@ -60,10 +60,10 @@
 				>
 					<fieldset disabled={!!validateCode.pending} class="contents">
 						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
-						<input {...validateCode.fields.email.as('hidden', sendCode.result.email)} />
+						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />
 						<label>
 							<span>이메일</span>
-							<input disabled type="email" value={sendCode.result.email} class="bg-gray-200" />
+							<input disabled type="email" value={sendCode.result.contact} class="bg-gray-200" />
 						</label>
 						<label>
 							<span>인증번호</span>

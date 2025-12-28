@@ -7,11 +7,11 @@ export const CODE_INVALID = '잘못된 인증번호입니다.';
 export const RATE_LIMITED = '잠시 뒤 재시도해주세요.';
 
 export const PublicSendCodeSchema = object({
-	email: pipe(string(), email()),
+	contact: pipe(string(), email()),
 });
 
 export const PublicValidateCodeSchema = object({
 	id: pipe(string(), ulid()),
 	code: pipe(string(), digits(), length(CODE_LENGTH)),
-	email: pipe(string(), email()),
+	contact: pipe(string(), email()),
 });

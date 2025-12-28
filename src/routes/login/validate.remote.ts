@@ -19,7 +19,7 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 			attempts: { columns: { id: true } },
 			activeUser: {
 				columns: { id: true },
-				where: { contact: data.email },
+				where: { contact: data.contact },
 			},
 		},
 	});

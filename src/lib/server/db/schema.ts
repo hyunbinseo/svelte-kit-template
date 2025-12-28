@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { randomInt } from 'node:crypto';
 import { ulid } from 'ulid';
-import { CODE_EXPIRES_IN, CODE_LENGTH } from '../../config';
+import { CODE_EXPIRES_IN, CODE_LENGTH } from '../../config.ts';
 
 export const userTable = sqliteTable('user', {
 	id: text().primaryKey().$default(ulid),

@@ -7,6 +7,14 @@
 - PREFER arrow function expressions over function declarations
 - PREFER type over interface
 
+## Drizzle ORM
+
+For `db.query` API, the object key should follow this order:
+
+```
+orderBy, offset, where, columns, extras, with
+```
+
 ## Svelte
 
 - ALWAYS use the Svelte 5 API

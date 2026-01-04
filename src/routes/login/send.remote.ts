@@ -25,11 +25,11 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 
 	const existingLogin = await db.query.loginTable.findFirst({
 		orderBy: { id: 'desc' },
-		columns: {},
 		where: {
 			userId: user.id,
 			expiresAt: { gte: new Date() },
 		},
+		columns: {},
 		with: {
 			attempts: {
 				orderBy: { id: 'desc' },

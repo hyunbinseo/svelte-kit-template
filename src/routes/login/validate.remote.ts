@@ -13,13 +13,13 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 
 	const login = await db.query.loginTable.findFirst({
 		orderBy: { id: 'desc' },
-		columns: { code: true, expiresAt: true },
 		where: { id: data.id },
+		columns: { code: true, expiresAt: true },
 		with: {
 			attempts: { columns: { id: true } },
 			activeUser: {
-				columns: { id: true },
 				where: { contact: data.contact },
+				columns: { id: true },
 			},
 		},
 	});

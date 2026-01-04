@@ -6,7 +6,7 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			session?: Pick<Payload, 'sub'>;
+			session?: Pick<Payload, 'jti' | 'sub'>;
 		}
 		interface PageData {
 			title: string;

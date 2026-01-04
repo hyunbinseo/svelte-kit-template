@@ -21,7 +21,7 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 			.insert(userTable)
 			.values(data)
 			.returning()
-			.then((users) => users[0]))!;
+			.then(([user]) => user))!;
 
 	const existingLogin = await db.query.loginTable.findFirst({
 		orderBy: { id: 'desc' },
@@ -52,7 +52,7 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 			id: loginTable.id,
 			code: loginTable.code,
 		})
-		.then((login) => login[0]))!;
+		.then(([login]) => login))!;
 
 	// TODO Implement actual send logic
 	if (dev) console.table({ contact: data.contact, code: login.code });

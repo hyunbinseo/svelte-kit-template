@@ -1,9 +1,10 @@
 import { form, getRequestEvent } from '$app/server';
+import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { CODE_MAX_ATTEMPTS } from '$lib/config';
-import { authenticate } from '$lib/server/auth';
+import { issueToken } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { loginAttemptTable } from '$lib/server/db/schema';
-import { error, invalid } from '@sveltejs/kit';
+import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
 import { CODE_INVALID, PublicValidateCodeSchema } from '.';
 import { checkSession } from './index.server';
@@ -12,7 +13,6 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 	checkSession();
 
 	const login = await db.query.loginTable.findFirst({
-		orderBy: { id: 'desc' },
 		where: { id: data.id },
 		columns: { code: true, expiresAt: true },
 		with: {
@@ -47,5 +47,6 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 
 	if (!isCorrect) invalid(issue.code(CODE_INVALID));
 
-	return await authenticate({ sub: login.activeUser.id });
+	await issueToken({ userId: login.activeUser.id });
+	redirect(307, PUBLIC_LOGIN_REDIRECT);
 });

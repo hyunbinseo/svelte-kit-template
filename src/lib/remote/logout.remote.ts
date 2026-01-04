@@ -1,15 +1,23 @@
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
 import { AUTH_COOKIE_NAME } from '$lib/config';
+import { db } from '$lib/server/db';
+import { tokenBanTable } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
 
-export const logout = form(() => {
-	try {
-		const event = getRequestEvent();
-		if (!event.locals.session) return;
-		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
-		delete event.locals.session;
-	} finally {
-		redirect(303, resolve('/login'));
-	}
+export const logout = form(async () => {
+	const event = getRequestEvent();
+	if (!event.locals.session) return;
+
+	await db.insert(tokenBanTable).values({
+		tokenId: event.locals.session.jti,
+		type: 'logout',
+		effectiveAt: new Date(),
+		ip: event.getClientAddress(),
+	});
+
+	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+	delete event.locals.session;
+
+	redirect(303, resolve('/login'));
 });

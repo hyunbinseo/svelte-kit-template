@@ -1,27 +1,33 @@
 import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
+import { IS_ALLOW_UNREGISTERED } from '$lib/config.server';
 import { db } from '$lib/server/db';
 import { loginTable, userTable } from '$lib/server/db/schema';
 import { invalid } from '@sveltejs/kit';
-import { PublicSendCodeSchema, RATE_LIMITED } from '.';
+import { PublicSendCodeSchema, RATE_LIMITED, UNREGISTERED } from '.';
 import { checkSession } from './index.server';
 
 export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 	checkSession();
 
-	const user =
-		(await db.query.userTable.findFirst({
-			orderBy: { id: 'desc' },
-			where: {
-				contact: data.contact,
-				deactivatedAt: { isNull: true },
-			},
-		})) ??
-		(await db
+	let user = await db.query.userTable.findFirst({
+		orderBy: { id: 'desc' },
+		where: {
+			contact: data.contact,
+			deactivatedAt: { isNull: true },
+		},
+	});
+
+	if (!user) {
+		if (!IS_ALLOW_UNREGISTERED) {
+			invalid(issue.contact(UNREGISTERED));
+		}
+		user = (await db
 			.insert(userTable)
 			.values(data)
 			.returning()
 			.then(([user]) => user))!;
+	}
 
 	const existingLogin = await db.query.loginTable.findFirst({
 		orderBy: { id: 'desc' },

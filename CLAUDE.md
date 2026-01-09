@@ -2,6 +2,14 @@
 
 - AVOID adding code comments
 
+## UI Reference
+
+- Tailwind v4 configuration, utility components:
+  - `src/lib/layout.css`
+- Form markup and styling - avoid inline classes:
+  - `src/routes/login/+page.svelte`
+  - `src/lib/components/StyledLabels.svelte`
+
 ## TypeScript
 
 - PREFER arrow function expressions over function declarations
@@ -48,7 +56,7 @@ orderBy, offset, where, columns, extras, with
 
 #### Overriding derived values
 
-- You can reassign a derived value for features like optimistic UI. It will go back to the `$derived` value once an update in its dependencies happen. For example:
+- You can reassign a derived value for features like optimistic UI. It will go back to the `$derived` value once an update in its dependencies happens. For example:
 
 ```svelte
 <script>

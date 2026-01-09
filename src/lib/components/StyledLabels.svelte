@@ -9,7 +9,7 @@
 </div>
 
 <style lang="postcss">
-	div.contents :global label {
+	div :global label {
 		:user-invalid,
 		[aria-invalid='true'] {
 			border-color: var(--color-red-800);
@@ -25,7 +25,7 @@
 				+ textarea,
 				/* See https://tailwindcss-forms.vercel.app/kitchen-sink.html */
 				+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
-				margin-top: calc(var(--spacing) * 1);
+				margin-top: var(--spacing);
 				display: block;
 				width: 100%;
 			}

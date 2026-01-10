@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { resolve } from 'node:path';
 
-export const root = join(import.meta.dirname, '..');
+export const root = resolve(import.meta.dirname, '..');
 
-if (!existsSync(join(root, 'package.json'))) throw new Error();
+if (!existsSync(resolve(root, 'package.json'))) throw new Error();

@@ -4,13 +4,13 @@
 		"paths": {},
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
-		"allowImportingTsExtensions": true
+		"allowImportingTsExtensions": true,
 	},
 	"include": [
 		"./**/*.js",
 		"./**/*.ts",
 		// modify as needed
 		"../src/lib/**/*.js",
-		"../src/lib/**/*.ts"
-	]
+		"../src/lib/**/*.ts",
+	],
 }

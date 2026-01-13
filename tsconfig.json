@@ -22,8 +22,8 @@
 		"noUncheckedIndexedAccess": true,
 		"exactOptionalPropertyTypes": true,
 		"allowUnreachableCode": false,
-		"allowUnusedLabels": false
-	}
+		"allowUnusedLabels": false,
+	},
 	// Set these in `config.kit.typescript.config` instead
 	// See https://svelte.dev/docs/kit/configuration#typescript
 	// "include": []

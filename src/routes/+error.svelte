@@ -20,5 +20,8 @@
 			알 수 없는 오류가 발생했습니다.
 		{/if}
 	</h1>
-	<a href={resolve('/')} class="mt-4 inline-block btn btn-primary">처음으로</a>
+	<a
+		href={resolve('/')}
+		class="mt-4 inline-block btn btn-primary">처음으로</a
+	>
 </main>

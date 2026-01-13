@@ -5,11 +5,13 @@
 	"trailingComma": "all",
 	"printWidth": 100,
 	"endOfLine": "auto",
+	"singleAttributePerLine": true,
 	"plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
 	"overrides": [
 		{ "files": "*.jsonc", "options": { "trailingComma": "none" } },
 		{ "files": "*.md", "options": { "useTabs": false, "tabWidth": 2 } },
-		{ "files": "*.svelte", "options": { "parser": "svelte" } }
+		{ "files": "*.svelte", "options": { "parser": "svelte" } },
+		{ "files": "tsconfig*.json", "options": { "parser": "jsonc" } }
 	],
 	"tailwindStylesheet": "./src/lib/layout.css"
 }

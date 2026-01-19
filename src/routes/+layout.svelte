@@ -5,13 +5,10 @@
 	import suitVariableWoff2 from '@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.woff2?url';
 	import { slide } from 'svelte/transition';
 	import { checkBrowserScript } from '.';
-	import { setAppState, type AppState } from './context';
 
 	let { children } = $props();
 
-	let app = $state<AppState>({ isOnline: undefined });
-
-	setAppState(app); // See https://svelte.dev/docs/svelte/context
+	let isOnline = $state<boolean>();
 </script>
 
 <svelte:head>
@@ -31,11 +28,11 @@
 	/>
 </svelte:head>
 
-<svelte:window bind:online={app.isOnline} />
+<svelte:window bind:online={isOnline} />
 
 <noscript>자바스크립트를 사용할 수 없습니다.</noscript>
 
-{#if app.isOnline === false}
+{#if isOnline === false}
 	<p transition:slide>인터넷에 연결되어 있지 않습니다.</p>
 {/if}
 

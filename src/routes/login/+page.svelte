@@ -15,13 +15,10 @@
 
 	// NOTE Cannot programmatically reset form results
 	// See https://github.com/sveltejs/kit/pull/14779
-	let message = $derived.by(() => {
-		if (validateCode.result?.success !== false) return null;
-		return { CODE_BLOCKED, CODE_EXPIRED }[validateCode.result.code];
-	});
+	let validateResult = $derived(validateCode.result);
 
 	$effect(() => {
-		if (sendCode.result) message = null;
+		if (sendCode.result) validateResult = undefined;
 	});
 </script>
 
@@ -32,8 +29,11 @@
 	<div class="m-auto w-full max-w-sm bg-white/90 px-6 py-8 backdrop-blur">
 		<h1 class="text-2xl font-bold">로그인</h1>
 		<StyledLabels>
-			{#if !sendCode.result || message}
-				<p class="mt-1 text-red-600 empty:hidden">{message}</p>
+			{#if !sendCode.result || validateResult?.success === false}
+				{#if validateResult}
+					{@const message = { CODE_BLOCKED, CODE_EXPIRED }[validateResult.code]}
+					<p class="mt-1 text-red-600">{message}</p>
+				{/if}
 				<form
 					{...sendCode.preflight(PublicSendCodeSchema)}
 					onchange={() => sendCode.validate({ preflightOnly: true })}

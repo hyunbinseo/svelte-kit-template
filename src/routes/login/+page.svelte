@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_SITE_NAME } from '$env/static/public';
 	import { formIssues } from '$lib/components/FormIssues.svelte';
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
 	import { CODE_LENGTH } from '$lib/config';
@@ -22,12 +23,17 @@
 	});
 </script>
 
-<main
-	class="flex min-h-svh bg-cover bg-center py-16"
+<div
+	class="flex h-svh overflow-y-auto bg-cover bg-center xs:py-16"
 	style:background-image="url('https://images.unsplash.com/photo-1761880674035-125e9fd849fb?q=80&w=2340&auto=format')"
 >
-	<div class="m-auto w-full max-w-sm bg-white/90 px-6 py-8 backdrop-blur">
-		<h1 class="text-2xl font-bold">로그인</h1>
+	<main
+		class="m-auto mt-0 w-full bg-white/90 px-6 py-8 backdrop-blur xs:mt-auto xs:w-sm xs:rounded-lg"
+	>
+		<header>
+			<p class="text-sm text-gray-600">{PUBLIC_SITE_NAME}</p>
+			<h1 class="text-2xl font-bold">로그인</h1>
+		</header>
 		<StyledLabels>
 			{#if !sendCode.result || validateResult?.success === false}
 				{#if validateResult}
@@ -37,7 +43,7 @@
 				<form
 					{...sendCode.preflight(PublicSendCodeSchema)}
 					onchange={() => sendCode.validate({ preflightOnly: true })}
-					class="mt-4 flex flex-col gap-y-4"
+					class="mt-6 flex flex-col gap-y-4"
 				>
 					<fieldset
 						disabled={!!sendCode.pending}
@@ -45,10 +51,13 @@
 					>
 						<label>
 							<span>이메일</span>
+							<!-- NOTE Virtual keyboard might not open despite autofocus (e.g. no prior user interaction) -->
+							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...sendCode.fields.contact.as('email')}
 								placeholder="username@example.com"
 								autocomplete="email"
+								autofocus
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>
@@ -59,7 +68,7 @@
 				<form
 					{...validateCode.preflight(PublicValidateCodeSchema)}
 					onchange={() => validateCode.validate({ preflightOnly: true })}
-					class="mt-4 flex flex-col gap-y-4"
+					class="mt-6 flex flex-col gap-y-4"
 				>
 					<fieldset
 						disabled={!!validateCode.pending}
@@ -94,5 +103,5 @@
 				</form>
 			{/if}
 		</StyledLabels>
-	</div>
-</main>
+	</main>
+</div>

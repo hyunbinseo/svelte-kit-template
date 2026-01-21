@@ -4,6 +4,8 @@
 @plugin '@tailwindcss/forms';
 
 @theme {
+	--breakpoint-xs: 28rem; /* iPhone 17 Pro Max: 440px */
+
 	--font-sans: 'SUIT Variable';
 
 	--animate-loop-background: loop-background 3s infinite;

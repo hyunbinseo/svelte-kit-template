@@ -20,6 +20,11 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 			activeUser: {
 				where: { contact: data.contact },
 				columns: { id: true },
+				with: {
+					activeRoles: {
+						columns: { role: true },
+					},
+				},
 			},
 		},
 	});
@@ -47,6 +52,10 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 
 	if (!isCorrect) invalid(issue.code(CODE_INVALID));
 
-	await issueToken({ userId: login.activeUser.id });
+	await issueToken({
+		sub: login.activeUser.id,
+		roles: new Set(login.activeUser.activeRoles.map((row) => row.role)),
+	});
+
 	redirect(307, PUBLIC_LOGIN_REDIRECT);
 });

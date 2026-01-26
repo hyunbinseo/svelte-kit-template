@@ -1,12 +1,30 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { randomInt } from 'node:crypto';
 import { ulid } from 'ulid';
 import { AUTH_TOKEN_EXPIRES_IN, CODE_EXPIRES_IN, CODE_LENGTH } from '../../config.ts';
+import type { Role } from '../../enums.ts';
 
 export const userTable = sqliteTable('user', {
 	id: text().primaryKey().$default(ulid),
 	contact: text().notNull(),
 	deactivatedAt: integer({ mode: 'timestamp' }),
+	deactivatedBy: text().references((): AnySQLiteColumn => userTable.id),
+});
+
+export const userRoleTable = sqliteTable('user_role', {
+	id: text().primaryKey().$default(ulid),
+	userId: text()
+		.notNull()
+		.references(() => userTable.id),
+	role: text().notNull().$type<Role>(),
+	assignedAt: integer({ mode: 'timestamp' })
+		.notNull()
+		.$default(() => new Date()),
+	assignedBy: text()
+		.notNull()
+		.references(() => userTable.id),
+	revokedAt: integer({ mode: 'timestamp' }),
+	revokedBy: text().references(() => userTable.id),
 });
 
 export const loginTable = sqliteTable('login', {
@@ -55,8 +73,11 @@ export const tokenBanTable = sqliteTable('token_ban', {
 		.references(() => tokenTable.id),
 	type: text({ enum: ['logout', 'refresh'] }).notNull(),
 	effectiveAt: integer({ mode: 'timestamp' }).notNull(),
-	createdAt: integer({ mode: 'timestamp' })
+	bannedAt: integer({ mode: 'timestamp' })
 		.notNull()
 		.$default(() => new Date()),
+	bannedBy: text()
+		.notNull()
+		.references(() => userTable.id),
 	ip: text().notNull(),
 });

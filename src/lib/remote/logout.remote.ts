@@ -13,6 +13,7 @@ export const logout = form(async () => {
 		tokenId: event.locals.session.jti,
 		type: 'logout',
 		effectiveAt: new Date(),
+		bannedBy: event.locals.session.sub,
 		ip: event.getClientAddress(),
 	});
 

@@ -27,6 +27,7 @@ export const handle = async ({ event, resolve }) => {
 				event.locals.session = {
 					jti: verified.payload.jti,
 					sub: verified.payload.sub,
+					roles: new Set(verified.payload.roles),
 				};
 			}
 

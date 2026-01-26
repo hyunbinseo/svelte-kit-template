@@ -17,11 +17,26 @@
 
 ## Drizzle ORM
 
+- `src/lib/server/db/client.ts`
+- `src/lib/server/db/schema.ts`
+- `src/lib/server/db/relations.ts`
+
+Drizzle ORM v1 and Relational Queries v2 are used:
+
+```ts
+const response = db.query.users.findMany({
+  orderBy: { id: 'asc' }, // is now an object
+  where: { id: { gt: 10 }, age: 15 }, // object
+});
+```
+
 For `db.query` API, the object key should follow this order:
 
 ```
 orderBy, offset, where, columns, extras, with
 ```
+
+SQLite async transactions do not work, so avoid them and add a MAYBE comment when needed
 
 ## Svelte
 
@@ -63,7 +78,7 @@ orderBy, offset, where, columns, extras, with
   let post = $props().post;
   let likes = $derived(post.likes); // writable
   async function onclick() {
-    likes += 1;
+    likes += 1; // can be temporarily overridden
     try {
       await post.like();
     } catch {

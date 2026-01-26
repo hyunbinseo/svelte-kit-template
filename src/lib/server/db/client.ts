@@ -1,7 +1,7 @@
 import { env } from '$env/dynamic/private';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { relations } from './relations';
-import * as schema from './schema';
+import { relations } from './relations.ts';
+import * as schema from './schema.ts';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 

@@ -7,7 +7,7 @@ import type { Role } from '$lib/enums';
 import { redirect } from '@sveltejs/kit';
 import { jwtVerify, SignJWT } from 'jose';
 import { minLength, optional, parse, pipe, string, transform } from 'valibot';
-import { db } from './db';
+import { db } from './db/client';
 import { tokenBanTable, tokenTable } from './db/schema';
 
 const SecretSchema = pipe(
@@ -80,6 +80,8 @@ export const issueToken = async (
 export const refreshToken = async () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
+
+	// MAYBE Use transaction for ban insertion + token issuing
 
 	await db.insert(tokenBanTable).values({
 		tokenId: event.locals.session.jti,

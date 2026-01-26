@@ -1,9 +1,9 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { resolve } from 'node:path';
 import { env, loadEnvFile } from 'node:process';
-import { relations } from '../../src/lib/server/db/relations.ts';
-import * as schema from '../../src/lib/server/db/schema.ts';
-import { root } from '../utilities.ts';
+import { relations } from '../src/lib/server/db/relations.ts';
+import * as schema from '../src/lib/server/db/schema.ts';
+import { root } from './utilities.ts';
 
 loadEnvFile(resolve(root, '.env'));
 

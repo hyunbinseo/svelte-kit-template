@@ -1,7 +1,7 @@
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
 import { AUTH_COOKIE_NAME } from '$lib/config';
-import { db } from '$lib/server/db';
+import { db } from '$lib/server/db/client';
 import { tokenBanTable } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
 

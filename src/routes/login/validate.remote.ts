@@ -2,7 +2,7 @@ import { form, getRequestEvent } from '$app/server';
 import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { CODE_MAX_ATTEMPTS } from '$lib/config';
 import { issueToken } from '$lib/server/auth';
-import { db } from '$lib/server/db';
+import { db } from '$lib/server/db/client';
 import { loginAttemptTable } from '$lib/server/db/schema';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
@@ -43,6 +43,8 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 		Buffer.from(login.code), //
 		Buffer.from(data.code),
 	);
+
+	// MAYBE Use transaction for attempt insertion + token issuing
 
 	await db.insert(loginAttemptTable).values({
 		loginId: data.id,

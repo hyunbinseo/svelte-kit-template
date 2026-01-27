@@ -46,10 +46,12 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 
 	// MAYBE Use transaction for attempt insertion + token issuing
 
+	const event = getRequestEvent();
+
 	await db.insert(loginAttemptTable).values({
 		loginId: data.id,
 		isSuccessful: isCorrect,
-		ip: getRequestEvent().getClientAddress(),
+		ip: event.getClientAddress(),
 	});
 
 	if (!isCorrect) invalid(issue.code(CODE_INVALID));
@@ -58,6 +60,18 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 		sub: login.activeUser.id,
 		roles: new Set(login.activeUser.activeRoles.map((row) => row.role)),
 	});
+
+	const returnTo = event.url.searchParams.get('returnTo');
+
+	if (returnTo) {
+		const url = new URL(returnTo, event.url);
+		if (
+			url.origin === event.url.origin && //
+			url.pathname !== event.url.pathname
+		) {
+			redirect(307, url);
+		}
+	}
 
 	redirect(307, PUBLIC_LOGIN_REDIRECT);
 });

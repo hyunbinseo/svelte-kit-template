@@ -107,6 +107,10 @@ export const verifyToken = async (jwt: string) => {
 
 export const getSession = () => {
 	const event = getRequestEvent();
-	if (!event.locals.session) redirect(307, resolve('/login'));
+	if (!event.locals.session) {
+		const url = new URL(resolve('/login'), event.url);
+		url.searchParams.set('returnTo', event.url.pathname + event.url.search);
+		redirect(307, url);
+	}
 	return event.locals.session;
 };

@@ -1,14 +1,14 @@
 import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
 import { IS_ALLOW_UNREGISTERED } from '$lib/config.server';
+import { requireNoSession } from '$lib/server/auth';
 import { db } from '$lib/server/db/client';
 import { loginTable, userTable } from '$lib/server/db/schema';
 import { invalid } from '@sveltejs/kit';
 import { PublicSendCodeSchema, RATE_LIMITED, UNREGISTERED } from '.';
-import { checkSession } from './index.server';
 
 export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
-	checkSession();
+	requireNoSession();
 
 	let user = await db.query.userTable.findFirst({
 		orderBy: { id: 'desc' },

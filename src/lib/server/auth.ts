@@ -2,6 +2,7 @@ import { dev } from '$app/environment';
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { env } from '$env/dynamic/private';
+import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_DELAY, JWT_ALGORITHM } from '$lib/config';
 import type { Role } from '$lib/enums';
 import { redirect } from '@sveltejs/kit';
@@ -105,7 +106,7 @@ export const verifyToken = async (jwt: string) => {
 	}
 };
 
-export const getSession = () => {
+export const requireSession = () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) {
 		const url = new URL(resolve('/login'), event.url);
@@ -113,4 +114,9 @@ export const getSession = () => {
 		redirect(307, url);
 	}
 	return event.locals.session;
+};
+
+export const requireNoSession = () => {
+	const event = getRequestEvent();
+	if (event.locals.session) redirect(307, PUBLIC_LOGIN_REDIRECT);
 };

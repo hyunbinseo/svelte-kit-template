@@ -1,16 +1,15 @@
 import { form, getRequestEvent } from '$app/server';
 import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { CODE_MAX_ATTEMPTS } from '$lib/config';
-import { issueToken } from '$lib/server/auth';
+import { issueToken, requireNoSession } from '$lib/server/auth';
 import { db } from '$lib/server/db/client';
 import { loginAttemptTable } from '$lib/server/db/schema';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
 import { CODE_INVALID, PublicValidateCodeSchema } from '.';
-import { checkSession } from './index.server';
 
 export const validateCode = form(PublicValidateCodeSchema, async (data, issue) => {
-	checkSession();
+	requireNoSession();
 
 	const login = await db.query.loginTable.findFirst({
 		where: { id: data.id },

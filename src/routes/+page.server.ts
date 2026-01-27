@@ -1,8 +1,8 @@
-import { getSession } from '$lib/server/auth';
+import { requireSession } from '$lib/server/auth';
 import type { PageServerLoad } from './$types';
 
 export const load = (() => {
-	const session = getSession();
+	const session = requireSession();
 	return {
 		title: '홈',
 		subject: session.sub,

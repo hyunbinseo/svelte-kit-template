@@ -1,7 +1,7 @@
+import { requireNoSession } from '$lib/server/auth';
 import type { PageServerLoad } from './$types';
-import { checkSession } from './index.server';
 
 export const load = (() => {
-	checkSession();
+	requireNoSession();
 	return { title: '로그인' };
 }) satisfies PageServerLoad;

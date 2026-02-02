@@ -1,8 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
-import { env, loadEnvFile } from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { env } from 'node:process';
 
-loadEnvFile(fileURLToPath(new URL('.env', import.meta.url)));
+// NOTE `drizzle-kit` CLI automatically loads the `.env` file (and others)
+// `loadEnvFile` API in this file does not override pre-existing variables
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 

@@ -36,7 +36,37 @@ For `db.query` API, the object key should follow this order:
 orderBy, offset, where, columns, extras, with
 ```
 
-SQLite async transactions do not work, so avoid them and add a MAYBE comment when needed
+SQLite async transactions do not work, so avoid them and add a MAYBE comment when needed.
+
+## SvelteKit
+
+Form actions are defined using the `form` function. See `src/routes/login/` for conventions.
+
+```ts
+import { form } from '$app/server';
+import { db } from '$lib/server/db/client';
+import { invalid } from '@sveltejs/kit';
+import { nonEmpty, object, pipe, string } from 'valibot';
+
+// can be imported from a shared file
+const PostSchema = object({
+  title: pipe(string(), nonEmpty()),
+  content: pipe(string(), nonEmpty()),
+});
+
+export const createPost = form(PostSchema, async (data, issue) => {
+  // form data has already passed schema validation
+  if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
+
+  const newPost = (await db
+    .insert(postTable)
+    .values(data)
+    .returning()
+    .then(([post]) => post))!;
+
+  return newPost; // populates `createPost.result` in Svelte
+});
+```
 
 ## Svelte
 

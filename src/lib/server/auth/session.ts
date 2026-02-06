@@ -1,6 +1,6 @@
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
-import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
+import { LOGIN_REDIRECT_PATH } from '$lib/env';
 import { redirect } from '@sveltejs/kit';
 
 export const requireSession = () => {
@@ -15,5 +15,5 @@ export const requireSession = () => {
 
 export const requireNoSession = () => {
 	const event = getRequestEvent();
-	if (event.locals.session) redirect(307, PUBLIC_LOGIN_REDIRECT);
+	if (event.locals.session) redirect(307, LOGIN_REDIRECT_PATH);
 };

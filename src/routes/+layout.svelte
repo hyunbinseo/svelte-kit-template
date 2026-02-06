@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { PUBLIC_SITE_NAME } from '$env/static/public';
+	import { SITE_NAME } from '$lib/env';
 	import '$lib/layout.css';
 	import suitVariableWoff2 from '@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.woff2?url';
 	import { slide } from 'svelte/transition';
@@ -14,8 +14,8 @@
 <svelte:head>
 	<title>
 		{page.data.title //
-			? `${page.data.title} - ${PUBLIC_SITE_NAME}`
-			: PUBLIC_SITE_NAME}
+			? `${page.data.title} - ${SITE_NAME}`
+			: SITE_NAME}
 	</title>
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html checkBrowserScript}

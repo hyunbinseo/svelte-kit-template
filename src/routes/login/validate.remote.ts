@@ -1,7 +1,7 @@
 import { form, getRequestEvent } from '$app/server';
-import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { CODE_MAX_ATTEMPTS } from '$lib/config';
 import { loginAttemptTable } from '$lib/database/schema';
+import { LOGIN_REDIRECT_PATH } from '$lib/env';
 import { requireNoSession } from '$lib/server/auth/session';
 import { issueToken } from '$lib/server/auth/token';
 import { db } from '$lib/server/database';
@@ -74,5 +74,5 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 		}
 	}
 
-	redirect(307, PUBLIC_LOGIN_REDIRECT);
+	redirect(307, LOGIN_REDIRECT_PATH);
 });

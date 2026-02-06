@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { PUBLIC_SITE_NAME } from '$env/static/public';
 	import { formIssues } from '$lib/components/FormIssues.svelte';
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
+	import { SITE_NAME } from '$lib/env';
 	import { CODE_BLOCKED, CODE_EXPIRED } from './messages';
 	import { PublicSendCodeSchema, sendCodeAttributes } from './send';
 	import { sendCode as _sendCode } from './send.remote';
@@ -32,7 +32,7 @@
 		class="m-auto mt-0 w-full bg-white/90 px-6 py-8 backdrop-blur xs:mt-auto xs:w-sm xs:rounded-lg"
 	>
 		<header>
-			<p class="text-sm text-gray-600">{PUBLIC_SITE_NAME}</p>
+			<p class="text-sm text-gray-600">{SITE_NAME}</p>
 			<h1 class="text-2xl font-bold">로그인</h1>
 		</header>
 		<StyledLabels>

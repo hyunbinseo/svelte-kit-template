@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_FROM } from '$lib/config';
-import { refreshToken, verifyToken } from '$lib/server/auth';
+import { refreshToken, verifyToken } from '$lib/server/auth/token';
 import { db } from '$lib/server/database';
 import '@valibot/i18n/kr';
 import * as v from 'valibot';

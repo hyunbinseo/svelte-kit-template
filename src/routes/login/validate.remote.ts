@@ -6,7 +6,8 @@ import { db } from '$lib/server/db/client';
 import { loginAttemptTable } from '$lib/server/db/schema';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
-import { CODE_INVALID, PublicValidateCodeSchema } from '.';
+import { CODE_INVALID } from './messages';
+import { PublicValidateCodeSchema } from './validate';
 
 export const validateCode = form(PublicValidateCodeSchema, async (data, issue) => {
 	requireNoSession();

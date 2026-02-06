@@ -2,9 +2,10 @@
 	import { PUBLIC_SITE_NAME } from '$env/static/public';
 	import { formIssues } from '$lib/components/FormIssues.svelte';
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
-	import { CODE_LENGTH } from '$lib/config';
-	import { CODE_BLOCKED, CODE_EXPIRED, PublicSendCodeSchema, PublicValidateCodeSchema } from '.';
+	import { CODE_BLOCKED, CODE_EXPIRED } from './messages';
+	import { PublicSendCodeSchema, sendCodeAttributes } from './send';
 	import { sendCode as _sendCode } from './send.remote';
+	import { PublicValidateCodeSchema, validateCodeAttributes } from './validate';
 	import { validateCode as _validateCode } from './validate.remote';
 
 	const uid = $props.id();
@@ -55,8 +56,7 @@
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...sendCode.fields.contact.as('email')}
-								placeholder="username@example.com"
-								autocomplete="email"
+								{...sendCodeAttributes.contact}
 								autofocus
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
@@ -74,8 +74,14 @@
 						disabled={!!validateCode.pending}
 						class="contents"
 					>
-						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
-						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />
+						<input
+							{...validateCode.fields.id.as('hidden', sendCode.result.id)}
+							{...validateCodeAttributes.id}
+						/>
+						<input
+							{...validateCode.fields.contact.as('hidden', sendCode.result.contact)}
+							{...validateCodeAttributes.contact}
+						/>
 						<label>
 							<span>이메일</span>
 							<input
@@ -90,9 +96,7 @@
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...validateCode.fields.code.as('text')}
-								placeholder={'0'.repeat(CODE_LENGTH)}
-								inputmode="numeric"
-								autocomplete="one-time-code"
+								{...validateCodeAttributes.code}
 								autofocus
 								class="tabular-nums"
 							/>

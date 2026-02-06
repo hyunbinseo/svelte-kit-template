@@ -2,7 +2,6 @@
 	import { page } from '$app/state';
 	import { SITE_NAME } from '$lib/env';
 	import '$lib/layout.css';
-	import suitVariableWoff2 from '@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.woff2?url';
 	import { slide } from 'svelte/transition';
 	import { checkBrowserScript } from '.';
 
@@ -19,13 +18,6 @@
 	</title>
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html checkBrowserScript}
-	<link
-		rel="preload"
-		href={suitVariableWoff2}
-		as="font"
-		type="font/woff2"
-		crossorigin="anonymous"
-	/>
 </svelte:head>
 
 <svelte:window bind:online={isOnline} />

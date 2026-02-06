@@ -44,6 +44,7 @@ export const handle = async ({ event, resolve }) => {
 
 	const response = await resolve(event, {
 		transformPageChunk: ({ html }) => html.replace('%lang%', 'ko'),
+		preload: ({ type }) => type === 'js' || type === 'css' || type === 'font',
 	});
 
 	return response;

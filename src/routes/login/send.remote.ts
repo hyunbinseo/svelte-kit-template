@@ -1,9 +1,9 @@
 import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
 import { IS_ALLOW_UNREGISTERED } from '$lib/config.server';
+import { loginTable, userTable } from '$lib/database/schema';
 import { requireNoSession } from '$lib/server/auth';
-import { db } from '$lib/server/db/client';
-import { loginTable, userTable } from '$lib/server/db/schema';
+import { db } from '$lib/server/database';
 import { invalid } from '@sveltejs/kit';
 import { RATE_LIMITED, UNREGISTERED } from './messages';
 import { PublicSendCodeSchema } from './send';

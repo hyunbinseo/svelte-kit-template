@@ -1,8 +1,8 @@
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
 import { AUTH_COOKIE_NAME } from '$lib/config';
-import { db } from '$lib/server/db/client';
-import { tokenBanTable } from '$lib/server/db/schema';
+import { tokenBanTable } from '$lib/database/schema';
+import { db } from '$lib/server/database';
 import { redirect } from '@sveltejs/kit';
 
 export const logout = form(async () => {

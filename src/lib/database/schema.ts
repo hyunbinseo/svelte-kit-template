@@ -1,8 +1,8 @@
 import { integer, sqliteTable, text, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { randomInt } from 'node:crypto';
 import { ulid } from 'ulid';
-import { AUTH_TOKEN_EXPIRES_IN, CODE_EXPIRES_IN, CODE_LENGTH } from '../../config.ts';
-import type { Role } from '../../enums.ts';
+import { AUTH_TOKEN_EXPIRES_IN, CODE_EXPIRES_IN, CODE_LENGTH } from '../config.ts';
+import { roles } from '../enums.ts';
 
 export const userTable = sqliteTable('user', {
 	id: text().primaryKey().$default(ulid),
@@ -16,7 +16,7 @@ export const userRoleTable = sqliteTable('user_role', {
 	userId: text()
 		.notNull()
 		.references(() => userTable.id),
-	role: text().notNull().$type<Role>(),
+	role: text({ enum: roles }).notNull(),
 	assignedAt: integer({ mode: 'timestamp' })
 		.notNull()
 		.$default(() => new Date()),

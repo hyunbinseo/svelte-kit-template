@@ -4,12 +4,12 @@ import { getRequestEvent } from '$app/server';
 import { env } from '$env/dynamic/private';
 import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_DELAY, JWT_ALGORITHM } from '$lib/config';
+import { tokenBanTable, tokenTable } from '$lib/database/schema';
 import type { Role } from '$lib/enums';
 import { redirect } from '@sveltejs/kit';
 import { jwtVerify, SignJWT } from 'jose';
 import { minLength, optional, parse, pipe, string, transform } from 'valibot';
-import { db } from './db/client';
-import { tokenBanTable, tokenTable } from './db/schema';
+import { db } from './database';
 
 const SecretSchema = pipe(
 	string(),

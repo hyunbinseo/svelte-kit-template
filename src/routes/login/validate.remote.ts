@@ -1,9 +1,9 @@
 import { form, getRequestEvent } from '$app/server';
 import { PUBLIC_LOGIN_REDIRECT } from '$env/static/public';
 import { CODE_MAX_ATTEMPTS } from '$lib/config';
+import { loginAttemptTable } from '$lib/database/schema';
 import { issueToken, requireNoSession } from '$lib/server/auth';
-import { db } from '$lib/server/db/client';
-import { loginAttemptTable } from '$lib/server/db/schema';
+import { db } from '$lib/server/database';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
 import { CODE_INVALID } from './messages';

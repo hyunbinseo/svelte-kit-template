@@ -17,9 +17,9 @@
 
 ## Drizzle ORM
 
-- `src/lib/server/db/client.ts`
-- `src/lib/server/db/schema.ts`
-- `src/lib/server/db/relations.ts`
+- `src/lib/server/database.ts` (client)
+- `src/lib/database/schema.ts`
+- `src/lib/database/relations.ts`
 
 Drizzle ORM v1 and Relational Queries v2 are used:
 
@@ -44,7 +44,7 @@ Form actions are defined using the `form` function. See `src/routes/login/` for 
 
 ```ts
 import { form } from '$app/server';
-import { db } from '$lib/server/db/client';
+import { db } from '$lib/server/database';
 import { invalid } from '@sveltejs/kit';
 import { nonEmpty, object, pipe, string } from 'valibot';
 

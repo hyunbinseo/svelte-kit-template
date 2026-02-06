@@ -7,7 +7,7 @@ import { env } from 'node:process';
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 
 export default defineConfig({
-	schema: './src/lib/server/db/schema.ts',
+	schema: './src/lib/database/schema.ts',
 	dialect: 'sqlite',
 	dbCredentials: { url: env.DATABASE_URL },
 	casing: 'snake_case',

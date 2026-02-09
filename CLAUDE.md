@@ -79,6 +79,24 @@ export const createPost = form(PostSchema, async (data, issue) => {
 <div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
 ```
 
+### await
+
+You can use the `await` keyword inside your components in three places:
+
+- at the top level of your component’s `<script>`
+- inside `$derived(...)` declarations
+- inside your markup
+
+```svelte
+<script lang="ts">
+  import { getPost } from '../data.remote';
+
+  let { params } = $props();
+
+  const post = $derived(await getPost(params.slug));
+</script>
+```
+
 ### $effect
 
 <!-- All reactive states are automatically registered as dependencies -->

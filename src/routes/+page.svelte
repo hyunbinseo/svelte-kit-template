@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { logout } from '$lib/remote/logout.remote';
+	import { getCurrentUser } from '$lib/remote/session.remote';
 
-	const { data } = $props();
+	const user = $derived(await getCurrentUser());
 </script>
 
-<main class="space-y-4 p-8">
-	<p>
-		<span class="font-mono underline">{data.subject}</span>
-		<span>계정으로 로그인 됨</span>
-	</p>
+<main class="space-y-6 p-8">
+	<dl class="grid w-fit grid-cols-[max-content_auto] gap-x-6 gap-y-2">
+		<dt class="font-bold">연락처</dt>
+		<dd class="underline">{user.contact}</dd>
+		<dt class="font-bold">식별자</dt>
+		<dd class="font-mono">{user.id}</dd>
+	</dl>
 	<form
 		{...logout}
 		class="contents"

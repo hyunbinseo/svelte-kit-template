@@ -1,7 +1,7 @@
 ## Setup
 
-- Create `.env.local` using `.env.local.example`
-- Install dependencies and run these scripts:
+1. See `.env.[mode].local.example` and create `.env.development.local` file.
+2. Install dependencies and run these scripts:
 
 ```shell
 node --run db:generate

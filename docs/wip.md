@@ -1,3 +1,4 @@
+```shell
 # SvelteKit Node.js build environment variables
 # See https://svelte.dev/docs/kit/adapter-node
 
@@ -7,3 +8,4 @@ BODY_SIZE_LIMIT="512kb" # SvelteKit default; nginx defaults to 1MB
 
 ORIGIN="https://example.com" # (required) replace with your domain
 ADDRESS_HEADER="CF-Connecting-IP" # (optional) for Cloudflare proxy
+```

@@ -4,7 +4,7 @@ import adapter from '@sveltejs/adapter-node';
 const config = {
 	kit: {
 		experimental: { remoteFunctions: true },
-		adapter: adapter(),
+		adapter: adapter({ out: `build/${Date.now()}` }),
 	},
 	compilerOptions: {
 		experimental: { async: true },

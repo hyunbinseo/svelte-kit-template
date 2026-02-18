@@ -14,4 +14,5 @@ export const db = drizzle(env.DATABASE_URL, {
 // See https://github.com/tursodatabase/libsql/issues/1553
 db.$client.pragma('journal_mode = WAL');
 
+// See https://svelte.dev/docs/kit/adapter-node#Graceful-shutdown
 process.on('sveltekit:shutdown', () => db.$client.close());

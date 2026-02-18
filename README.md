@@ -1,6 +1,8 @@
-## Setup
+# svelte-kit-template
 
-1. See `.env.[mode].local.example` and create `.env.development.local` file.
+## Development Setup
+
+1. See `.env.[mode].local.example` and create a `.env.development.local` file.
 2. Install dependencies and run these scripts:
 
 ```shell
@@ -9,12 +11,14 @@ node --run db:migrate
 node --run dev
 ```
 
-## Caveats
+## Production Setup
 
-This template is for Node.js servers. For other platforms, update setup accordingly.
+- See the [guide](./docs/setup.md) for VPS deployment with HTTPS.
+- For other platforms, update the setup accordingly:
 
 ```diff
 - @sveltejs/adapter-node
 - @types/better-sqlite3
 - better-sqlite3
+- pm2-ecosystem
 ```

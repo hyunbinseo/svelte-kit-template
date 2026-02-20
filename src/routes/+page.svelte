@@ -12,13 +12,7 @@
 		<dt class="font-bold">식별자</dt>
 		<dd class="font-mono">{user.id}</dd>
 	</dl>
-	<form
-		{...logout}
-		class="contents"
-	>
-		<button
-			disabled={!!logout.pending}
-			class="btn btn-primary disabled:btn-busy">로그아웃</button
-		>
+	<form {...logout} class="contents">
+		<button disabled={!!logout.pending} class="btn btn-primary disabled:btn-busy">로그아웃</button>
 	</form>
 </main>

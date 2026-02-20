@@ -46,10 +46,7 @@
 					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
-					<fieldset
-						disabled={!!sendCode.pending}
-						class="contents"
-					>
+					<fieldset disabled={!!sendCode.pending} class="contents">
 						<label>
 							<span>이메일</span>
 							<!-- NOTE Virtual keyboard might not open despite autofocus (e.g. no prior user interaction) -->
@@ -70,10 +67,7 @@
 					onchange={() => validateCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
-					<fieldset
-						disabled={!!validateCode.pending}
-						class="contents"
-					>
+					<fieldset disabled={!!validateCode.pending} class="contents">
 						<input
 							{...validateCode.fields.id.as('hidden', sendCode.result.id)}
 							{...validateCodeAttributes.id}
@@ -84,12 +78,7 @@
 						/>
 						<label>
 							<span>이메일</span>
-							<input
-								disabled
-								type="email"
-								value={sendCode.result.contact}
-								class="bg-gray-200"
-							/>
+							<input disabled type="email" value={sendCode.result.contact} class="bg-gray-200" />
 						</label>
 						<label>
 							<span>인증번호</span>

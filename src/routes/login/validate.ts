@@ -1,10 +1,11 @@
 import { CODE_LENGTH } from '$lib/config';
 import type { FormAttributes } from '$lib/types';
-import { digits, email, length, object, pipe, string, ulid } from 'valibot';
+import { digits, length, object, pipe, string, ulid } from 'valibot';
+import { ContactSchema } from './shared';
 
 export const PublicValidateCodeSchema = object({
 	id: pipe(string(), ulid()),
-	contact: pipe(string(), email()),
+	contact: ContactSchema,
 	code: pipe(string(), digits(), length(CODE_LENGTH)),
 });
 

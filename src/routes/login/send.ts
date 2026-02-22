@@ -1,9 +1,10 @@
 import { PLACEHOLDER_EMAIL } from '$lib/placeholders';
 import type { FormAttributes } from '$lib/types';
-import { email, object, pipe, string } from 'valibot';
+import { object } from 'valibot';
+import { ContactSchema } from './shared';
 
 export const PublicSendCodeSchema = object({
-	contact: pipe(string(), email()),
+	contact: ContactSchema,
 });
 
 export const sendCodeAttributes: FormAttributes<typeof PublicSendCodeSchema> = {

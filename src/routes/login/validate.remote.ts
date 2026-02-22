@@ -7,7 +7,7 @@ import { issueToken } from '$lib/server/auth/token';
 import { db } from '$lib/server/database';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
-import { CODE_INVALID } from './messages';
+import { CODE_INVALID } from './shared';
 import { PublicValidateCodeSchema } from './validate';
 
 export const validateCode = form(PublicValidateCodeSchema, async (data, issue) => {

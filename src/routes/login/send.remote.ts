@@ -5,8 +5,8 @@ import { loginTable, userTable } from '$lib/database/schema';
 import { requireNoSession } from '$lib/server/auth/session';
 import { db } from '$lib/server/database';
 import { invalid } from '@sveltejs/kit';
-import { RATE_LIMITED, UNREGISTERED } from './messages';
 import { PublicSendCodeSchema } from './send';
+import { RATE_LIMITED, UNREGISTERED } from './shared';
 
 export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 	requireNoSession();

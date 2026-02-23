@@ -1,12 +1,16 @@
 import { dev } from '$app/environment';
+import { PUBLIC_SENTRY_DSN } from '$env/static/public';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_FROM } from '$lib/config';
 import { refreshToken, verifyToken } from '$lib/server/auth/token';
 import { db } from '$lib/server/database';
+import * as Sentry from '@sentry/sveltekit';
+import type { HandleServerError, HandleValidationError } from '@sveltejs/kit';
 import '@valibot/i18n/kr';
-import * as v from 'valibot';
+import * as valibot from 'valibot';
 
 export const init = () => {
-	v.setGlobalConfig({ lang: 'kr' });
+	Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
+	valibot.setGlobalConfig({ lang: 'kr' });
 };
 
 export const handle = async ({ event, resolve }) => {
@@ -48,4 +52,13 @@ export const handle = async ({ event, resolve }) => {
 	});
 
 	return response;
+};
+
+export const handleError: HandleServerError = async ({ error, event, status }) => {
+	Sentry.captureException(error, { extra: { event, status } });
+};
+
+export const handleValidationError: HandleValidationError = ({ event, issues }) => {
+	Sentry.captureMessage('Validation Error', { extra: { event, issues } });
+	return { message: 'Bad Request' };
 };

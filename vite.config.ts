@@ -5,6 +5,10 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	build: { target: 'es2023' },
 	plugins: [tailwindcss(), sveltekit()],
+	server: {
+		port: 5263,
+		strictPort: true,
+	},
 });
 
 // vite@7 roughly requires ES2023.

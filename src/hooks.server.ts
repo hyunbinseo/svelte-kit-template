@@ -8,10 +8,8 @@ import type { HandleServerError, HandleValidationError } from '@sveltejs/kit';
 import '@valibot/i18n/kr';
 import * as valibot from 'valibot';
 
-export const init = () => {
-	Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
-	valibot.setGlobalConfig({ lang: 'kr' });
-};
+Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
+valibot.setGlobalConfig({ lang: 'kr' });
 
 export const handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);

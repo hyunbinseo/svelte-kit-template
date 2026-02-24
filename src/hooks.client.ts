@@ -5,10 +5,8 @@ import type { HandleClientError } from '@sveltejs/kit';
 import '@valibot/i18n/kr';
 import * as valibot from 'valibot';
 
-export const init = () => {
-	Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
-	valibot.setGlobalConfig({ lang: 'kr' });
-};
+Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
+valibot.setGlobalConfig({ lang: 'kr' });
 
 export const handleError: HandleClientError = async ({ error, event, status }) => {
 	Sentry.captureException(error, { extra: { event, status } });

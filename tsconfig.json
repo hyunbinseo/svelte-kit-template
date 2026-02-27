@@ -1,8 +1,6 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		// "paths" - set this in `config.kit.alias` instead
-		// See https://svelte.dev/docs/kit/configuration#alias
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
 		"checkJs": true,
@@ -25,8 +23,4 @@
 		"allowUnusedLabels": false,
 		"types": ["./worker-configuration.d.ts"],
 	},
-	// Set these in `config.kit.typescript.config` instead
-	// See https://svelte.dev/docs/kit/configuration#typescript
-	// "include": []
-	// "exclude": []
 }

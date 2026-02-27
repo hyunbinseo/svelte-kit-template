@@ -7,7 +7,6 @@
 - Tailwind v4 configuration, utility components:
   - `src/lib/layout.css`
 - Form markup and styling - avoid inline classes:
-  - `src/routes/login/+page.svelte`
   - `src/lib/components/StyledLabels.svelte`
 
 ## TypeScript
@@ -15,32 +14,9 @@
 - PREFER arrow function expressions over function declarations
 - PREFER type over interface
 
-## Drizzle ORM
-
-- `src/lib/server/database.ts` (client)
-- `src/lib/database/schema.ts`
-- `src/lib/database/relations.ts`
-
-Drizzle ORM v1 and Relational Queries v2 are used:
-
-```ts
-const response = db.query.users.findMany({
-  orderBy: { id: 'asc' }, // is now an object
-  where: { id: { gt: 10 }, age: 15 }, // object
-});
-```
-
-For `db.query` API, the object key should follow this order:
-
-```
-orderBy, offset, where, columns, extras, with
-```
-
-SQLite async transactions do not work, so avoid them and add a MAYBE comment when needed.
-
 ## SvelteKit
 
-Form actions are defined using the `form` function. See `src/routes/login/` for conventions.
+Form actions are defined using the `form` function.
 
 ```ts
 import { form } from '$app/server';

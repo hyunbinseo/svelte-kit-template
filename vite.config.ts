@@ -6,7 +6,7 @@ export default defineConfig({
 	build: { target: 'es2023' },
 	plugins: [tailwindcss(), sveltekit()],
 	server: {
-		port: 5263,
+		port: 5013,
 		strictPort: true,
 	},
 });

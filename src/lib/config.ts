@@ -10,7 +10,3 @@ export const AUTH_COOKIE_NAME = 'auth_token';
 export const AUTH_TOKEN_EXPIRES_IN = 3 * WEEK;
 export const AUTH_TOKEN_REFRESH_FROM = 1 * WEEK;
 export const AUTH_TOKEN_REFRESH_DELAY = 1 * MINUTE;
-
-export const CODE_EXPIRES_IN = 3 * MINUTE;
-export const CODE_LENGTH = 6;
-export const CODE_MAX_ATTEMPTS = 2;

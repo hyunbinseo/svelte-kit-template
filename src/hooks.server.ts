@@ -1,15 +1,6 @@
 import { dev } from '$app/environment';
-import { PUBLIC_SENTRY_DSN } from '$env/static/public';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_FROM } from '$lib/config';
-import { refreshToken, verifyToken } from '$lib/server/auth/token';
-import { db } from '$lib/server/database';
-import * as Sentry from '@sentry/sveltekit';
-import type { HandleServerError, HandleValidationError } from '@sveltejs/kit';
-import '@valibot/i18n/kr';
-import * as valibot from 'valibot';
-
-Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
-valibot.setGlobalConfig({ lang: 'kr' });
+import { AUTH_COOKIE_NAME } from '$lib/config';
+import { verifyToken } from '$lib/server/auth/token';
 
 export const handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
@@ -17,26 +8,6 @@ export const handle = async ({ event, resolve }) => {
 	if (jwt) {
 		try {
 			const verified = await verifyToken(jwt);
-
-			const bannedToken = await db.query.tokenBanTable.findFirst({
-				where: { tokenId: verified.payload.jti },
-				columns: { effectiveAt: true },
-			});
-
-			if (bannedToken && bannedToken.effectiveAt <= new Date()) {
-				event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
-			} else {
-				event.locals.session = {
-					jti: verified.payload.jti,
-					sub: verified.payload.sub,
-					roles: new Set(verified.payload.roles),
-				};
-			}
-
-			if (!bannedToken) {
-				const expiresIn = verified.payload.exp * 1000 - Date.now();
-				if (expiresIn <= AUTH_TOKEN_REFRESH_FROM) await refreshToken();
-			}
 		} catch (e) {
 			if (dev) console.error(e);
 			event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
@@ -50,13 +21,4 @@ export const handle = async ({ event, resolve }) => {
 	});
 
 	return response;
-};
-
-export const handleError: HandleServerError = async ({ error, event, status }) => {
-	Sentry.captureException(error, { extra: { event, status } });
-};
-
-export const handleValidationError: HandleValidationError = ({ event, issues }) => {
-	Sentry.captureMessage('Validation Error', { extra: { event, issues } });
-	return { message: 'Bad Request' };
 };

@@ -23,3 +23,6 @@ vite.config.ts.timestamp-*
 *.db
 *.db-shm
 *.db-wal
+
+# Cloudflare Types
+/worker-configuration.d.ts

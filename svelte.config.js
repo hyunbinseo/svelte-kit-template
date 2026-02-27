@@ -1,11 +1,10 @@
-import adapter from '@sveltejs/adapter-node';
-import { env } from 'node:process';
+import adapter from '@sveltejs/adapter-cloudflare';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
 		experimental: { remoteFunctions: true },
-		adapter: adapter({ out: env.SVELTE_KIT_NODE_ADAPTER_OUT }),
+		adapter: adapter(),
 	},
 	compilerOptions: {
 		experimental: { async: true },

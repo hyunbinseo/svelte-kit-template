@@ -23,6 +23,7 @@
 		"exactOptionalPropertyTypes": true,
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
+		"types": ["./worker-configuration.d.ts"],
 	},
 	// Set these in `config.kit.typescript.config` instead
 	// See https://svelte.dev/docs/kit/configuration#typescript

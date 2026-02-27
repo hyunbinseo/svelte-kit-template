@@ -11,11 +11,19 @@ declare global {
 				roles: Set<Role>;
 			};
 		}
+
 		interface PageData {
 			title: string;
 		}
+
+		interface Platform {
+			env: Env;
+			ctx: ExecutionContext;
+			caches: CacheStorage;
+			cf?: IncomingRequestCfProperties;
+		}
+
 		// interface PageState {}
-		// interface Platform {}
 	}
 }
 

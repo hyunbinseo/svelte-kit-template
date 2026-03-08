@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { PUBLIC_SENTRY_DSN } from '$env/static/public';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_FROM } from '$lib/config';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_THRESHOLD } from '$lib/config';
 import { refreshToken, verifyToken } from '$lib/server/auth/token';
 import { db } from '$lib/server/database';
 import * as Sentry from '@sentry/sveltekit';
@@ -35,7 +35,7 @@ export const handle = async ({ event, resolve }) => {
 
 			if (!bannedToken) {
 				const expiresIn = verified.payload.exp * 1000 - Date.now();
-				if (expiresIn <= AUTH_TOKEN_REFRESH_FROM) await refreshToken();
+				if (expiresIn <= AUTH_TOKEN_REFRESH_THRESHOLD) await refreshToken();
 			}
 		} catch (e) {
 			if (dev) console.error(e);

@@ -1,7 +1,7 @@
 import { dev } from '$app/environment';
 import { getRequestEvent } from '$app/server';
 import { env } from '$env/dynamic/private';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_DELAY, JWT_ALGORITHM } from '$lib/config';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_REFRESH_GRACE } from '$lib/config';
 import { tokenBanTable, tokenTable } from '$lib/database/schema';
 import type { Role } from '$lib/enums';
 import { jwtVerify, SignJWT } from 'jose';
@@ -54,7 +54,7 @@ export const issueToken = async (
 	};
 
 	const jwt = await new SignJWT(privateClaims)
-		.setProtectedHeader({ alg: JWT_ALGORITHM })
+		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })
 		// NOTE Must match the ReservedClaims type
 		.setJti(token.id)
 		.setSubject(input.sub)
@@ -85,7 +85,7 @@ export const refreshToken = async () => {
 	await db.insert(tokenBanTable).values({
 		tokenId: event.locals.session.jti,
 		type: 'refresh',
-		effectiveAt: new Date(Date.now() + AUTH_TOKEN_REFRESH_DELAY),
+		effectiveAt: new Date(Date.now() + AUTH_TOKEN_REFRESH_GRACE),
 		bannedBy: event.locals.session.sub,
 		ip: event.getClientAddress(),
 	});

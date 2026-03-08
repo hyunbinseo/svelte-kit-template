@@ -1,7 +1,7 @@
+import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
-import { CODE_MAX_ATTEMPTS } from '$lib/config';
+import { AUTH_CODE_MAX_ATTEMPTS } from '$lib/config';
 import { loginAttemptTable } from '$lib/database/schema';
-import { LOGIN_REDIRECT_PATH } from '$lib/env';
 import { requireNoSession } from '$lib/server/auth/session';
 import { issueToken } from '$lib/server/auth/token';
 import { db } from '$lib/server/database';
@@ -36,7 +36,7 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 		return { success: false, code: 'CODE_EXPIRED' } as const;
 	}
 
-	if (login.attempts.length >= CODE_MAX_ATTEMPTS) {
+	if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS) {
 		return { success: false, code: 'CODE_BLOCKED' } as const;
 	}
 
@@ -70,9 +70,9 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 			url.origin === event.url.origin && //
 			url.pathname !== event.url.pathname
 		) {
-			redirect(307, url);
+			redirect(303, url);
 		}
 	}
 
-	redirect(307, LOGIN_REDIRECT_PATH);
+	redirect(303, resolve('/login/redirect'));
 });

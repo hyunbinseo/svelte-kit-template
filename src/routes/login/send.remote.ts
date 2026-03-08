@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
-import { IS_ALLOW_UNREGISTERED } from '$lib/config.server';
+import { IS_ALLOW_UNREGISTERED } from '$lib/config';
 import { loginTable, userTable } from '$lib/database/schema';
 import { requireNoSession } from '$lib/server/auth/session';
 import { db } from '$lib/server/database';

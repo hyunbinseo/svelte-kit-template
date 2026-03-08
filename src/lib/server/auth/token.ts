@@ -5,6 +5,7 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_DELAY, JWT_ALGORITHM } from '$lib/
 import { tokenBanTable, tokenTable } from '$lib/database/schema';
 import type { Role } from '$lib/enums';
 import { jwtVerify, SignJWT } from 'jose';
+import { JWSSignatureVerificationFailed } from 'jose/errors';
 import { minLength, optional, parse, pipe, string, transform } from 'valibot';
 import { db } from '../database';
 
@@ -93,12 +94,12 @@ export const refreshToken = async () => {
 };
 
 export const verifyToken = async (jwt: string) => {
-	if (!SECRET_OLD) {
-		return await jwtVerify<Payload>(jwt, SECRET_NEW);
-	}
 	try {
 		return await jwtVerify<Payload>(jwt, SECRET_NEW);
-	} catch {
-		return await jwtVerify<Payload>(jwt, SECRET_OLD);
+	} catch (e) {
+		if (e instanceof JWSSignatureVerificationFailed && SECRET_OLD) {
+			return await jwtVerify<Payload>(jwt, SECRET_OLD);
+		}
+		throw e;
 	}
 };

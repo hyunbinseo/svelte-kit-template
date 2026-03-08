@@ -7,7 +7,7 @@
 2. Point Caddy to that domain by updating the default [Caddyfile](https://caddyserver.com/docs/caddyfile):
 
 ```shell
-ssh nodejs@<tailscale-device-name>
+ssh root@<tailscale-device-name>
 ```
 
 ```shell
@@ -24,4 +24,5 @@ nano Caddyfile
 
 ```shell
 systemctl enable --now caddy
+# systemctl restart caddy
 ```

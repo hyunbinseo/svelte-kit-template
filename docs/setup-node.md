@@ -18,7 +18,7 @@ These values are not bundled by Vite and must be loaded manually.
 - `$env/dynamic/private`
 - `process.env`
 
-Create an `.env` file and define secrets and other environment variables:
+Create an `.env.local` file and define secrets and other environment variables:
 
 ```shell
 JWT_SECRET_NEW="" # see .env.[mode].local.example
@@ -41,9 +41,9 @@ Create a `./build/start.js` file.
 
 ```js
 import { resolve } from 'node:path';
-import { env, loadEnvFile } from 'node:process';
+import { loadEnvFile } from 'node:process';
 
-loadEnvFile(resolve(import.meta.dirname, '../.env'));
+loadEnvFile(resolve(import.meta.dirname, '../.env.local'));
 
 await import('./<build-directory>/index.js');
 ```

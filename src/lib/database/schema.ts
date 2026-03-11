@@ -7,9 +7,8 @@ import {
 	uniqueIndex,
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
-import { randomInt } from 'node:crypto';
 import { ulid } from 'ulid';
-import { AUTH_CODE_EXPIRES_IN, AUTH_CODE_LENGTH, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
+import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
 import { roles } from '../enums.ts';
 
 export const userTable = sqliteTable(
@@ -54,14 +53,11 @@ export const loginTable = sqliteTable(
 	'login',
 	{
 		id: text().primaryKey().$default(ulid),
+		sendId: text().notNull().unique(),
 		userId: text()
 			.notNull()
 			.references(() => userTable.id),
-		code: text()
-			.notNull()
-			.$default(() =>
-				randomInt(0, Math.pow(10, AUTH_CODE_LENGTH)).toString().padStart(AUTH_CODE_LENGTH, '0'),
-			),
+		code: text().notNull(),
 		expiresAt: integer({ mode: 'timestamp' })
 			.notNull()
 			.$default(() => new Date(Date.now() + AUTH_CODE_EXPIRES_IN)),

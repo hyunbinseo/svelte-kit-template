@@ -15,7 +15,7 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 
 	const login = await db.query.loginTable.findFirst({
 		where: { id: data.id },
-		columns: { code: true, expiresAt: true },
+		columns: { code: true, expiresAt: true, ip: true },
 		with: {
 			attempts: { columns: { id: true } },
 			activeUser: {
@@ -31,6 +31,10 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 	});
 
 	if (!login || !login.activeUser) error(400);
+
+	if (login.ip !== getRequestEvent().getClientAddress()) {
+		return { success: false, code: 'IP_MISMATCH' } as const;
+	}
 
 	if (login.expiresAt < new Date()) {
 		return { success: false, code: 'CODE_EXPIRED' } as const;

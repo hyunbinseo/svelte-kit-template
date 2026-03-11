@@ -4,7 +4,7 @@
 	import { SITE_NAME } from '$lib/config';
 	import { PublicSendCodeSchema, sendCodeAttributes } from './send';
 	import { sendCode as _sendCode } from './send.remote';
-	import { CODE_BLOCKED, CODE_EXPIRED } from './shared';
+	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared';
 	import { PublicValidateCodeSchema, validateCodeAttributes } from './validate';
 	import { validateCode as _validateCode } from './validate.remote';
 
@@ -38,8 +38,13 @@
 		<StyledLabels>
 			{#if !sendCode.result || validateResult?.success === false}
 				{#if validateResult}
-					{@const message = { CODE_BLOCKED, CODE_EXPIRED }[validateResult.code]}
-					<p class="mt-1 text-red-600">{message}</p>
+					<p class="mt-1 text-red-600">
+						{{
+							CODE_BLOCKED,
+							CODE_EXPIRED,
+							IP_MISMATCH,
+						}[validateResult.code]}
+					</p>
 				{/if}
 				<form
 					{...sendCode.preflight(PublicSendCodeSchema)}

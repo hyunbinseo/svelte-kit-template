@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle } from 'drizzle-orm/node-sqlite';
 import { resolve } from 'node:path';
 import { env, loadEnvFile } from 'node:process';
 import { relations } from '../src/lib/database/relations.ts';

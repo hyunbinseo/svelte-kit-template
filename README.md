@@ -25,7 +25,5 @@ node --run dev
 
 ```diff
 - @sveltejs/adapter-node
-- @types/better-sqlite3
-- better-sqlite3
 - pm2-ecosystem
 ```

@@ -13,23 +13,16 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 	requireNoSession();
 
 	let user = await db.query.userTable.findFirst({
-		orderBy: { id: 'desc' },
 		where: {
 			contact: data.contact,
 			deactivatedAt: { isNull: true },
 		},
+		columns: { id: true },
 	});
 
-	if (!user) {
-		if (!IS_ALLOW_UNREGISTERED) {
-			invalid(issue.contact(UNREGISTERED));
-		}
-		user = (await db
-			.insert(userTable)
-			.values(data)
-			.returning()
-			.then(([user]) => user))!;
-	}
+	if (!user && !IS_ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
+
+	user = user ?? (await db.insert(userTable).values(data).returning({ id: userTable.id }))[0]!;
 
 	const existingLogin = await db.query.loginTable.findFirst({
 		orderBy: { id: 'desc' },
@@ -39,14 +32,13 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 		},
 		columns: {},
 		with: {
-			attempts: {
-				orderBy: { id: 'desc' },
-				columns: { isSuccessful: true },
+			successfulAttempts: {
+				columns: { id: true },
 			},
 		},
 	});
 
-	if (existingLogin && !existingLogin.attempts.some((a) => a.isSuccessful)) {
+	if (existingLogin && !existingLogin.successfulAttempts.length) {
 		invalid(issue.contact(RATE_LIMITED));
 	}
 
@@ -58,16 +50,17 @@ export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
 
 	if (dev) console.table({ contact: data.contact, code });
 
-	const login = (await db
-		.insert(loginTable)
-		.values({
-			sendId,
-			userId: user.id,
-			code,
-			ip: getRequestEvent().getClientAddress(),
-		})
-		.returning({ id: loginTable.id })
-		.then(([login]) => login))!;
+	const login = (
+		await db
+			.insert(loginTable)
+			.values({
+				sendId,
+				userId: user.id,
+				code,
+				ip: getRequestEvent().getClientAddress(),
+			})
+			.returning({ id: loginTable.id })
+	)[0]!;
 
 	return {
 		id: login.id,

@@ -34,18 +34,19 @@ export const issueToken = async (
 ) => {
 	const event = getRequestEvent();
 
-	const token = (await db
-		.insert(tokenTable)
-		.values({
-			userId: input.sub,
-			ip: event.getClientAddress(),
-		})
-		.returning({
-			id: tokenTable.id,
-			issuedAt: tokenTable.issuedAt,
-			expiresAt: tokenTable.expiresAt,
-		})
-		.then(([token]) => token))!;
+	const token = (
+		await db
+			.insert(tokenTable)
+			.values({
+				userId: input.sub,
+				ip: event.getClientAddress(),
+			})
+			.returning({
+				id: tokenTable.id,
+				issuedAt: tokenTable.issuedAt,
+				expiresAt: tokenTable.expiresAt,
+			})
+	)[0]!;
 
 	const roles = input.roles.size ? (Array.from(input.roles) as [Role, ...Role[]]) : undefined;
 

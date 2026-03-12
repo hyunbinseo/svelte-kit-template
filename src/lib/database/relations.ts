@@ -19,5 +19,10 @@ export const relations = defineRelations(schema, (r) => ({
 			to: r.userTable.id,
 			where: { deactivatedAt: { isNull: true } },
 		}),
+		successfulAttempts: r.many.loginAttemptTable({
+			from: r.loginTable.id,
+			to: r.loginAttemptTable.loginId,
+			where: { isSuccessful: true },
+		}),
 	},
 }));

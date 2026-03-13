@@ -47,6 +47,7 @@
 		white 75%,
 		--value(--color-*) 100%
 	);
+	color: contrast-color(--value(--color-*));
 }
 
 @utility btn-primary {

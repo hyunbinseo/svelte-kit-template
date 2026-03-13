@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
-import { relations } from '$lib/database/relations';
-import * as schema from '$lib/database/schema';
+import { relations } from '$lib/database/relations.ts';
+import * as schema from '$lib/database/schema.ts';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');

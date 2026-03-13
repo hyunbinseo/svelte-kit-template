@@ -1,13 +1,13 @@
 import { dev } from '$app/environment';
 import { getRequestEvent } from '$app/server';
 import { env } from '$env/dynamic/private';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_REFRESH_GRACE } from '$lib/config';
-import { tokenBanTable, tokenTable } from '$lib/database/schema';
-import type { Role } from '$lib/enums';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_REFRESH_GRACE } from '$lib/config.ts';
+import { tokenBanTable, tokenTable } from '$lib/database/schema.ts';
+import type { Role } from '$lib/enums.ts';
 import { jwtVerify, SignJWT } from 'jose';
 import { JWSSignatureVerificationFailed } from 'jose/errors';
 import { minLength, optional, parse, pipe, string, transform } from 'valibot';
-import { db } from '../database';
+import { db } from '../database.ts';
 
 const SecretSchema = pipe(
 	string(),

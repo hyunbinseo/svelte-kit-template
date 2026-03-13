@@ -2,9 +2,6 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"paths": {},
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"allowImportingTsExtensions": true,
 	},
 	"include": [
 		"./**/*.js",

@@ -1,14 +1,14 @@
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
-import { AUTH_CODE_MAX_ATTEMPTS } from '$lib/config';
-import { loginAttemptTable } from '$lib/database/schema';
-import { requireNoSession } from '$lib/server/auth/session';
-import { issueToken } from '$lib/server/auth/token';
-import { db } from '$lib/server/database';
+import { AUTH_CODE_MAX_ATTEMPTS } from '$lib/config.ts';
+import { loginAttemptTable } from '$lib/database/schema.ts';
+import { requireNoSession } from '$lib/server/auth/session.ts';
+import { issueToken } from '$lib/server/auth/token.ts';
+import { db } from '$lib/server/database.ts';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
-import { CODE_INVALID } from './shared';
-import { PublicValidateCodeSchema } from './validate';
+import { CODE_INVALID } from './shared.ts';
+import { PublicValidateCodeSchema } from './validate.ts';
 
 export const validateCode = form(PublicValidateCodeSchema, async (data, issue) => {
 	requireNoSession();

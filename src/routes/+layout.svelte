@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { SITE_NAME } from '$lib/config';
+	import { SITE_NAME } from '$lib/config.ts';
 	import { slide } from 'svelte/transition';
-	import { checkBrowserScript } from '.';
 	import './+layout.css';
+	import { checkBrowserScript } from './index.ts';
 
 	let { children } = $props();
 

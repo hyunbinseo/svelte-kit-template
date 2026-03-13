@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { formIssues } from '$lib/components/FormIssues.svelte';
 	import StyledLabels from '$lib/components/StyledLabels.svelte';
-	import { SITE_NAME } from '$lib/config';
-	import { PublicSendCodeSchema, sendCodeAttributes } from './send';
-	import { sendCode as _sendCode } from './send.remote';
-	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared';
-	import { PublicValidateCodeSchema, validateCodeAttributes } from './validate';
-	import { validateCode as _validateCode } from './validate.remote';
+	import { SITE_NAME } from '$lib/config.ts';
+	import { sendCode as _sendCode } from './send.remote.ts';
+	import { PublicSendCodeSchema, sendCodeAttributes } from './send.ts';
+	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared.ts';
+	import { validateCode as _validateCode } from './validate.remote.ts';
+	import { PublicValidateCodeSchema, validateCodeAttributes } from './validate.ts';
 
 	const uid = $props.id();
 

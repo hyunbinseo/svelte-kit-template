@@ -5,7 +5,7 @@
 ## UI Reference
 
 - Tailwind v4 configuration, utility components:
-  - `src/lib/layout.css`
+  - `src/routes/+layout.css`
 - Form markup and styling - avoid inline classes:
   - `src/routes/login/+page.svelte`
   - `src/lib/components/StyledLabels.svelte`

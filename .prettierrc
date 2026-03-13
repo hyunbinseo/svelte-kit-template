@@ -11,5 +11,5 @@
 		{ "files": "*.svelte", "options": { "parser": "svelte" } },
 		{ "files": "tsconfig*.json", "options": { "parser": "jsonc" } }
 	],
-	"tailwindStylesheet": "./src/lib/layout.css"
+	"tailwindStylesheet": "./src/routes/+layout.css"
 }

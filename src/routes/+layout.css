@@ -32,6 +32,11 @@
 
 @utility btn {
 	@apply rounded px-3.5 py-2.25 text-[15px] font-bold shadow outline transition-colors disabled:grayscale-100;
+
+	@supports (text-box: trim-both cap alphabetic) {
+		text-box: trim-both cap alphabetic;
+		@apply py-3.75;
+	}
 }
 
 @utility btn-busy {

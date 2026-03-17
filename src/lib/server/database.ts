@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { relations } from '$lib/database/relations.ts';
 import * as schema from '$lib/database/schema.ts';
@@ -10,6 +11,8 @@ export const db = drizzle(env.DATABASE_URL, {
 	schema,
 	relations,
 });
+
+if (!dev) db.$client.exec('PRAGMA journal_mode = WAL');
 
 // See https://svelte.dev/docs/kit/adapter-node#Graceful-shutdown
 process.on('sveltekit:shutdown', () => db.$client.close());

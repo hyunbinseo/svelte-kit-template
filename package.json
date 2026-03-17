@@ -19,8 +19,8 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
-		"drizzle-kit": "1.0.0-beta.17-67b1795",
-		"drizzle-orm": "1.0.0-beta.17-67b1795"
+		"drizzle-kit": "1.0.0-beta.18-7eb39f0",
+		"drizzle-orm": "1.0.0-beta.18-7eb39f0"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",

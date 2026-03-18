@@ -2,16 +2,15 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_THRESHOLD } from '#lib/config.ts';
 import { refreshToken, verifyToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database.ts';
 import { dev } from '$app/environment';
-import { PUBLIC_SENTRY_DSN } from '$env/static/public';
 import * as Sentry from '@sentry/sveltekit';
-import type { HandleServerError, HandleValidationError } from '@sveltejs/kit';
+import type { HandleValidationError } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
 import '@valibot/i18n/ko';
 import * as valibot from 'valibot';
 
-Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
 valibot.setGlobalConfig({ lang: 'ko' });
 
-export const handle = async ({ event, resolve }) => {
+export const handle = sequence(Sentry.sentryHandle(), async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
 
 	if (jwt) {
@@ -50,11 +49,9 @@ export const handle = async ({ event, resolve }) => {
 	});
 
 	return response;
-};
+});
 
-export const handleError: HandleServerError = async ({ error, event, status }) => {
-	Sentry.captureException(error, { extra: { event, status } });
-};
+export const handleError = Sentry.handleErrorWithSentry();
 
 export const handleValidationError: HandleValidationError = ({ event, issues }) => {
 	Sentry.captureMessage('Validation Error', { extra: { event, issues } });

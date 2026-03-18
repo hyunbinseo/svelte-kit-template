@@ -44,7 +44,7 @@ Form actions are defined using the `form` function. See `src/routes/login/` for 
 
 ```ts
 import { form } from '$app/server';
-import { db } from '$lib/server/database';
+import { db } from '#lib/server/database';
 import { invalid } from '@sveltejs/kit';
 import { nonEmpty, object, pipe, string } from 'valibot';
 

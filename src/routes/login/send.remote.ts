@@ -1,9 +1,9 @@
+import { AUTH_CODE_LENGTH, IS_ALLOW_UNREGISTERED } from '#lib/config.ts';
+import { loginTable, userTable } from '#lib/database/schema.ts';
+import { requireNoSession } from '#lib/server/auth/session.ts';
+import { db } from '#lib/server/database.ts';
 import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
-import { AUTH_CODE_LENGTH, IS_ALLOW_UNREGISTERED } from '$lib/config.ts';
-import { loginTable, userTable } from '$lib/database/schema.ts';
-import { requireNoSession } from '$lib/server/auth/session.ts';
-import { db } from '$lib/server/database.ts';
 import { invalid } from '@sveltejs/kit';
 import { randomInt, randomUUID } from 'node:crypto';
 import { PublicSendCodeSchema } from './send.ts';

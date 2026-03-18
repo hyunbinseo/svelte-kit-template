@@ -1,6 +1,6 @@
+import { requireSession } from '#lib/server/auth/session.ts';
+import { db } from '#lib/server/database.ts';
 import { query } from '$app/server';
-import { requireSession } from '$lib/server/auth/session.ts';
-import { db } from '$lib/server/database.ts';
 import { error } from '@sveltejs/kit';
 
 export const getCurrentUser = query(async () => {

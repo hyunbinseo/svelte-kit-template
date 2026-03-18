@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { SITE_NAME } from '$lib/config.ts';
+	import { SITE_NAME } from '#lib/config.ts';
 	import { slide } from 'svelte/transition';
 	import './+layout.css';
 	import { checkBrowserScript } from './index.ts';

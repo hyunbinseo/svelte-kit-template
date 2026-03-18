@@ -1,8 +1,8 @@
+import { AUTH_COOKIE_NAME } from '#lib/config.ts';
+import { tokenBanTable } from '#lib/database/schema.ts';
+import { db } from '#lib/server/database.ts';
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
-import { AUTH_COOKIE_NAME } from '$lib/config.ts';
-import { tokenBanTable } from '$lib/database/schema.ts';
-import { db } from '$lib/server/database.ts';
 import { redirect } from '@sveltejs/kit';
 
 export const logout = form(async () => {

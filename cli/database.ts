@@ -1,8 +1,8 @@
+import { relations } from '#lib/database/relations.ts';
+import * as schema from '#lib/database/schema.ts';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { resolve } from 'node:path';
 import { env, loadEnvFile } from 'node:process';
-import { relations } from '../src/lib/database/relations.ts';
-import * as schema from '../src/lib/database/schema.ts';
 import { root } from './utilities.ts';
 
 loadEnvFile(resolve(root, '.env'));

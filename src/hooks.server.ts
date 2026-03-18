@@ -5,11 +5,11 @@ import { refreshToken, verifyToken } from '$lib/server/auth/token.ts';
 import { db } from '$lib/server/database.ts';
 import * as Sentry from '@sentry/sveltekit';
 import type { HandleServerError, HandleValidationError } from '@sveltejs/kit';
-import '@valibot/i18n/kr';
+import '@valibot/i18n/ko';
 import * as valibot from 'valibot';
 
 Sentry.init({ dsn: PUBLIC_SENTRY_DSN, enabled: !dev });
-valibot.setGlobalConfig({ lang: 'kr' });
+valibot.setGlobalConfig({ lang: 'ko' });
 
 export const handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);

@@ -51,7 +51,9 @@
 					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
-					<fieldset disabled={!!sendCode.pending} class="contents">
+					<!-- TODO Block simultaneous form submissions (all occasions) -->
+					<!-- Blocked by https://github.com/sveltejs/kit/issues/15104 -->
+					<fieldset disabled={false} class="contents">
 						<label>
 							<span>이메일</span>
 							<!-- NOTE Virtual keyboard might not open despite autofocus (e.g. no prior user interaction) -->
@@ -63,7 +65,10 @@
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>
-						<button class="btn btn-primary disabled:btn-busy">인증번호 전송</button>
+						<!-- TODO Use top-level fieldset to disable form during submission -->
+						<button disabled={!!sendCode.pending} class="btn btn-primary disabled:btn-busy">
+							인증번호 전송
+						</button>
 					</fieldset>
 				</form>
 			{:else}
@@ -72,7 +77,7 @@
 					onchange={() => validateCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
-					<fieldset disabled={!!validateCode.pending} class="contents">
+					<fieldset disabled={false} class="contents">
 						<input
 							{...validateCode.fields.id.as('hidden', sendCode.result.id)}
 							{...validateCodeAttributes.id}
@@ -96,7 +101,9 @@
 							/>
 							{@render formIssues(validateCode.fields.code.issues())}
 						</label>
-						<button class="btn btn-primary disabled:btn-busy">로그인</button>
+						<button disabled={!!validateCode.pending} class="btn btn-primary disabled:btn-busy">
+							로그인
+						</button>
 					</fieldset>
 				</form>
 			{/if}

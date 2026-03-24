@@ -1,5 +1,6 @@
-import { isNull } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import {
+	check,
 	index,
 	integer,
 	sqliteTable,
@@ -21,6 +22,10 @@ export const userTable = sqliteTable(
 	},
 	(table) => [
 		uniqueIndex('active_user_contact_idx').on(table.contact).where(isNull(table.deactivatedAt)),
+		check(
+			'user_deactivated_fields_check',
+			eq(isNull(table.deactivatedAt), isNull(table.deactivatedBy)),
+		),
 	],
 );
 
@@ -46,6 +51,7 @@ export const userRoleTable = sqliteTable(
 		uniqueIndex('active_user_role_user_id_role_idx')
 			.on(table.userId, table.role)
 			.where(isNull(table.revokedAt)),
+		check('user_role_revoked_fields_check', eq(isNull(table.revokedAt), isNull(table.revokedBy))),
 	],
 );
 

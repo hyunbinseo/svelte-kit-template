@@ -16,13 +16,13 @@ export default defineConfig({
 	},
 });
 
-// vite@7 roughly requires ES2023.
+// vite@8 roughly requires ES2023:
 //
-// | Browser | vite@7 | ES2023 |
+// | Browser | vite@8 | ES2023 |
 // | ------- | ------ | ------ |
-// | Chrome  | 107    | 110    |
-// | Safari  | 16     | 16.4   |
-// | Firefox | 104    | 115\*  |
+// | Chrome  | 111    | 110    |
+// | Safari  | 16.4   | 16.4   |
+// | Firefox | 114    | 115\*  |
 //
 // See https://caniuse.com/sr-es14
-// See https://vite.dev/guide/build.html
+// See https://vite.dev/guide/build.html#browser-compatibility

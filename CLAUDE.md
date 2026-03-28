@@ -26,7 +26,7 @@ Drizzle ORM v1 and Relational Queries v2 are used:
 ```ts
 const response = db.query.users.findMany({
   orderBy: { id: 'asc' }, // is now an object
-  where: { id: { gt: 10 }, age: 15 }, // object
+  where: { id: { gt: 10 }, age: 15 }, // is now an object
 });
 ```
 
@@ -68,17 +68,6 @@ export const createPost = form(PostSchema, async (data, issue) => {
 });
 ```
 
-## Svelte
-
-- ALWAYS use the Svelte 5 API
-- NEVER use template literals for class names. Use the array syntax:
-
-```svelte
-<!-- if `faded` and `large` are both truthy, -->
-<!-- results in `class="saturate-0 opacity-50 scale-200"` -->
-<div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
-```
-
 ### await
 
 You can use the `await` keyword inside your components in three places:
@@ -89,22 +78,58 @@ You can use the `await` keyword inside your components in three places:
 
 ```svelte
 <script lang="ts">
-  import { getPost } from '../data.remote';
+  import { resolve } from '$app/paths';
+  import { getPost, getPosts } from '../data.remote';
 
   let { params } = $props();
 
+  // top-level await using the derived rune
   const post = $derived(await getPost(params.slug));
 </script>
+
+<h1>{post.title}</h1>
+<p>{post.body}</p>
+
+<nav>
+  <!-- inline await in an each loop -->
+  {#each await getPosts() as post}
+    <a href={resolve('/posts/[slug]', { slug: post.slug })}>{post.title}</a>
+  {/each}
+</nav>
+```
+
+### resolve
+
+Internal navigation via HTML `<a>` tags, SvelteKit’s `goto()`, `pushState()` and `replaceState()` should use `resolve()`.
+
+```svelte
+<script lang="ts">
+  import { resolve } from '$app/paths';
+</script>
+
+<a href={externalURL} rel="external">Click me!</a>
+
+<a href={resolve('/blog/posts')}>All Posts</a>
+
+<!-- for routes with parameters, use the route ID approach: -->
+<a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>
+```
+
+## Svelte
+
+- ALWAYS use the Svelte 5 API
+- NEVER use template literals for class names. Use the array syntax:
+
+```svelte
+<div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
 ```
 
 ### $effect
 
-<!-- All reactive states are automatically registered as dependencies -->
-
-- `$effect` executes functions when reactive state changes. For example:
+`$effect` executes functions when reactive state changes. For example:
 
 ```svelte
-<script>
+<script lang="ts">
   let size = $state(50);
   $effect(() => {
     console.log('Size changed:', size);
@@ -122,16 +147,19 @@ You can use the `await` keyword inside your components in three places:
 - You can reassign a derived value for features like optimistic UI. It will go back to the `$derived` value once an update in its dependencies happens. For example:
 
 ```svelte
-<script>
-  let post = $props().post;
-  let likes = $derived(post.likes); // writable
-  async function onclick() {
-    likes += 1; // can be temporarily overridden
-    try {
-      await post.like();
-    } catch {
-      likes -= 1;
-    }
-  }
+<script lang="ts">
+  import type { HTMLButtonAttributes } from 'svelte/elements';
+
+  let { post, like } = $props();
+
+  let likes = $derived(post.likes);
+
+  // for non-inline event handler, import the appropriate type
+  const onclick: HTMLButtonAttributes['onclick'] = async () => {
+    likes += 1;
+    await like().catch(() => (likes -= 1));
+  };
 </script>
+
+<button {onclick}>🧡 {likes}</button>
 ```

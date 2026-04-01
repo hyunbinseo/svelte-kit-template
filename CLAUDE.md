@@ -40,11 +40,17 @@ SQLite async transactions do not work, so avoid them and add a MAYBE comment whe
 
 ## SvelteKit
 
-Form actions are defined using the `form` function. See `src/routes/login/` for conventions.
+### Remote Functions
+
+Remote functions are exported from a `.remote.ts` file, and come in four flavors: `query`, `form`, `command` and `prerender`.
+
+On the client, the exported functions are transformed to `fetch` wrappers that invoke their counterparts on the server via a generated HTTP endpoint.
+
+For example, form actions are defined using the `form` function. See `src/routes/login/` for conventions.
 
 ```ts
 import { form } from '$app/server';
-import { db } from '#lib/server/database';
+import { db } from '#lib/server/database.ts';
 import { invalid } from '@sveltejs/kit';
 import { nonEmpty, object, pipe, string } from 'valibot';
 
@@ -65,6 +71,25 @@ export const createPost = form(PostSchema, async (data, issue) => {
     .then(([post]) => post))!;
 
   return newPost; // populates `createPost.result` in Svelte
+});
+```
+
+Since they generate HTTP endpoints, the request must be appropriately authenticated and authorized.
+
+```ts
+import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
+import { form, query } from '$app/server';
+
+export const getPublicPosts = query(async () => {
+  // public. use prerender if static or cacheable
+});
+
+export const getCurrentUser = query(async () => {
+  const session = requireSession(); // private
+});
+
+export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
+  requireNoSession(); // must be logged out
 });
 ```
 

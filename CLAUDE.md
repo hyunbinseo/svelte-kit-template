@@ -24,9 +24,23 @@
 Drizzle ORM v1 and Relational Queries v2 are used:
 
 ```ts
-const response = db.query.users.findMany({
+const users = db.query.userTable.findMany({
   orderBy: { id: 'asc' }, // is now an object
   where: { id: { gt: 10 }, age: 15 }, // is now an object
+});
+```
+
+IIFE can be used as the `where` value for conditional filters:
+
+```ts
+const user = db.query.userTable.findFirst({
+  where: (() => {
+    if (session.roles.has('admin')) return { id: userId };
+    return {
+      id: userId,
+      // check if the user is authorized to query this user
+    };
+  })(),
 });
 ```
 

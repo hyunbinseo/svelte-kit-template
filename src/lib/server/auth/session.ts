@@ -1,13 +1,23 @@
+import type { Role } from '#lib/enums.ts';
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
-export const requireSession = () => {
+export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' | 'any' = 'any') => {
 	const event = getRequestEvent();
 	if (!event.locals.session) {
 		const url = new URL(resolve('/login'), event.url);
 		url.searchParams.set('returnTo', event.url.pathname + event.url.search);
 		redirect(303, url);
+	}
+	if (requiredRoles) {
+		const roles = event.locals.session.roles;
+		if (
+			(match === 'all' && !requiredRoles.every((r) => roles.has(r))) ||
+			(match === 'any' && !requiredRoles.some((r) => roles.has(r)))
+		) {
+			error(403);
+		}
 	}
 	return event.locals.session;
 };

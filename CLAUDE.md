@@ -24,10 +24,27 @@
 Drizzle ORM v1 and Relational Queries v2 are used:
 
 ```ts
+// `orderBy` and `where` are now objects
 const users = await db.query.userTable.findMany({
-  orderBy: { id: 'asc' }, // is now an object
-  where: { id: { gt: 10 }, age: 15 }, // is now an object
+  orderBy: { id: 'asc' },
+  where: {
+    contact: '010', // same as `eq`
+    deactivatedAt: { isNull: true },
+    // filter by relations (uses subquery)
+    activeRoles: { role: 'admin' },
+  },
 });
+```
+
+```sql
+select "d0"."id" as "id", "d0"."contact" as "contact", "d0"."deactivated_at" as "deactivatedAt", "d0"."deactivated_by" as "deactivatedBy" from "user" as "d0" where (("d0"."contact" = ?) and (("d0"."deactivated_at" is null)) and (exists (select * from "user_role" as "f0" where (((("d0"."id" = "f0"."user_id") and (("f0"."revoked_at" is null)))) and ("f0"."role" = ?)) limit 1))) order by "d0"."id" asc
+```
+
+```json
+{
+  "params": ["010", "admin"],
+  "typings": ["none", "none"]
+}
 ```
 
 IIFE can be used as the `where` value for conditional filters:

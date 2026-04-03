@@ -24,7 +24,7 @@
 Drizzle ORM v1 and Relational Queries v2 are used:
 
 ```ts
-const users = db.query.userTable.findMany({
+const users = await db.query.userTable.findMany({
   orderBy: { id: 'asc' }, // is now an object
   where: { id: { gt: 10 }, age: 15 }, // is now an object
 });
@@ -33,7 +33,7 @@ const users = db.query.userTable.findMany({
 IIFE can be used as the `where` value for conditional filters:
 
 ```ts
-const user = db.query.userTable.findFirst({
+const user = await db.query.userTable.findFirst({
   where: (() => {
     if (session.roles.has('admin')) return { id: userId };
     return {
@@ -48,6 +48,14 @@ For `db.query` API, the object key should follow this order:
 
 ```
 orderBy, offset, where, columns, extras, with
+```
+
+Only query necessary data by specifying columns to retrieve:
+
+```ts
+const users = await db.query.userTable.findMany({
+  columns: { contact: true }, // never use false to exclude
+});
 ```
 
 SQLite async transactions do not work, so avoid them and add a MAYBE comment when needed.

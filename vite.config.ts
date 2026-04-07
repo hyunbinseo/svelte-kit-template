@@ -7,7 +7,7 @@ export default defineConfig({
 	build: { target: 'es2023' },
 	plugins: [
 		tailwindcss(), //
-		sentrySvelteKit(),
+		sentrySvelteKit({ telemetry: false }),
 		sveltekit(),
 	],
 	server: {

@@ -1,3 +1,4 @@
+import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import type { Role } from '#lib/enums.ts';
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
@@ -24,5 +25,5 @@ export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' |
 
 export const requireNoSession = () => {
 	const event = getRequestEvent();
-	if (event.locals.session) redirect(303, resolve('/login/redirect'));
+	if (event.locals.session) redirect(303, LOGIN_REDIRECT);
 };

@@ -8,8 +8,6 @@
 
 	--font-sans: 'SUIT Variable';
 
-	--animate-loop-background: loop-background 3s infinite;
-
 	@keyframes loop-background {
 		0% {
 			background-position: 200% 0;
@@ -45,22 +43,26 @@
 	}
 }
 
-@utility btn-busy {
-	@apply motion-safe:animate-loop-background;
-}
-
 @utility btn-bg-* {
-	background-size: 200% 100%;
-	background-image: linear-gradient(
-		90deg,
-		--value(--color-*) 0%,
-		--value(--color-*) 50%,
-		white 75%,
-		--value(--color-*) 100%
-	);
+	background-color: --value(--color-*);
 	color: contrast-color(--value(--color-*));
+	--btn-color: --value(--color-*);
 }
 
 @utility btn-primary {
 	@apply btn-bg-amber-200 outline-amber-300 not-disabled:hover:bg-amber-300;
+}
+
+@utility btn-busy {
+	@media (prefers-reduced-motion: no-preference) {
+		animation: loop-background 3s infinite;
+		background-size: 200% 100%;
+		background-image: linear-gradient(
+			90deg,
+			var(--btn-color) 0%,
+			var(--btn-color) 50%,
+			white 75%,
+			var(--btn-color) 100%
+		);
+	}
 }

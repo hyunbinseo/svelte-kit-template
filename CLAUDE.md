@@ -95,11 +95,8 @@ export const createPost = form(PostSchema, async (data, issue) => {
   // form data has already passed schema validation
   if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-  const newPost = (await db
-    .insert(postTable)
-    .values(data)
-    .returning()
-    .then(([post]) => post))!;
+  // when inserting a single row, use [0]! to assert that a row is returned
+  const newPost = (await db.insert(postTable).values(data).returning())[0]!;
 
   return newPost; // populates `createPost.result` in Svelte
 });

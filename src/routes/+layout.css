@@ -19,6 +19,11 @@
 }
 
 @layer base {
+	body:has(dialog:modal) {
+		overflow: hidden;
+		touch-action: none;
+	}
+
 	button:not(:disabled),
 	[role='button']:not(:disabled) {
 		cursor: pointer;

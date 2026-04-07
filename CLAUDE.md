@@ -2,14 +2,6 @@
 
 - AVOID adding code comments
 
-## UI Reference
-
-- Tailwind v4 configuration, utility components:
-  - `src/routes/+layout.css`
-- Form markup and styling - avoid inline classes:
-  - `src/routes/login/+page.svelte`
-  - `src/lib/components/StyledLabels.svelte`
-
 ## TypeScript
 
 - PREFER arrow function expressions over function declarations
@@ -226,4 +218,40 @@ Internal navigation via HTML `<a>` tags, SvelteKit’s `goto()`, `pushState()` a
 </script>
 
 <button {onclick}>🧡 {likes}</button>
+```
+
+## Tailwind CSS
+
+- Create utility components for shared styles in `src/routes/+layout.css`.
+- Don't style individual form controls. Use `StyledLabels.svelte` instead:
+
+```svelte
+<script lang="ts">
+  import StyledLabels from '#lib/components/StyledLabels.svelte';
+</script>
+
+<StyledLabels>
+  <form>
+    <label>
+      <span>이메일</span>
+      <input {...remoteForm.fields.contact.as('email')} />
+    </label>
+    <!-- Tailwind utility components -->
+    <button class="btn btn-primary disabled:btn-busy" disabled={!!remoteForm.pending}>
+      인증번호 전송
+    </button>
+  </form>
+</StyledLabels>
+```
+
+Use child selectors to avoid duplicate class names:
+
+```svelte
+<ul class="*:border-sky-100 *:bg-sky-50">
+  <!-- valid each block without an item -->
+  {#each { length: 12 }, index}
+    <!-- use per-element class for non-uniform styles -->
+    <li class={[index % 2 === 0 && 'font-bold']}>{index}</li>
+  {/each}
+</ul>
 ```

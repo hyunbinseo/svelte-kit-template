@@ -27,6 +27,12 @@
 	}
 }
 
+@custom-variant coarse {
+	@media (pointer: coarse) {
+		@slot;
+	}
+}
+
 /* Component utilities support autocomplete unlike `@layer` CSS at-rules */
 /* See https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
 
@@ -57,10 +63,4 @@
 
 @utility btn-primary {
 	@apply btn-bg-amber-200 outline-amber-300 not-disabled:hover:bg-amber-300;
-}
-
-@custom-variant coarse {
-	@media (pointer: coarse) {
-		@slot;
-	}
 }

@@ -6,11 +6,15 @@ import { error, redirect } from '@sveltejs/kit';
 
 export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' | 'any' = 'any') => {
 	const event = getRequestEvent();
+
 	if (!event.locals.session) {
 		const url = new URL(resolve('/login'), event.url);
 		url.searchParams.set('returnTo', event.url.pathname + event.url.search);
 		redirect(303, url);
 	}
+
+	event.tracing.root.setAttribute('userId', event.locals.session.sub);
+
 	if (requiredRoles) {
 		const roles = event.locals.session.roles;
 		if (
@@ -20,6 +24,7 @@ export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' |
 			error(403);
 		}
 	}
+
 	return event.locals.session;
 };
 

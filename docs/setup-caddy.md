@@ -17,7 +17,16 @@ nano Caddyfile
 ```
 
 ```caddy
+(deny) {
+  # NOTE this matches /.well-known/* paths as well
+  @denied-dir path /.* /wp-admin* /wp-content* /wp-includes*
+  @denied-ext path *.bak *.env *.env.* *.ico *.php *.sql *.swp
+  respond @denied-dir 404
+  respond @denied-ext 404
+}
+
 <your-domain.com> {
+  import deny
   reverse_proxy localhost:3000
 }
 ```

@@ -102,6 +102,15 @@ export const createPost = form(PostSchema, async (data, issue) => {
 });
 ```
 
+If the form includes a `<select>`, the default value must be defined:
+
+```svelte
+<select {...remoteForm.fields.fruit.as('select', 'apple')}>
+  <option>apple</option>
+  <option>banana</option>
+</select>
+```
+
 Since they generate HTTP endpoints, the request must be appropriately authenticated and authorized.
 
 ```ts

@@ -8,7 +8,9 @@
 
 ## Vultr Dashboard
 
-### [Add a firewall group](https://my.vultr.com/firewall/add/)
+### Add a firewall group
+
+https://my.vultr.com/firewall/add
 
 | Type | Action | Protocol    | Port      | Source    |
 | ---- | ------ | ----------- | --------- | --------- |
@@ -19,7 +21,9 @@
 > [!NOTE]
 > Inbound SSH rule is not needed for Tailscale SSH.
 
-### [Deploy a server](https://my.vultr.com/deploy/):
+### Deploy a server
+
+https://my.vultr.com/deploy
 
 | Item             | Value                         |
 | ---------------- | ----------------------------- |
@@ -35,9 +39,9 @@ Additional Features:
 - Instance Connectivity / Instance(s) with Public IP / Public IPv4
 - [Cloud-Init User Data](./cloud-init.yml)
 
-### [Web Console](https://docs.vultr.com/vultr-web-console-faq)
+### Setup SSH
 
-Open the console and set up [Tailscale SSH](https://tailscale.com/docs/features/tailscale-ssh):
+[Open the web console](https://docs.vultr.com/vultr-web-console-faq) and set up [Tailscale SSH](https://tailscale.com/docs/features/tailscale-ssh):
 
 - Log in after the cloud-init is completed (takes several minutes)
 - If the setup hangs, restart the server and check `cloud-init status`

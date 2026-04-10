@@ -66,7 +66,7 @@ module.exports = {
       autorestart: true,
     },
     {
-      name: '<name>:scheduled',
+      name: '<name>:cron',
       script: './cli/scheduled.ts',
       interpreter: 'node',
       time: true,
@@ -88,16 +88,28 @@ pm2 save
 
 [Continue Setup](./setup-caddy.md)
 
----
+## Miscellaneous
 
-## Switch Builds
+### Backup Database
+
+```ts
+// cli/scheduled.ts
+import { exit } from 'node:process';
+import { backup } from 'node:sqlite';
+import { db } from './database.ts';
+
+await backup(db.$client, `backup-${Date.now()}.db`); // update path
+exit();
+```
+
+### Switch Builds
 
 Update the import path in `./build/start.js` then run `pm2 restart <name>`.
 
-## Update Node.js
+### Update Node.js
 
 ```shell
-pm2 info server
+pm2 info <name>
 # node.js version │ 24.12.0
 ```
 
@@ -108,6 +120,6 @@ pm2 update
 ```
 
 ```shell
-pm2 info server
+pm2 info <name>
 # node.js version │ 24.13.1
 ```

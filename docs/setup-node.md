@@ -13,16 +13,12 @@ cd ~/<name>
 
 ## Environment Variables
 
-These values are not bundled by Vite and must be loaded manually.
-
-- `$env/dynamic/private`
-- `process.env`
-
-Create an `.env.local` file and define secrets and other environment variables:
+Create an `.env.local` file and define **all** secrets and environment variables:
 
 ```shell
 JWT_SECRET_NEW="" # see .env.[mode].local.example
 # JWT_SECRET_OLD=""
+
 
 # SvelteKit Node.js build environment variables
 # See https://svelte.dev/docs/kit/adapter-node
@@ -30,9 +26,9 @@ JWT_SECRET_NEW="" # see .env.[mode].local.example
 HOST="0.0.0.0"
 PORT="3000"
 
-ORIGIN="https://example.com" # set to actual domain for form submission
-ADDRESS_HEADER="X-Forwarded-For" # Caddy reverse proxy sets this header
-XFF_DEPTH="1" # how many trusted proxies sit in front of your server
+ORIGIN="https://example.com" # set to actual domain
+ADDRESS_HEADER="X-Forwarded-For"
+XFF_DEPTH="1"
 ```
 
 ## PM2
@@ -44,6 +40,7 @@ import { resolve } from 'node:path';
 import { loadEnvFile } from 'node:process';
 
 loadEnvFile(resolve(import.meta.dirname, '../.env.local'));
+loadEnvFile(resolve(import.meta.dirname, '../.env'));
 
 await import('./<build-directory>/index.js');
 ```
@@ -105,6 +102,19 @@ exit();
 ### Switch Builds
 
 Update the import path in `./build/start.js` then run `pm2 restart <name>`.
+
+### Update Environment Variables
+
+| Type       | Action                    |
+| ---------- | ------------------------- |
+| Runtime    | Restart pm2 applications  |
+| Build time | Rebuild and switch builds |
+
+| Type    | Runtime                | Build time            |
+| ------- | ---------------------- | --------------------- |
+| Private | `$env/dynamic/private` | `$env/static/private` |
+| Public  | `$env/dynamic/public`  | `$env/static/public`  |
+| Misc.   | `process.env`          |                       |
 
 ### Update Node.js
 

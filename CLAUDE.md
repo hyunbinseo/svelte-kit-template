@@ -39,20 +39,6 @@ select "d0"."id" as "id", "d0"."contact" as "contact", "d0"."deactivated_at" as 
 }
 ```
 
-IIFE can be used as the `where` value for conditional filters:
-
-```ts
-const user = await db.query.userTable.findFirst({
-  where: (() => {
-    if (session.roles.has('admin')) return { id: userId };
-    return {
-      id: userId,
-      // check if the user is authorized to query this user
-    };
-  })(),
-});
-```
-
 For `db.query` API, the object key should follow this order:
 
 ```

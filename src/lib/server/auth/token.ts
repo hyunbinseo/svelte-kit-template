@@ -94,7 +94,7 @@ export const refreshToken = async () => {
 	await issueToken(event.locals.session);
 };
 
-export const verifyToken = async (jwt: string) => {
+const jwtVerifyWithFallback = async (jwt: string) => {
 	try {
 		return await jwtVerify<Payload>(jwt, SECRET_NEW);
 	} catch (e) {
@@ -103,4 +103,20 @@ export const verifyToken = async (jwt: string) => {
 		}
 		throw e;
 	}
+};
+
+export const verifyToken = async (jwt: string) => {
+	const verified = await jwtVerifyWithFallback(jwt);
+	if (!dev) return verified;
+
+	const user = await db.query.userTable.findFirst({
+		where: {
+			id: verified.payload.sub,
+			deactivatedAt: { isNull: true },
+		},
+		columns: { id: true },
+	});
+
+	if (!user) throw new Error();
+	return verified;
 };

@@ -105,16 +105,12 @@ Update the import path in `./build/start.js` then run `pm2 restart <name>`.
 
 ### Update Environment Variables
 
-| Type       | Action                    |
-| ---------- | ------------------------- |
-| Runtime    | Restart pm2 applications  |
-| Build time | Rebuild and switch builds |
-
-| Type    | Runtime                | Build time            |
-| ------- | ---------------------- | --------------------- |
-| Private | `$env/dynamic/private` | `$env/static/private` |
-| Public  | `$env/dynamic/public`  | `$env/static/public`  |
-| Misc.   | `process.env`          |                       |
+|         | Runtime                  | Build time            |
+| ------- | ------------------------ | --------------------- |
+| Action  | Restart pm2 applications | Rebuild and switch    |
+| Private | `$env/dynamic/private`   | `$env/static/private` |
+| Public  | `$env/dynamic/public`    | `$env/static/public`  |
+| Direct  | `process.env`            |                       |
 
 ### Update Node.js
 

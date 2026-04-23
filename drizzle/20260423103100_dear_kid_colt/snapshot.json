@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "039aaa9e-1efa-4fcd-88b5-f124cdf546db",
+  "id": "d45dbd86-7b31-4bfa-a8c3-5e045d4bdd56",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -631,18 +631,6 @@
       "name": "login_send_id_unique",
       "entityType": "uniques",
       "table": "login"
-    },
-    {
-      "value": "(\"revoked_at\" is null) = (\"revoked_by\" is null)",
-      "name": "user_role_revoked_fields_check",
-      "entityType": "checks",
-      "table": "user_role"
-    },
-    {
-      "value": "(\"deactivated_at\" is null) = (\"deactivated_by\" is null)",
-      "name": "user_deactivated_fields_check",
-      "entityType": "checks",
-      "table": "user"
     }
   ],
   "renames": []

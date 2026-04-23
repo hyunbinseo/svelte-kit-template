@@ -47,8 +47,7 @@ CREATE TABLE `user_role` (
 	`revoked_by` text,
 	CONSTRAINT `fk_user_role_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`),
 	CONSTRAINT `fk_user_role_assigned_by_user_id_fk` FOREIGN KEY (`assigned_by`) REFERENCES `user`(`id`),
-	CONSTRAINT `fk_user_role_revoked_by_user_id_fk` FOREIGN KEY (`revoked_by`) REFERENCES `user`(`id`),
-	CONSTRAINT "user_role_revoked_fields_check" CHECK(("revoked_at" is null) = ("revoked_by" is null))
+	CONSTRAINT `fk_user_role_revoked_by_user_id_fk` FOREIGN KEY (`revoked_by`) REFERENCES `user`(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `user` (
@@ -56,8 +55,7 @@ CREATE TABLE `user` (
 	`contact` text NOT NULL,
 	`deactivated_at` integer,
 	`deactivated_by` text,
-	CONSTRAINT `fk_user_deactivated_by_user_id_fk` FOREIGN KEY (`deactivated_by`) REFERENCES `user`(`id`),
-	CONSTRAINT "user_deactivated_fields_check" CHECK(("deactivated_at" is null) = ("deactivated_by" is null))
+	CONSTRAINT `fk_user_deactivated_by_user_id_fk` FOREIGN KEY (`deactivated_by`) REFERENCES `user`(`id`)
 );
 --> statement-breakpoint
 CREATE INDEX `login_attempt_login_id_idx` ON `login_attempt` (`login_id`);--> statement-breakpoint

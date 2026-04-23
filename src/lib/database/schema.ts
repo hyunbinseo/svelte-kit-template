@@ -17,7 +17,11 @@ export const userTable = sqliteTable(
 		id: text().primaryKey().$default(ulid),
 		contact: text().notNull(),
 		deactivatedAt: integer({ mode: 'timestamp' }),
-		deactivatedBy: text().references((): AnySQLiteColumn => userTable.id),
+		deactivatedBy: text().references(
+			// NOTE self referencing foreign key requires explicit return type
+			// See https://orm.drizzle.team/docs/indexes-constraints#foreign-key
+			(): AnySQLiteColumn => userTable.id,
+		),
 	},
 	(table) => [
 		uniqueIndex('active_user_contact_idx').on(table.contact).where(isNull(table.deactivatedAt)),

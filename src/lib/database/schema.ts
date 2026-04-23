@@ -106,7 +106,7 @@ export const tokenBanTable = sqliteTable('token_ban', {
 	tokenId: text()
 		.primaryKey()
 		.references(() => tokenTable.id),
-	type: text({ enum: ['logout', 'refresh'] }).notNull(),
+	type: text({ enum: ['logout', 'refresh', 'deactivate'] }).notNull(),
 	effectiveAt: integer({ mode: 'timestamp' }).notNull(),
 	bannedAt: integer({ mode: 'timestamp' })
 		.notNull()

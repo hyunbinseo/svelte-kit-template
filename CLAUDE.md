@@ -28,15 +28,27 @@ const users = await db.query.userTable.findMany({
 });
 ```
 
-```sql
-select "d0"."id" as "id", "d0"."contact" as "contact", "d0"."deactivated_at" as "deactivatedAt", "d0"."deactivated_by" as "deactivatedBy" from "user" as "d0" where (("d0"."contact" = ?) and (("d0"."deactivated_at" is null)) and (exists (select * from "user_role" as "f0" where (((("d0"."id" = "f0"."user_id") and (("f0"."revoked_at" is null)))) and ("f0"."role" = ?)) limit 1))) order by "d0"."id" asc
+Don't hard `DELETE`. Soft delete using columns such as `deactivatedAt` or `revokedAt`.
+
+- Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique)
+- Use `TRIGGER` for cascade (e.g. deactivating a user should revoke all of their active roles)
+
+```ts
+uniqueIndex('active_user_role_user_id_role_idx')
+  .on(table.userId, table.role)
+  .where(isNull(table.revokedAt));
 ```
 
-```json
-{
-  "params": ["010", "admin"],
-  "typings": ["none", "none"]
-}
+Trigger is not supported so SQL should be written in a custom migration file:
+
+```shell
+# See drizzle/*_triggers/migration.sql for examples
+pnpm drizzle-kit generate --custom --name=triggers
+```
+
+```sql
+-- If there are multiple statements, add this comment in-between them:
+--> statement-breakpoint
 ```
 
 For `db.query` API, the object key should follow this order:

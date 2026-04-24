@@ -1,5 +1,5 @@
 import { AUTH_CODE_LENGTH } from '#lib/config.ts';
-import type { FormAttributes } from '#lib/types.ts';
+import type { FormAttributes } from '#lib/valibot.ts';
 import { digits, length, object, pipe, string, ulid } from 'valibot';
 import { ContactSchema } from './shared.ts';
 

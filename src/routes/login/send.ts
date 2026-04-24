@@ -1,5 +1,5 @@
 import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
-import type { FormAttributes } from '#lib/types.ts';
+import type { FormAttributes } from '#lib/valibot.ts';
 import { object } from 'valibot';
 import { ContactSchema } from './shared.ts';
 

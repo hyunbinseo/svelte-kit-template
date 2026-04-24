@@ -16,6 +16,9 @@ rm -f Caddyfile
 nano Caddyfile
 ```
 
+> [!NOTE]
+> Since the output directory changes with each build, Caddy's static file serving cannot be used. The generated `handler` function sets appropriate caching headers for Vite hashed assets instead.
+
 ```caddy
 (deny) {
   # NOTE this matches /.well-known/* paths as well

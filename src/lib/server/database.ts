@@ -14,5 +14,6 @@ export const db = drizzle(env.DATABASE_URL, {
 
 if (!dev) db.$client.exec('PRAGMA journal_mode = WAL');
 
+// See https://pm2.keymetrics.io/docs/usage/cluster-mode/#graceful-shutdown
 // See https://svelte.dev/docs/kit/adapter-node#Graceful-shutdown
 process.on('sveltekit:shutdown', () => db.$client.close());

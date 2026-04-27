@@ -34,6 +34,9 @@ https://my.vultr.com/deploy
 | Server Settings  | Firewall Group: `HTTP(S)`     |
 | Server Hostname  | e.g. `nodejs-host`            |
 
+> [!NOTE]
+> 1 vCPU results in maximum 1 cluster instance, causing brief downtime during `pm2 reload` (build switch, etc.)
+
 Additional Features:
 
 - Instance Connectivity / Instance(s) with Public IP / Public IPv4

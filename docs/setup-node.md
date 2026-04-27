@@ -47,6 +47,9 @@ await import('./<build-directory>/index.js');
 
 Create a `pm2.config.cjs` file and define applications:
 
+> [!NOTE]
+> For zero-downtime [`pm2 reload`](https://pm2.keymetrics.io/docs/usage/cluster-mode/#reload), the cluster instance count must resolve to 2 or above.
+
 ```js
 // See https://pm2.keymetrics.io/docs/usage/application-declaration
 
@@ -101,16 +104,16 @@ exit();
 
 ### Switch Builds
 
-Update the import path in `./build/start.js` then run `pm2 restart <name>`.
+Update the import path in `./build/start.js` then run `pm2 reload <name>`.
 
 ### Update Environment Variables
 
-|         | Runtime                  | Build time            |
-| ------- | ------------------------ | --------------------- |
-| Action  | Restart pm2 applications | Rebuild and switch    |
-| Private | `$env/dynamic/private`   | `$env/static/private` |
-| Public  | `$env/dynamic/public`    | `$env/static/public`  |
-| Direct  | `process.env`            |                       |
+|         | Runtime                 | Build time            |
+| ------- | ----------------------- | --------------------- |
+| Action  | Reload pm2 applications | Rebuild and switch    |
+| Private | `$env/dynamic/private`  | `$env/static/private` |
+| Public  | `$env/dynamic/public`   | `$env/static/public`  |
+| Direct  | `process.env`           |                       |
 
 ### Update Node.js
 

@@ -51,6 +51,14 @@ pnpm drizzle-kit generate --custom --name=triggers
 --> statement-breakpoint
 ```
 
+For `db.select`, use the sync API:
+
+```diff
+- await db.select().from(userTable);
++ db.select().from(userTable).all(); // returns User[]
++ db.select().from(userTable).get(); // returns User | undefined
+```
+
 For `db.query` API, the object key should follow this order:
 
 ```

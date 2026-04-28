@@ -6,8 +6,13 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	build: { target: 'es2023' },
 	plugins: [
-		tailwindcss(), //
-		sentrySvelteKit({ telemetry: false }),
+		tailwindcss(),
+		sentrySvelteKit({
+			telemetry: false,
+			// org: '',
+			// project: '',
+			// authToken: '',
+		}),
 		sveltekit(),
 	],
 	server: {

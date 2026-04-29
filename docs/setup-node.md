@@ -42,7 +42,6 @@ import { loadEnvFile } from 'node:process';
 loadEnvFile(resolve(import.meta.dirname, '../.env.local'));
 loadEnvFile(resolve(import.meta.dirname, '../.env'));
 
-// run `pnpm build` and check the console
 await import('./<build-directory>/index.js');
 ```
 
@@ -58,7 +57,7 @@ module.exports = {
   /** @type {import('pm2-ecosystem').StartOptions[]} */
   apps: [
     {
-      name: '<name>',
+      name: '<name>', // e.g. server, example.com
       script: './build/start.js',
       interpreter: 'node',
       instances: -1,
@@ -80,11 +79,28 @@ module.exports = {
 
 ## Startup
 
+For initial deployment:
+
 ```shell
-pnpm i --prod
 pnpm db:migrate
+pnpm build                # logs output directory
+nano build/start.js       # update the import path
 pm2 start pm2.config.cjs
 pm2 save
+```
+
+To switch builds, simply reload the pm2 processes:
+
+```shell
+git pull origin main
+pnpm i
+pnpm db:migrate
+pnpm build
+```
+
+```shell
+nano build/start.js
+pm2 reload <name>
 ```
 
 [Continue Setup](./setup-caddy.md)
@@ -103,10 +119,6 @@ await backup(db.$client, `backup-${Date.now()}.db`); // update path
 exit();
 ```
 
-### Switch Builds
-
-Update the import path in `./build/start.js` then run `pm2 reload <name>`.
-
 ### Update Environment Variables
 
 |         | Runtime                 | Build time            |
@@ -118,6 +130,8 @@ Update the import path in `./build/start.js` then run `pm2 reload <name>`.
 
 ### Update Node.js
 
+Running `pm2 update` stops all processes and will result in brief downtime.
+
 ```shell
 pm2 info <name>
 # node.js version │ 24.12.0
@@ -126,6 +140,7 @@ pm2 info <name>
 ```shell
 fnm install 24  # Installing Node v24.13.1 (x64)
 fnm use 24      # Using Node v24.13.1
+pm2 save
 pm2 update
 ```
 

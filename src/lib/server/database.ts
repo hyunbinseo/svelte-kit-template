@@ -4,11 +4,7 @@ import { dev } from '$app/environment';
 import { DATABASE_URL } from '$env/static/private';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 
-export const db = drizzle(DATABASE_URL, {
-	casing: 'snake_case',
-	schema,
-	relations,
-});
+export const db = drizzle(DATABASE_URL, { schema, relations, jit: true });
 
 if (!dev) db.$client.exec('PRAGMA journal_mode = WAL');
 

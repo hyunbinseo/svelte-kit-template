@@ -12,7 +12,6 @@ export default defineConfig({
 	schema: './src/lib/database/schema.ts',
 	dialect: 'sqlite',
 	dbCredentials: { url: env.DATABASE_URL },
-	casing: 'snake_case',
 	strict: true,
 	verbose: true,
 });

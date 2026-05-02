@@ -2,7 +2,7 @@ import { isNull } from 'drizzle-orm';
 import {
 	index,
 	integer,
-	sqliteTable,
+	snakeCase,
 	text,
 	uniqueIndex,
 	type AnySQLiteColumn,
@@ -11,7 +11,7 @@ import { ulid } from 'ulid';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
 import { roles } from '../enums.ts';
 
-export const userTable = sqliteTable(
+export const userTable = snakeCase.table(
 	'user',
 	{
 		id: text().primaryKey().$default(ulid),
@@ -28,7 +28,7 @@ export const userTable = sqliteTable(
 	],
 );
 
-export const userRoleTable = sqliteTable(
+export const userRoleTable = snakeCase.table(
 	'user_role',
 	{
 		id: text().primaryKey().$default(ulid),
@@ -53,7 +53,7 @@ export const userRoleTable = sqliteTable(
 	],
 );
 
-export const loginTable = sqliteTable(
+export const loginTable = snakeCase.table(
 	'login',
 	{
 		id: text().primaryKey().$default(ulid),
@@ -70,7 +70,7 @@ export const loginTable = sqliteTable(
 	(table) => [index('login_user_id_idx').on(table.userId)],
 );
 
-export const loginAttemptTable = sqliteTable(
+export const loginAttemptTable = snakeCase.table(
 	'login_attempt',
 	{
 		id: integer().primaryKey(),
@@ -86,7 +86,7 @@ export const loginAttemptTable = sqliteTable(
 	(table) => [index('login_attempt_login_id_idx').on(table.loginId)],
 );
 
-export const tokenTable = sqliteTable('token', {
+export const tokenTable = snakeCase.table('token', {
 	id: text().primaryKey().$default(ulid), // jti
 	userId: text()
 		.notNull()
@@ -100,7 +100,7 @@ export const tokenTable = sqliteTable('token', {
 	ip: text().notNull(),
 });
 
-export const tokenBanTable = sqliteTable('token_ban', {
+export const tokenBanTable = snakeCase.table('token_ban', {
 	tokenId: text()
 		.primaryKey()
 		.references(() => tokenTable.id),

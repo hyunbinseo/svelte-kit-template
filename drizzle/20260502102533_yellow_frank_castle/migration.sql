@@ -41,7 +41,6 @@ CREATE TABLE `user_role` (
 	`id` text PRIMARY KEY,
 	`user_id` text NOT NULL,
 	`role` text NOT NULL,
-	`assigned_at` integer NOT NULL,
 	`assigned_by` text NOT NULL,
 	`revoked_at` integer,
 	`revoked_by` text,
@@ -53,8 +52,10 @@ CREATE TABLE `user_role` (
 CREATE TABLE `user` (
 	`id` text PRIMARY KEY,
 	`contact` text NOT NULL,
+	`created_by` text,
 	`deactivated_at` integer,
 	`deactivated_by` text,
+	CONSTRAINT `fk_user_created_by_user_id_fk` FOREIGN KEY (`created_by`) REFERENCES `user`(`id`),
 	CONSTRAINT `fk_user_deactivated_by_user_id_fk` FOREIGN KEY (`deactivated_by`) REFERENCES `user`(`id`)
 );
 --> statement-breakpoint

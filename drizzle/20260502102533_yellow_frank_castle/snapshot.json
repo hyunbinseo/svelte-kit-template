@@ -1,10 +1,10 @@
 {
-  "id": "9e760928-f8f0-4960-a13d-3388834ae485",
-  "prevIds": [
-    "d45dbd86-7b31-4bfa-a8c3-5e045d4bdd56"
-  ],
   "version": "7",
   "dialect": "sqlite",
+  "id": "aefb2a6e-3106-4670-9aab-4dc60a572724",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
       "name": "login_attempt",
@@ -281,16 +281,6 @@
       "table": "user_role"
     },
     {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "assigned_at",
-      "entityType": "columns",
-      "table": "user_role"
-    },
-    {
       "type": "text",
       "notNull": true,
       "autoincrement": false,
@@ -337,6 +327,16 @@
       "default": null,
       "generated": null,
       "name": "contact",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "created_by",
       "entityType": "columns",
       "table": "user"
     },
@@ -479,6 +479,21 @@
       "name": "fk_user_role_revoked_by_user_id_fk",
       "entityType": "fks",
       "table": "user_role"
+    },
+    {
+      "columns": [
+        "created_by"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_user_created_by_user_id_fk",
+      "entityType": "fks",
+      "table": "user"
     },
     {
       "columns": [

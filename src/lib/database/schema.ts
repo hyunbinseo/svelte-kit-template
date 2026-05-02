@@ -16,12 +16,13 @@ export const userTable = snakeCase.table(
 	{
 		id: text().primaryKey().$default(ulid),
 		contact: text().notNull(),
-		deactivatedAt: integer({ mode: 'timestamp' }),
-		deactivatedBy: text().references(
+		createdBy: text().references(
 			// NOTE self referencing foreign key requires explicit return type
 			// See https://orm.drizzle.team/docs/indexes-constraints#foreign-key
 			(): AnySQLiteColumn => userTable.id,
 		),
+		deactivatedAt: integer({ mode: 'timestamp' }),
+		deactivatedBy: text().references((): AnySQLiteColumn => userTable.id),
 	},
 	(table) => [
 		uniqueIndex('active_user_contact_idx').on(table.contact).where(isNull(table.deactivatedAt)),
@@ -36,9 +37,6 @@ export const userRoleTable = snakeCase.table(
 			.notNull()
 			.references(() => userTable.id),
 		role: text({ enum: roles }).notNull(),
-		assignedAt: integer({ mode: 'timestamp' })
-			.notNull()
-			.$default(() => new Date()),
 		assignedBy: text()
 			.notNull()
 			.references(() => userTable.id),

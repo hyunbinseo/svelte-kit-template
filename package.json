@@ -22,13 +22,13 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
+		"@sentry/sveltekit": "^10.51.0",
 		"drizzle-kit": "1.0.0-rc.1",
 		"drizzle-orm": "1.0.0-rc.1"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.5",
 		"@eslint/js": "^10.0.1",
-		"@sentry/sveltekit": "^10.50.0",
 		"@sun-typeface/suit": "^2.0.5",
 		"@sveltejs/adapter-node": "^5.5.4",
 		"@sveltejs/kit": "^2.58.0",

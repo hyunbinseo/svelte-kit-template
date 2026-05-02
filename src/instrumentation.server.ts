@@ -4,6 +4,6 @@ import * as Sentry from '@sentry/sveltekit';
 
 Sentry.init({
 	dsn: PUBLIC_SENTRY_DSN,
-	sendDefaultPii: true,
+	enableLogs: true,
 	enabled: !dev,
 });

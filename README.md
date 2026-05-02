@@ -2,15 +2,14 @@
 
 ## Development Setup
 
-1. Initialize or remove Sentry SDK by reviewing these files:
+Configure environment variables:
 
-```
-hooks.client.ts
-hooks.server.ts
+```plaintext
+.env
+.env.[mode].local.example
 ```
 
-2. See `.env.[mode].local.example` and create a `.env.development.local` file.
-3. Install dependencies and run these scripts:
+Install dependencies and run these scripts:
 
 ```shell
 node --run db:generate

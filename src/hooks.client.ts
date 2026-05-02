@@ -8,6 +8,7 @@ valibot.setGlobalConfig({ lang: 'ko' });
 
 Sentry.init({
 	dsn: PUBLIC_SENTRY_DSN,
+	enableLogs: true,
 	sendDefaultPii: true,
 	enabled: !dev,
 });

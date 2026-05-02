@@ -14,6 +14,7 @@ Thumbs.db
 
 # Env
 *.local
+.env.sentry-build-plugin
 
 # Vite
 vite.config.js.timestamp-*

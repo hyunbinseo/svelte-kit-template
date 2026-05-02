@@ -155,12 +155,17 @@ The build can fail on servers with small RAM, especially if there are circular d
 
 > FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
 
-To avoid this, the default command sets the [`--max-old-space-size`](https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes) flag:
+If you encounter this error, set the [`--max-old-space-size`](https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes) flag:
 
-```json
-"build": "node --max-old-space-size=4096 cli/build.ts"
+```jsonc
+// package.json
+{
+  "scripts": {
+    "build": "node --max-old-space-size=2048 cli/build.ts",
+  },
+}
 ```
 
-This will likely cause swapping on servers with less than 4 GiB of memory.
+This will likely cause swapping on servers with less than 2 GiB of memory.
 
 > On a machine with 2 GiB of memory, consider setting this to 1536 (1.5 GiB) to leave some memory for other uses and avoid swapping.

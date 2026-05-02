@@ -1,12 +1,10 @@
 import { relations } from '#lib/database/relations.ts';
 import * as schema from '#lib/database/schema.ts';
 import { dev } from '$app/environment';
-import { env } from '$env/dynamic/private';
+import { DATABASE_URL } from '$env/static/private';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
-
-export const db = drizzle(env.DATABASE_URL, {
+export const db = drizzle(DATABASE_URL, {
 	casing: 'snake_case',
 	schema,
 	relations,

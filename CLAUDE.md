@@ -73,7 +73,7 @@ const users = await db.query.userTable.findMany({
 });
 ```
 
-SQLite async transactions do not work, so avoid them and add a MAYBE comment when needed.
+SQLite async transactions do not work, so avoid them and add a BLOCKED comment when needed.
 
 ## SvelteKit
 

@@ -10,12 +10,12 @@
 
 	const uid = $props.id();
 
-	// NOTE Previous attempt persists on logout redirect
+	// NOTE Reset remote form state after navigation
 	// See https://github.com/sveltejs/kit/issues/14802
 	const sendCode = _sendCode.for(uid);
 	const validateCode = _validateCode.for(uid);
 
-	// NOTE Cannot programmatically reset form results
+	// BLOCKED Programmatically reset remote form state
 	// See https://github.com/sveltejs/kit/pull/14779
 	let validateResult = $derived(validateCode.result);
 
@@ -51,8 +51,8 @@
 					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
-					<!-- TODO Block simultaneous form submissions (all occasions) -->
-					<!-- Blocked by https://github.com/sveltejs/kit/issues/15104 -->
+					<!-- BLOCKED Use top-level fieldset to disable form during submission -->
+					<!-- See https://github.com/sveltejs/kit/issues/15104 -->
 					<fieldset disabled={false} class="contents">
 						<label>
 							<span>이메일</span>
@@ -65,7 +65,6 @@
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>
-						<!-- TODO Use top-level fieldset to disable form during submission -->
 						<button disabled={!!sendCode.pending} class="btn btn-primary disabled:btn-busy">
 							인증번호 전송
 						</button>

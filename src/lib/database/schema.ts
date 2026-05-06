@@ -17,7 +17,7 @@ export const userTable = snakeCase.table(
 		id: text().primaryKey().$default(ulid),
 		contact: text().notNull(),
 		createdBy: text().references(
-			// NOTE self referencing foreign key requires explicit return type
+			// NOTE Self-referencing foreign key requires explicit return type
 			// See https://orm.drizzle.team/docs/indexes-constraints#foreign-key
 			(): AnySQLiteColumn => userTable.id,
 		),

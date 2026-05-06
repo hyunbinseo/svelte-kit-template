@@ -49,7 +49,7 @@ export const validateCode = form(PublicValidateCodeSchema, async (data, issue) =
 		Buffer.from(data.code),
 	);
 
-	// MAYBE Use transaction for attempt insertion + token issuing
+	// BLOCKED Use transaction for attempt insertion + token issuing
 
 	const event = getRequestEvent();
 

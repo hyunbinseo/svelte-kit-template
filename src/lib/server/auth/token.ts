@@ -81,7 +81,7 @@ export const refreshToken = async () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	// MAYBE Use transaction for ban insertion + token issuing
+	// BLOCKED Use transaction for ban insertion + token issuing
 
 	await db.insert(tokenBanTable).values({
 		tokenId: event.locals.session.jti,

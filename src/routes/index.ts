@@ -1,5 +1,5 @@
-// TODO Check browser features in the layout load function
-// Blocked by https://github.com/sveltejs/kit/issues/14678
+// BLOCKED Check browser features in layout load fn
+// See https://github.com/sveltejs/kit/issues/14678
 
 const checkBrowserFeatures = () => {
 	if (

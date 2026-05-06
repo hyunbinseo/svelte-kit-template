@@ -8,9 +8,9 @@ import { form, getRequestEvent } from '$app/server';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { timingSafeEqual } from 'node:crypto';
 import { CODE_INVALID } from './shared.ts';
-import { PublicValidateCodeSchema } from './validate.ts';
+import { ValidateCodeSchema } from './validate.ts';
 
-export const validateCode = form(PublicValidateCodeSchema, async (data, issue) => {
+export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireNoSession();
 
 	const login = await db.query.loginTable.findFirst({

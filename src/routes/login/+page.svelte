@@ -3,10 +3,10 @@
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
 	import { SITE_NAME } from '#lib/config.ts';
 	import { sendCode as _sendCode } from './send.remote.ts';
-	import { PublicSendCodeSchema, sendCodeAttributes } from './send.ts';
+	import { SendCodeSchema, sendCodeAttributes } from './send.ts';
 	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared.ts';
 	import { validateCode as _validateCode } from './validate.remote.ts';
-	import { PublicValidateCodeSchema, validateCodeAttributes } from './validate.ts';
+	import { ValidateCodeSchema, validateCodeAttributes } from './validate.ts';
 
 	const uid = $props.id();
 
@@ -47,7 +47,7 @@
 					</p>
 				{/if}
 				<form
-					{...sendCode.preflight(PublicSendCodeSchema)}
+					{...sendCode.preflight(SendCodeSchema)}
 					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
@@ -72,7 +72,7 @@
 				</form>
 			{:else}
 				<form
-					{...validateCode.preflight(PublicValidateCodeSchema)}
+					{...validateCode.preflight(ValidateCodeSchema)}
 					onchange={() => validateCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>

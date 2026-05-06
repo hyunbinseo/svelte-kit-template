@@ -6,10 +6,10 @@ import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
 import { invalid } from '@sveltejs/kit';
 import { randomInt, randomUUID } from 'node:crypto';
-import { PublicSendCodeSchema } from './send.ts';
+import { SendCodeSchema } from './send.ts';
 import { RATE_LIMITED, UNREGISTERED } from './shared.ts';
 
-export const sendCode = form(PublicSendCodeSchema, async (data, issue) => {
+export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireNoSession();
 
 	let user = await db.query.userTable.findFirst({

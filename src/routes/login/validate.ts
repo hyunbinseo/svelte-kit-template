@@ -1,15 +1,15 @@
 import { AUTH_CODE_LENGTH } from '#lib/config.ts';
-import type { FormAttributes } from '#lib/valibot.ts';
+import type { FormAttributes } from '#lib/remote/form.ts';
 import { digits, length, object, pipe, string, ulid } from 'valibot';
 import { ContactSchema } from './shared.ts';
 
-export const PublicValidateCodeSchema = object({
+export const ValidateCodeSchema = object({
 	id: pipe(string(), ulid()),
 	contact: ContactSchema,
 	code: pipe(string(), digits(), length(AUTH_CODE_LENGTH)),
 });
 
-export const validateCodeAttributes: FormAttributes<typeof PublicValidateCodeSchema> = {
+export const validateCodeAttributes: FormAttributes<typeof ValidateCodeSchema> = {
 	id: {},
 	contact: {},
 	code: {

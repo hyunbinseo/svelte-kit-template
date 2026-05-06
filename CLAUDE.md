@@ -127,7 +127,7 @@ export const getPublicPosts = query(async () => {
   // public. use prerender if static or cacheable
 });
 
-export const getCurrentUser = query(async () => {
+export const getSelf = query(async () => {
   const session = requireSession(); // private
 });
 

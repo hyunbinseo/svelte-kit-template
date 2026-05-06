@@ -20,5 +20,5 @@ export const logout = form(async () => {
 	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
 	delete event.locals.session;
 
-	redirect(303, resolve('/login'));
+	redirect(303, resolve('/'));
 });

@@ -20,5 +20,14 @@
 			알 수 없는 오류가 발생했습니다.
 		{/if}
 	</h1>
-	<a href={resolve('/')} class="mt-4 inline-block btn btn-primary">처음으로</a>
+	<nav class="mt-4 flex gap-x-4">
+		<a href={resolve('/')} class="btn btn-primary">처음으로</a>
+		{#if page.status >= 500}
+			<form method="POST" class="contents">
+				<button formaction={resolve('/api/clear-site-data')} class="btn btn-primary">
+					초기화 후 처음으로
+				</button>
+			</form>
+		{/if}
+	</nav>
 </main>

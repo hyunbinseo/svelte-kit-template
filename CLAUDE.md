@@ -86,18 +86,23 @@ On the client, the exported functions are transformed to `fetch` wrappers that i
 For example, form actions are defined using the `form` function. See `src/routes/login/` for conventions.
 
 ```ts
-import { form } from '$app/server';
-import { db } from '#lib/server/database.ts';
-import { invalid } from '@sveltejs/kit';
+// src/lib/remotes/create-post.ts
 import { nonEmpty, object, pipe, string } from 'valibot';
 
-// can be imported from a shared file
-const PostSchema = object({
+export const CreatePostSchema = object({
   title: pipe(string(), nonEmpty()),
   content: pipe(string(), nonEmpty()),
 });
+```
 
-export const createPost = form(PostSchema, async (data, issue) => {
+```ts
+// src/lib/remotes/create-post.remote.ts
+import { db } from '#lib/server/database.ts';
+import { form } from '$app/server';
+import { invalid } from '@sveltejs/kit';
+import { CreatePostSchema } from './create-post.ts';
+
+export const createPost = form(CreatePostSchema, async (data, issue) => {
   // form data has already passed schema validation
   if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 

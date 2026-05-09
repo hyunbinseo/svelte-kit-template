@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { SITE_NAME } from '#lib/config.ts';
+	import { setClientContext, type Client } from '#lib/context.ts';
 	import { page } from '$app/state';
 	import { slide } from 'svelte/transition';
 	import './+layout.css';
 
 	let { children } = $props();
 
-	let isOnline = $state<boolean>();
+	const client = $state<Client>({});
+	setClientContext(client);
 </script>
 
 <svelte:head>
@@ -17,11 +19,11 @@
 	</title>
 </svelte:head>
 
-<svelte:window bind:online={isOnline} />
+<svelte:window bind:online={client.online} />
 
 <noscript>자바스크립트를 사용할 수 없습니다.</noscript>
 
-{#if isOnline === false}
+{#if client.online === false}
 	<p transition:slide>인터넷에 연결되어 있지 않습니다.</p>
 {/if}
 

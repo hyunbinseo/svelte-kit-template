@@ -17,7 +17,7 @@
 		// Environment Settings
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
-		"lib": ["ES2023", "DOM", "DOM.Iterable"], // sync with app.html browser check
+		"lib": ["ES2023", "DOM"], // sync with app.html browser check
 		"types": ["node"],
 
 		// Stricter Typechecking Options

@@ -73,7 +73,11 @@ const users = await db.query.userTable.findMany({
 });
 ```
 
-SQLite async transactions do not work, so avoid them and add a BLOCKED comment when needed.
+SQLite async transactions do not work, so leave a comment instead:
+
+```ts
+// BLOCKED Use transaction for ban insertion + token issuing
+```
 
 ## SvelteKit
 
@@ -132,8 +136,8 @@ export const getPublicPosts = query(async () => {
   // public. use prerender if static or cacheable
 });
 
-export const getSelf = query(async () => {
-  const session = requireSession(); // private
+export const getPrivatePosts = query(async () => {
+  const session = requireSession();
 });
 
 export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {

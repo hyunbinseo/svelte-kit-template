@@ -3,6 +3,18 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			if (
+				!(
+					typeof [].toReversed === 'function' && // ES2023
+					CSS.supports('selector(:has(a))')
+				)
+			) {
+				document.open();
+				document.write('지원되지 않는 브라우저입니다.');
+				document.close();
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

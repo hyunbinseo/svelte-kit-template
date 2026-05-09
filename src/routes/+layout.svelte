@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import { SITE_NAME } from '#lib/config.ts';
+	import { page } from '$app/state';
 	import { slide } from 'svelte/transition';
 	import './+layout.css';
-	import { checkBrowserScript } from './index.ts';
 
 	let { children } = $props();
 
@@ -16,8 +15,6 @@
 			? `${page.data.title} - ${SITE_NAME}`
 			: SITE_NAME}
 	</title>
-	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-	{@html checkBrowserScript}
 </svelte:head>
 
 <svelte:window bind:online={isOnline} />

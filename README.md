@@ -2,6 +2,9 @@
 
 ## Development Setup
 
+> [!NOTE]
+> pnpm is the recommended package manager. (e.g. MCP configuration uses `pnpm dlx` instead of `npx`)
+
 Configure environment variables:
 
 ```plaintext

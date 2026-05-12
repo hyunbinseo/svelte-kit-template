@@ -216,6 +216,13 @@ Internal navigation via HTML `<a>` tags, SvelteKit’s `goto()`, `pushState()` a
 <div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
 ```
 
+### Documentation
+
+Use Svelte MCP tools to get the latest docs if needed.
+
+- `list-sections` to discover all available sections
+- `get-documentation` to retrieve specific sections
+
 ### $effect
 
 `$effect` executes functions when reactive state changes. For example:

@@ -145,6 +145,17 @@ export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
 });
 ```
 
+For `query.batch` calls, return named tuples to reduce wire size.
+
+<!-- BLOCKED See https://github.com/sveltejs/kit/issues/15784 -->
+
+```ts
+export const getWeather = query.batch(pipe(number(), integer()), (cityIds) => {
+  const lookup = new Map<number, [minTemp: number, maxTemp: number]>();
+  return (cityId) => lookup.get(cityId);
+});
+```
+
 ### await
 
 You can use the `await` keyword inside your components in three places:

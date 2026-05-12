@@ -87,7 +87,28 @@ Remote functions are exported from a `.remote.ts` file, and come in four flavors
 
 On the client, the exported functions are transformed to `fetch` wrappers that invoke their counterparts on the server via a generated HTTP endpoint.
 
-For example, form actions are defined using the `form` function. See `src/routes/login/` for conventions.
+Therefore the requests must be appropriately authenticated and authorized:
+
+```ts
+import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
+import { form, query } from '$app/server';
+
+export const getPublicPosts = query(async () => {
+  // public. use prerender if static or cacheable
+});
+
+export const getPrivatePosts = query(async () => {
+  const session = requireSession();
+});
+
+export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
+  requireNoSession(); // must be logged out
+});
+```
+
+#### `form`
+
+See `src/routes/login/` for conventions.
 
 ```ts
 // src/lib/remotes/create-post.ts
@@ -126,26 +147,9 @@ If the form includes a `<select>`, the default value must be defined:
 </select>
 ```
 
-Since they generate HTTP endpoints, the request must be appropriately authenticated and authorized.
+#### `query.batch`
 
-```ts
-import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
-import { form, query } from '$app/server';
-
-export const getPublicPosts = query(async () => {
-  // public. use prerender if static or cacheable
-});
-
-export const getPrivatePosts = query(async () => {
-  const session = requireSession();
-});
-
-export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
-  requireNoSession(); // must be logged out
-});
-```
-
-For `query.batch` calls, return named tuples to reduce wire size.
+It batches requests that happen within the same macrotask. Return named tuples to reduce wire size.
 
 <!-- BLOCKED See https://github.com/sveltejs/kit/issues/15784 -->
 

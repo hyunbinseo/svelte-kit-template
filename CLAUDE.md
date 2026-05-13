@@ -1,11 +1,12 @@
 ## Common
 
-- AVOID adding code comments
+- Don't add code comments unless requested
 
 ## TypeScript
 
-- PREFER arrow function expressions over function declarations
-- PREFER type over interface
+- Prefer arrow function and `type` over `interface`
+- Blank `//` can be used to force multiline format
+- `noUncheckedIndexedAccess` is enabled
 
 ## Drizzle ORM
 
@@ -39,7 +40,7 @@ uniqueIndex('active_user_role_user_id_role_idx')
   .where(isNull(table.revokedAt));
 ```
 
-Trigger is not supported so SQL should be written in a custom migration file:
+Triggers are not supported, so SQL should be written in a custom migration file:
 
 ```shell
 # See drizzle/*_triggers/migration.sql for examples
@@ -55,8 +56,11 @@ For `db.select`, use the sync API:
 
 ```diff
 - await db.select().from(userTable);
-+ db.select().from(userTable).all(); // returns User[]
-+ db.select().from(userTable).get(); // returns User | undefined
+```
+
+```ts
+db.select().from(userTable).all(); // returns User[]
+db.select().from(userTable).get(); // returns User | undefined
 ```
 
 For `db.query` API, the object key should follow this order:
@@ -83,11 +87,11 @@ SQLite async transactions do not work, so leave a comment instead:
 
 ### Remote Functions
 
-Remote functions are exported from a `.remote.ts` file, and come in four flavors: `query`, `form`, `command` and `prerender`.
+Remote functions are exported from a `.remote.ts` file, and come in four flavors: `query`, `form`, `command`, `prerender`.
 
 On the client, the exported functions are transformed to `fetch` wrappers that invoke their counterparts on the server via a generated HTTP endpoint.
 
-Therefore the requests must be appropriately authenticated and authorized:
+Therefore, the requests must be appropriately authenticated and authorized:
 
 ```ts
 import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
@@ -192,11 +196,15 @@ You can use the `await` keyword inside your components in three places:
 
 ### resolve
 
-Internal navigation via HTML `<a>` tags, SvelteKit’s `goto()`, `pushState()` and `replaceState()` should use `resolve()`.
+Internal navigation must use `resolve()`:
 
 ```svelte
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
+
+  // applies to `pushState` and `replaceState` navigation as well
+  goto(resolve('/blog/tags?svelte')); // append search string or hash
 </script>
 
 <a href={externalURL} rel="external">Click me!</a>
@@ -209,8 +217,8 @@ Internal navigation via HTML `<a>` tags, SvelteKit’s `goto()`, `pushState()` a
 
 ## Svelte
 
-- ALWAYS use the Svelte 5 API
-- NEVER use template literals for class names. Use the array syntax:
+- Use the Svelte 5 API (e.g. runes, `createContext`)
+- Use the array syntax for class names:
 
 ```svelte
 <div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
@@ -225,19 +233,8 @@ Use Svelte MCP tools to get the latest docs if needed.
 
 ### $effect
 
-`$effect` executes functions when reactive state changes. For example:
-
-```svelte
-<script lang="ts">
-  let size = $state(50);
-  $effect(() => {
-    console.log('Size changed:', size);
-  });
-</script>
-```
-
-- Do **NOT** use `$effect` for state synchronization; instead, use it only for side effects like logging or DOM manipulation.
-- Do **NOT** try to override derived state via effects; instead, reassign directly when needed.
+- Don't use `$effect` for state synchronization; instead, use it only for side effects like logging or DOM manipulation.
+- Don't try to override derived state via effects; instead, reassign directly when needed.
 
 ### $derived
 

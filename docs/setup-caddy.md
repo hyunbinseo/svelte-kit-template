@@ -20,7 +20,7 @@ nano Caddyfile
 > Since the output directory changes with each build, Caddy's static file serving cannot be used. The generated `handler` function sets appropriate caching headers for Vite hashed assets instead.
 
 ```caddy
-(deny) {
+(defaults) {
 	# NOTE this named matcher matches /.well-known/* as well
 	@denied-root path /.* /wp-admin* /wp-content* /wp-includes*
 	@denied-database path *.db *.dump *.sql *.sqlite *.sqlite3
@@ -31,10 +31,12 @@ nano Caddyfile
 	respond @denied-database 410
 	respond @denied-secrets 410
 	respond @denied-misc 410
+
+	encode
 }
 
 <your-domain.com> {
-	import deny
+	import defaults
 	reverse_proxy localhost:3000
 }
 ```

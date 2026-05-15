@@ -21,20 +21,26 @@ nano Caddyfile
 
 ```caddy
 (deny) {
-  # NOTE this matches /.well-known/* paths as well
-  @denied-dir path /.* /wp-admin* /wp-content* /wp-includes*
-  @denied-ext path *.bak *.env *.env.* *.ico *.php *.sql *.swp
-  respond @denied-dir 404
-  respond @denied-ext 404
+	# NOTE this named matcher matches /.well-known/* as well
+	@denied-root path /.* /wp-admin* /wp-content* /wp-includes*
+	@denied-database path *.db *.dump *.sql *.sqlite *.sqlite3
+	@denied-secrets path *.crt *.env *.env.* *.htpasswd *.key *.p12 *.p8 *.pem *.pfx
+	@denied-misc path *.bak *.ico *.ini *.log *.map *.orig *.php *.swp *.tmp
+
+	respond @denied-root 410
+	respond @denied-database 410
+	respond @denied-secrets 410
+	respond @denied-misc 410
 }
 
 <your-domain.com> {
-  import deny
-  reverse_proxy localhost:3000
+	import deny
+	reverse_proxy localhost:3000
 }
 ```
 
 ```shell
+caddy validate
 systemctl enable --now caddy
-# systemctl restart caddy
+systemctl restart caddy
 ```

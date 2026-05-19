@@ -4,13 +4,14 @@ import { cwd, env } from 'node:process';
 import { build } from 'vite';
 import { root } from './utilities.ts';
 
+const BUILD_TIMESTAMP = Math.floor(Date.now() / 1000).toString();
+
 if (cwd() !== root) throw new Error();
 
-const outDir = `build/${Math.floor(Date.now() / 1000)}`;
+const outDir = `build/${BUILD_TIMESTAMP}`;
+if (existsSync(resolve(root, outDir))) throw new Error();
 
-if (existsSync(resolve(root, `./${outDir}`))) throw new Error();
-
-env.SVELTE_KIT_NODE_ADAPTER_OUT = outDir;
+env.SVELTE_KIT_BUILD_TIMESTAMP = BUILD_TIMESTAMP;
 await build();
 
 console.table({ outDir });

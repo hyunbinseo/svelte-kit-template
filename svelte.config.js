@@ -8,7 +8,12 @@ const config = {
 			instrumentation: { server: true },
 			remoteFunctions: true,
 		},
-		adapter: adapter({ out: env.SVELTE_KIT_NODE_ADAPTER_OUT }),
+		version: {
+			name: env.SVELTE_KIT_BUILD_TIMESTAMP,
+		},
+		adapter: adapter({
+			out: env.SVELTE_KIT_BUILD_TIMESTAMP && `build/${env.SVELTE_KIT_BUILD_TIMESTAMP}`,
+		}),
 	},
 	compilerOptions: {
 		experimental: { async: true },

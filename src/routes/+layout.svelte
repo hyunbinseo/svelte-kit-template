@@ -17,6 +17,7 @@
 			? `${page.data.title} - ${SITE_NAME}`
 			: SITE_NAME}
 	</title>
+	<meta name="robots" content={page.data.robots ?? 'noindex, nofollow'} />
 </svelte:head>
 
 <svelte:window bind:online={client.online} />

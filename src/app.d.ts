@@ -13,6 +13,7 @@ declare global {
 		}
 		interface PageData {
 			title: string;
+			robots?: 'index' | 'noindex, nofollow' | (string & {});
 		}
 		// interface PageState {}
 		// interface Platform {}

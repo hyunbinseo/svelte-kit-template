@@ -1,7 +1,7 @@
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_THRESHOLD } from '#lib/config.ts';
 import { refreshToken, verifyToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database.ts';
-import { captureMessage, handleErrorWithSentry, sentryHandle } from '@sentry/sveltekit';
+import { captureMessage, handleErrorWithSentry, sentryHandle, setUser } from '@sentry/sveltekit';
 import type { HandleValidationError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import '@valibot/i18n/ko';
@@ -29,11 +29,14 @@ export const handle = sequence(sentryHandle(), async ({ event, resolve }) => {
 				roles: new Set(verified.payload.roles),
 			};
 
+			setUser({ id: verified.payload.sub });
+
 			const expiresIn = verified.payload.exp * 1000 - Date.now();
 			if (!ban && expiresIn <= AUTH_TOKEN_REFRESH_THRESHOLD) await refreshToken();
 		} catch {
 			event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
 			delete event.locals.session;
+			setUser(null);
 		}
 	}
 

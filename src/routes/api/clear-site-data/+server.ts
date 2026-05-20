@@ -1,4 +1,7 @@
-export const POST = ({ url }) => {
+import { revokeSession } from '#lib/server/auth/session.ts';
+
+export const POST = async ({ url }) => {
+	await revokeSession();
 	return new Response(null, {
 		status: 303,
 		headers: {

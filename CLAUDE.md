@@ -260,6 +260,25 @@ Use Svelte MCP tools to get the latest docs if needed.
 <button {onclick}>🧡 {likes}</button>
 ```
 
+### onMount
+
+Unlike `$effect`, `onMount` accepts an async function. However, the cleanup function cannot be returned:
+
+```ts
+let mounted = true;
+
+onMount(async () => {
+  await promise;
+  if (!mounted) return; // skip side effects
+  addEventListener(/* */);
+});
+
+onDestroy(() => {
+  mounted = false;
+  removeEventListener(/* */);
+});
+```
+
 ## Tailwind CSS
 
 - Create utility components for shared styles in `src/routes/+layout.css`.

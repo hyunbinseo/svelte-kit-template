@@ -224,13 +224,6 @@ Internal navigation must use `resolve()`:
 <div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
 ```
 
-### Documentation
-
-Use Svelte MCP tools to get the latest docs if needed.
-
-- `list-sections` to discover all available sections
-- `get-documentation` to retrieve specific sections
-
 ### $effect
 
 - Don't use `$effect` for state synchronization; instead, use it only for side effects like logging or DOM manipulation.
@@ -278,6 +271,13 @@ onDestroy(() => {
   removeEventListener(/* */);
 });
 ```
+
+### Reference
+
+Svelte MCP tool provides latest Svelte 5 and SvelteKit docs:
+
+- `list-sections` to discover all available sections
+- `get-documentation` to retrieve specific sections
 
 ## Tailwind CSS
 

@@ -7,7 +7,6 @@
 		"svelte": {
 			"type": "stdio",
 			"command": "pnpm dlx",
-			"env": {},
 			"args": ["-y", "@sveltejs/mcp"]
 		}
 	}

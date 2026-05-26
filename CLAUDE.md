@@ -4,9 +4,17 @@
 
 ## TypeScript
 
-- Prefer arrow function and `type` over `interface`
-- Blank `//` can be used to force multiline format
-- `noUncheckedIndexedAccess` is enabled
+- Use `type` over `interface`
+- Use arrow syntax over function expressions and declarations
+- Blank `//` comments can be used to force multiline formatting
+- Don't use `!` non-null assertions (except in Drizzle insert returning)
+
+```json
+{
+  "noUncheckedIndexedAccess": true,
+  "exactOptionalPropertyTypes": true
+}
+```
 
 ## Drizzle ORM
 

@@ -266,6 +266,8 @@ Internal navigation must use `resolve()`:
 Unlike `$effect`, `onMount` accepts an async function. However, the cleanup function cannot be returned:
 
 ```ts
+import { browser } from '$app/environment';
+
 let mounted = true;
 
 onMount(async () => {
@@ -274,7 +276,9 @@ onMount(async () => {
   addEventListener(/* */);
 });
 
+// runs inside a server-side component
 onDestroy(() => {
+  if (!browser) return;
   mounted = false;
   removeEventListener(/* */);
 });

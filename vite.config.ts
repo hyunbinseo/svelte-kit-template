@@ -10,10 +10,8 @@ export default defineConfig({
 		sentrySvelteKit({ telemetry: false }),
 		sveltekit(),
 	],
-	server: {
-		port: 5263,
-		strictPort: true,
-	},
+	server: { port: 5526, strictPort: true },
+	preview: { port: 4526, strictPort: true },
 });
 
 // vite@8 roughly requires ES2023:

@@ -85,7 +85,7 @@ const users = await db.query.userTable.findMany({
 });
 ```
 
-SQLite async transactions do not work, so leave a comment instead:
+SQLite async transactions don't work, so leave a comment instead:
 
 ```ts
 // BLOCKED Use transaction for ban insertion + token issuing
@@ -234,14 +234,11 @@ Internal navigation must use `resolve()`:
 
 ### $effect
 
-- Don't use `$effect` for state synchronization; instead, use it only for side effects like logging or DOM manipulation.
-- Don't try to override derived state via effects; instead, reassign directly when needed.
+Don't use `$effect` for a derived state. Use it only for side effects like logging, DOM manipulation, and browser-only APIs (e.g. syncing with `localStorage`).
 
 ### $derived
 
-#### Overriding derived values
-
-- You can reassign a derived value for features like optimistic UI. It will go back to the `$derived` value once an update in its dependencies happens. For example:
+You can reassign a derived value for features like optimistic UI. It will go back to the `$derived` value once an update in its dependencies happens. For example:
 
 ```svelte
 <script lang="ts">

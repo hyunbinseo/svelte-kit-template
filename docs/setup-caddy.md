@@ -21,7 +21,7 @@ nano Caddyfile
 
 ```caddy
 (defaults) {
-	# NOTE this named matcher matches /.well-known/* as well
+	# NOTE This named matcher matches /.well-known/* as well
 	@denied-root path /.* /wp-admin* /wp-content* /wp-includes*
 	@denied-database path *.db *.dump *.sql *.sqlite *.sqlite3
 	@denied-secrets path *.crt *.env *.env.* *.htpasswd *.key *.p12 *.p8 *.pem *.pfx

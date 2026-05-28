@@ -1,6 +1,7 @@
 ## Common
 
 - Don't add code comments unless requested
+- Standalone comment lines are capitalized; inline comments are lowercase
 
 ## TypeScript
 

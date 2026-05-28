@@ -223,6 +223,23 @@ Internal navigation must use `resolve()`:
 <a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>
 ```
 
+### Feature Detection
+
+Check for browser API support at the client:
+
+```svelte
+<script lang="ts">
+  import { browser } from '$app/environment';
+</script>
+
+<!-- does not trigger a hydration mismatch -->
+{#if browser && !CSS.supports('<selector>')}
+  <!-- warning message -->
+{:else}
+  {@render children()}
+{/if}
+```
+
 ## Svelte
 
 - Use the Svelte 5 API (e.g. runes, `createContext`)

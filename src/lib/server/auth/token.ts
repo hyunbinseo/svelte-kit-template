@@ -7,7 +7,7 @@ import { env } from '$env/dynamic/private';
 import { jwtVerify, SignJWT } from 'jose';
 import { JWSSignatureVerificationFailed } from 'jose/errors';
 import { minLength, optional, parse, pipe, string, transform } from 'valibot';
-import { db } from '../database.ts';
+import { db } from '../database/client.ts';
 
 const SecretSchema = pipe(
 	string(),

@@ -1,7 +1,7 @@
 import { AUTH_CODE_LENGTH, IS_ALLOW_UNREGISTERED } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
 import { requireNoSession } from '#lib/server/auth/session.ts';
-import { db } from '#lib/server/database.ts';
+import { db } from '#lib/server/database/client.ts';
 import { dev } from '$app/environment';
 import { form, getRequestEvent } from '$app/server';
 import { invalid } from '@sveltejs/kit';

@@ -1,4 +1,4 @@
-import { db } from '#lib/server/database.ts';
+import { db } from '#lib/server/database/client.ts';
 import { getRequestEvent, query } from '$app/server';
 import { error } from '@sveltejs/kit';
 

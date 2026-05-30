@@ -19,7 +19,7 @@
 
 ## Drizzle ORM
 
-- `src/lib/server/database.ts` (client)
+- `src/lib/server/database/client.ts`
 - `src/lib/database/schema.ts`
 - `src/lib/database/relations.ts`
 

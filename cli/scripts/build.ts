@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { cwd, env } from 'node:process';
 import { build } from 'vite';
-import { root } from './utilities.ts';
+import { root } from '../utilities.ts';
 
 const BUILD_TIMESTAMP = Math.floor(Date.now() / 1000).toString();
 

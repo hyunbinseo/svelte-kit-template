@@ -6,7 +6,7 @@ import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { error, redirect } from '@sveltejs/kit';
-import { db } from '../database.ts';
+import { db } from '../database/client.ts';
 
 export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' | 'any' = 'any') => {
 	const event = getRequestEvent();

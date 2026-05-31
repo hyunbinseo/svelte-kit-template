@@ -67,7 +67,7 @@ module.exports = {
     },
     {
       name: '<name>:cron',
-      script: './cli/scheduled.ts',
+      script: './cli/scripts/backup.ts',
       interpreter: 'node',
       time: true,
       autorestart: false,
@@ -83,6 +83,7 @@ For initial deployment:
 
 ```shell
 pnpm db:migrate
+pnpm db:audit:migrate
 pnpm build                # logs output directory
 nano build/start.js       # update the import path
 pm2 start pm2.config.cjs
@@ -94,11 +95,11 @@ To switch builds, simply reload the pm2 processes:
 ```shell
 git pull origin main
 pnpm i
-pnpm db:migrate
 pnpm build
 ```
 
 ```shell
+# migrate db if needed
 nano build/start.js
 pm2 reload <name>
 ```

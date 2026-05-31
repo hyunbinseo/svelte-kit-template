@@ -4,13 +4,13 @@ import { defineConfig } from 'drizzle-kit';
 import { env } from 'node:process';
 
 // NOTE `drizzle-kit` CLI automatically loads the `.env` file
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+if (!env.DATABASE_AUDIT_URL) throw new Error('DATABASE_AUDIT_URL is not set');
 
 export default defineConfig({
-	schema: './src/lib/database/schema.ts',
-	out: './drizzle/app',
+	schema: './src/lib/server/database/audit.schema.ts',
+	out: './drizzle/audit',
 	dialect: 'sqlite',
-	dbCredentials: { url: env.DATABASE_URL },
+	dbCredentials: { url: env.DATABASE_AUDIT_URL },
 	strict: true,
 	verbose: true,
 });

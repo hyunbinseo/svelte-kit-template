@@ -82,7 +82,7 @@ module.exports = {
 For initial deployment:
 
 ```shell
-pnpm db:migrate
+pnpm db:prod:migrate
 pnpm db:audit:migrate
 pnpm build                # logs output directory
 nano build/start.js       # update the import path

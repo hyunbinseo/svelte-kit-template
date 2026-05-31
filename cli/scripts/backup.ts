@@ -9,12 +9,12 @@ import { root } from '../utilities.ts';
 const now = new Date();
 const filename = `${now.valueOf()}-${now.toISOString().slice(0, 10)}.db`;
 
-const dataBackupDir = resolve(root, 'db/backups/app');
+const dataBackupDir = resolve(root, 'backups/app');
 mkdirSync(dataBackupDir, { recursive: true });
 await backup(db.$client, resolve(dataBackupDir, filename));
 db.$client.close();
 
-const auditBackupDir = resolve(root, 'db/backups/audit');
+const auditBackupDir = resolve(root, 'backups/audit');
 mkdirSync(auditBackupDir, { recursive: true });
 await backup(auditDb.$client, resolve(auditBackupDir, filename));
 auditDb.delete(logTable).run();

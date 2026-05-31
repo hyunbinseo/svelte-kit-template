@@ -1,6 +1,6 @@
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_REFRESH_THRESHOLD } from '#lib/config.ts';
 import { refreshToken, verifyToken } from '#lib/server/auth/token.ts';
-import { db } from '#lib/server/database/client.ts';
+import { silentDb } from '#lib/server/database/client.ts';
 import { captureMessage, handleErrorWithSentry, sentryHandle, setUser } from '@sentry/sveltekit';
 import type { HandleValidationError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -16,7 +16,7 @@ export const handle = sequence(sentryHandle(), async ({ event, resolve }) => {
 		try {
 			const verified = await verifyToken(jwt);
 
-			const ban = await db.query.tokenBanTable.findFirst({
+			const ban = await silentDb.query.tokenBanTable.findFirst({
 				where: { tokenId: verified.payload.jti },
 				columns: { effectiveAt: true },
 			});

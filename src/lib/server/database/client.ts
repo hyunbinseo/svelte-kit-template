@@ -2,47 +2,57 @@ import { relations } from '#lib/database/relations.ts';
 import * as schema from '#lib/database/schema.ts';
 import { dev } from '$app/environment';
 import { getRequestEvent } from '$app/server';
-import { DATABASE_AUDIT_URL, DATABASE_URL } from '$env/static/private';
-import { DefaultLogger } from 'drizzle-orm/logger';
+import { DATABASE_URL } from '$env/static/private';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { logTable } from './audit.schema.ts';
+import { hash } from 'node:crypto';
+import { DatabaseSync } from 'node:sqlite';
+import { auditDb } from './audit.client.ts';
+import { logTable, queryTable } from './audit.schema.ts';
 
-const auditDb = dev
-	? null // NOTE `node:sqlite` has no `fileMustExist` option
-	: drizzle(DATABASE_AUDIT_URL, { jit: true });
+const client = new DatabaseSync(DATABASE_URL);
 
-export const db = drizzle(DATABASE_URL, {
+if (!dev) client.exec('PRAGMA journal_mode = WAL');
+
+export const silentDb = drizzle({
+	client,
+	schema,
+	relations,
+	jit: true,
+	logger: false,
+});
+
+export const db = drizzle({
+	client,
 	schema,
 	relations,
 	jit: true,
 	logger: dev
 		? false
-		: new DefaultLogger({
-				writer: {
-					write: (message) => {
-						if (!auditDb) return;
-						const event = getRequestEvent();
-						auditDb
-							.insert(logTable)
-							.values({
-								sub: event.locals.session?.sub,
-								ip: event.getClientAddress(),
-								message,
-							})
-							.run();
-					},
-				},
-			}),
-});
+		: {
+				logQuery: (query, params) => {
+					if (!auditDb) return;
+					const queryHash = hash('sha256', query, 'hex');
+					const event = getRequestEvent();
 
-if (!dev) {
-	auditDb?.$client.exec('PRAGMA journal_mode = WAL');
-	db.$client.exec('PRAGMA journal_mode = WAL');
-}
+					auditDb
+						.insert(queryTable)
+						.values({ hash: queryHash, sql: query })
+						.onConflictDoNothing()
+						.run();
+
+					auditDb
+						.insert(logTable)
+						.values({
+							sub: event.locals.session?.sub,
+							ip: event.getClientAddress(),
+							queryHash,
+							params: JSON.stringify(params),
+						})
+						.run();
+				},
+			},
+});
 
 // See https://pm2.keymetrics.io/docs/usage/cluster-mode/#graceful-shutdown
 // See https://svelte.dev/docs/kit/adapter-node#Graceful-shutdown
-process.on('sveltekit:shutdown', () => {
-	auditDb?.$client.close();
-	db.$client.close();
-});
+process.on('sveltekit:shutdown', () => client.close());

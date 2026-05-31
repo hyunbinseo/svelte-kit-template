@@ -1,13 +1,17 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "72f42a67-59f7-42c1-8176-c3ca1f17fb51",
+  "id": "9f7cb707-a4a1-4488-85a6-473153b457cd",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
       "name": "log",
+      "entityType": "tables"
+    },
+    {
+      "name": "query",
       "entityType": "tables"
     },
     {
@@ -56,9 +60,39 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "message",
+      "name": "query_hash",
       "entityType": "columns",
       "table": "log"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "params",
+      "entityType": "columns",
+      "table": "log"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hash",
+      "entityType": "columns",
+      "table": "query"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sql",
+      "entityType": "columns",
+      "table": "query"
     },
     {
       "columns": [
@@ -67,6 +101,15 @@
       "nameExplicit": false,
       "name": "log_pk",
       "table": "log",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "hash"
+      ],
+      "nameExplicit": false,
+      "name": "query_pk",
+      "table": "query",
       "entityType": "pks"
     }
   ],

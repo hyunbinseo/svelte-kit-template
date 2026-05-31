@@ -1,8 +1,8 @@
 import { relations } from '#lib/database/relations.ts';
 import * as schema from '#lib/database/schema.ts';
-import { logTable } from '#lib/server/database/audit.schema.ts';
-import { DefaultLogger } from 'drizzle-orm/logger';
+import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
 import { drizzle } from 'drizzle-orm/node-sqlite';
+import { hash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { env, loadEnvFile } from 'node:process';
 import { root } from './utilities.ts';
@@ -17,11 +17,25 @@ export const auditDb = drizzle(env.DATABASE_AUDIT_URL);
 export const db = drizzle(env.DATABASE_URL, {
 	schema,
 	relations,
-	logger: new DefaultLogger({
-		writer: {
-			write: (message) => {
-				auditDb.insert(logTable).values({ sub: null, ip: '127.0.0.1', message }).run();
-			},
+	logger: {
+		logQuery: (query, params) => {
+			const queryHash = hash('sha256', query, 'hex');
+
+			auditDb
+				.insert(queryTable)
+				.values({ hash: queryHash, sql: query })
+				.onConflictDoNothing()
+				.run();
+
+			auditDb
+				.insert(logTable)
+				.values({
+					sub: null,
+					ip: 'cli',
+					queryHash,
+					params: JSON.stringify(params),
+				})
+				.run();
 		},
-	}),
+	},
 });

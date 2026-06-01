@@ -12,7 +12,8 @@ export const logTable = snakeCase.table('log', {
 		.notNull()
 		.default(sql`(unixepoch())`),
 	sub: text(),
-	ip: text().notNull(),
+	ip: text(),
+	pathname: text(),
 	queryHash: text().notNull(),
 	params: text().notNull(),
 });

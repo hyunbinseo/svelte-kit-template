@@ -19,7 +19,9 @@ export const db = drizzle(env.DATABASE_URL, {
 	relations,
 	logger: {
 		logQuery: (query, params) => {
-			const queryHash = hash('sha256', query, 'hex');
+			if (query.startsWith('select ')) return;
+
+			const queryHash = hash('sha1', query, 'hex');
 
 			auditDb
 				.insert(queryTable)
@@ -31,7 +33,8 @@ export const db = drizzle(env.DATABASE_URL, {
 				.insert(logTable)
 				.values({
 					sub: null,
-					ip: 'cli',
+					ip: null,
+					pathname: null,
 					queryHash,
 					params: JSON.stringify(params),
 				})

@@ -1,4 +1,4 @@
-import { AUTH_CODE_LENGTH, IS_ALLOW_UNREGISTERED } from '#lib/config.ts';
+import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
 import { requireNoSession } from '#lib/server/auth/session.ts';
 import { db } from '#lib/server/database/client.ts';
@@ -20,7 +20,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		columns: { id: true },
 	});
 
-	if (!user && !IS_ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
+	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
 
 	user = user ?? (await db.insert(userTable).values(data).returning({ id: userTable.id }))[0]!;
 

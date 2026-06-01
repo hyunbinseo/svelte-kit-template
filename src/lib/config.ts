@@ -1,6 +1,7 @@
 export const SITE_NAME = '사이트명'; // TODO
 
-export const IS_ALLOW_UNREGISTERED = true;
+export const ALLOW_UNREGISTERED = true;
+export const LOG_SELECT_QUERIES = false;
 
 const SECOND = 1_000;
 const MINUTE = 60 * SECOND;

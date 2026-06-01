@@ -2,7 +2,8 @@ CREATE TABLE `log` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`logged_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`sub` text,
-	`ip` text NOT NULL,
+	`ip` text,
+	`pathname` text,
 	`query_hash` text NOT NULL,
 	`params` text NOT NULL
 );

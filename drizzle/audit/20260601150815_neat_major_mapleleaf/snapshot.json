@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "9f7cb707-a4a1-4488-85a6-473153b457cd",
+  "id": "0a06a3d1-c81e-4676-a613-29b50a7076a1",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -46,11 +46,21 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
       "name": "ip",
+      "entityType": "columns",
+      "table": "log"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "pathname",
       "entityType": "columns",
       "table": "log"
     },

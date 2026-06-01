@@ -1,3 +1,4 @@
+import { LOG_SELECT_QUERIES } from '#lib/config.ts';
 import { relations } from '#lib/database/relations.ts';
 import * as schema from '#lib/database/schema.ts';
 import { dev } from '$app/environment';
@@ -31,7 +32,9 @@ export const db = drizzle({
 		: {
 				logQuery: (query, params) => {
 					if (!auditDb) return;
-					const queryHash = hash('sha256', query, 'hex');
+					if (!LOG_SELECT_QUERIES && query.startsWith('select ')) return;
+
+					const queryHash = hash('sha1', query, 'hex');
 					const event = getRequestEvent();
 
 					auditDb
@@ -45,6 +48,7 @@ export const db = drizzle({
 						.values({
 							sub: event.locals.session?.sub,
 							ip: event.getClientAddress(),
+							pathname: event.url.pathname,
 							queryHash,
 							params: JSON.stringify(params),
 						})

@@ -276,6 +276,22 @@ You can reassign a derived value for features like optimistic UI. It will go bac
 <button {onclick}>🧡 {likes}</button>
 ```
 
+### Declaration Tags
+
+`{@const x = y}` is legacy syntax; use `const` or `let`:
+
+```svelte
+<!-- Can be placed anywhere -->
+{const msg = 'hi'}
+<p>{msg}</p>
+
+<!-- Reactive values with runes -->
+{let name = $state('')}
+{const profile = $derived(imgFromText(name))}
+<input bind:value={name} />
+<img src={profile} />
+```
+
 ### onMount
 
 Unlike `$effect`, `onMount` accepts an async function. However, the cleanup function cannot be returned:

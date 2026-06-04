@@ -1,6 +1,8 @@
 import { sentrySvelteKit } from '@sentry/sveltekit';
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
+import { env } from 'node:process';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -8,7 +10,21 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(), //
 		sentrySvelteKit({ telemetry: false }),
-		sveltekit(),
+		sveltekit({
+			compilerOptions: {
+				experimental: { async: true },
+			},
+			experimental: {
+				instrumentation: { server: true },
+				remoteFunctions: true,
+			},
+			version: {
+				...(env.SVELTE_KIT_BUILD_TIMESTAMP && { name: env.SVELTE_KIT_BUILD_TIMESTAMP }),
+			},
+			adapter: adapter({
+				...(env.SVELTE_KIT_BUILD_TIMESTAMP && { out: `build/${env.SVELTE_KIT_BUILD_TIMESTAMP}` }),
+			}),
+		}),
 	],
 	server: { port: 5526, strictPort: true },
 	preview: { port: 4526, strictPort: true },

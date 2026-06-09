@@ -1,7 +1,8 @@
-## Common
+## Comments
 
-- Don't add code comments unless requested
-- Standalone comment lines are capitalized; inline comments are lowercase
+- Don't add unless requested
+- No trailing period
+- Standalone lines are capitalized; inline are lowercase
 
 ## TypeScript
 
@@ -93,6 +94,16 @@ SQLite async transactions don't work, so leave a comment instead:
 ```
 
 ## SvelteKit
+
+### Environment Variables
+
+Define them in `src/env.ts` and import from `$app/env`:
+
+```ts
+import { browser } from '$app/env'; // SvelteKit provided
+import { SENTRY_DSN } from '$app/env/public';
+import { DATABASE_URL } from '$app/env/private';
+```
 
 ### Remote Functions
 

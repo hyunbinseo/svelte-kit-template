@@ -2,21 +2,16 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_REFRESH_GRACE } from
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
 import type { Role } from '#lib/enums.ts';
 import { dev } from '$app/env';
+import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
-import { env } from '$env/dynamic/private';
 import { jwtVerify, SignJWT } from 'jose';
 import { JWSSignatureVerificationFailed } from 'jose/errors';
-import { minLength, optional, parse, pipe, string, transform } from 'valibot';
 import { db } from '../database/client.ts';
 
-const SecretSchema = pipe(
-	string(),
-	minLength(1),
-	transform((value) => new TextEncoder().encode(value)),
-);
+const encoder = new TextEncoder();
 
-const SECRET_NEW = parse(SecretSchema, env.JWT_SECRET_NEW);
-const SECRET_OLD = parse(optional(SecretSchema), env.JWT_SECRET_OLD);
+const SECRET_NEW = encoder.encode(JWT_SECRET_NEW);
+const SECRET_OLD = JWT_SECRET_OLD ? encoder.encode(JWT_SECRET_OLD) : undefined;
 
 type PrivateClaims = { roles?: [Role, ...Role[]] };
 

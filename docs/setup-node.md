@@ -13,7 +13,7 @@ cd ~/<name>
 
 ## Environment Variables
 
-Create an `.env.local` file and define **all** secrets and environment variables:
+Create an `.env.production.local` file and define **all** secrets and environment variables:
 
 ```shell
 JWT_SECRET_NEW="" # see .env.[mode].local.example
@@ -39,8 +39,8 @@ Create a `./build/start.js` file.
 import { resolve } from 'node:path';
 import { loadEnvFile } from 'node:process';
 
-loadEnvFile(resolve(import.meta.dirname, '../.env.local'));
-loadEnvFile(resolve(import.meta.dirname, '../.env'));
+// NOTE Files containing dynamic variables should be loaded
+loadEnvFile(resolve(import.meta.dirname, '../.env.production.local'));
 
 await import('./<build-directory>/index.js');
 ```
@@ -99,7 +99,7 @@ pnpm build
 ```
 
 ```shell
-# migrate db if needed
+# Migrate db if needed
 nano build/start.js
 pm2 reload <name>
 ```
@@ -122,12 +122,10 @@ exit();
 
 ### Update Environment Variables
 
-|         | Runtime                 | Build time            |
-| ------- | ----------------------- | --------------------- |
-| Action  | Reload pm2 applications | Rebuild and switch    |
-| Private | `$env/dynamic/private`  | `$env/static/private` |
-| Public  | `$env/dynamic/public`   | `$env/static/public`  |
-| Direct  | `process.env`           |                       |
+See `src/env.ts` to see if the variables are static.
+
+- Dynamic: reload pm2 applications
+- Static: rebuild and switch
 
 ### Update Node.js
 

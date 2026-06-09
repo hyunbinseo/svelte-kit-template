@@ -17,8 +17,8 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:prod:generate": "drizzle-kit generate --config=drizzle-prod.config.ts",
 		"db:prod:migrate": "drizzle-kit migrate --config=drizzle-prod.config.ts",
-		"db:audit:generate": "drizzle-kit generate --config=drizzle-audit.config.ts",
-		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
+		"db:prod:audit:generate": "drizzle-kit generate --config=drizzle-prod-audit.config.ts",
+		"db:prod:audit:migrate": "drizzle-kit migrate --config=drizzle-prod-audit.config.ts"
 	},
 	"imports": {
 		"#lib/*": "./src/lib/*"

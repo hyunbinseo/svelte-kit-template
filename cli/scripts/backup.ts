@@ -14,10 +14,12 @@ mkdirSync(dataBackupDir, { recursive: true });
 await backup(db.$client, resolve(dataBackupDir, filename));
 db.$client.close();
 
-const auditBackupDir = resolve(root, 'backups/audit');
-mkdirSync(auditBackupDir, { recursive: true });
-await backup(auditDb.$client, resolve(auditBackupDir, filename));
-auditDb.delete(logTable).run();
-auditDb.$client.close();
+if (auditDb) {
+	const auditBackupDir = resolve(root, 'backups/audit');
+	mkdirSync(auditBackupDir, { recursive: true });
+	await backup(auditDb.$client, resolve(auditBackupDir, filename));
+	auditDb.delete(logTable).run();
+	auditDb.$client.close();
+}
 
 exit();

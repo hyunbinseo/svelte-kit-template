@@ -1,13 +1,11 @@
-import { dev } from '$app/env';
-import { DATABASE_AUDIT_URL } from '$env/static/private';
+import { DATABASE_AUDIT_URL } from '$app/env/private';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { DatabaseSync } from 'node:sqlite';
 
-// NOTE `node:sqlite` has no `fileMustExist` option
-const client = dev ? null : new DatabaseSync(DATABASE_AUDIT_URL);
+export const auditDb = DATABASE_AUDIT_URL //
+	? drizzle(DATABASE_AUDIT_URL, { jit: true })
+	: null;
 
-client?.exec('PRAGMA journal_mode = WAL');
-
-export const auditDb = !client ? null : drizzle({ client, jit: true });
-
-if (client) process.on('sveltekit:shutdown', () => client.close());
+if (auditDb) {
+	auditDb.$client.exec('PRAGMA journal_mode = WAL');
+	process.on('sveltekit:shutdown', () => auditDb.$client.close());
+}

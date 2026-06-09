@@ -5,14 +5,8 @@
 > [!NOTE]
 > pnpm is the recommended package manager. (e.g. MCP configuration uses `pnpm dlx` instead of `npx`)
 
-Configure environment variables:
-
-```plaintext
-.env
-.env.[mode].local.example
-```
-
-Install dependencies and run these scripts:
+1. Create `.env.development.local` file (see `.env.[mode].local.example`)
+2. Install dependencies and run these scripts:
 
 ```shell
 node --run db:generate

@@ -15,6 +15,7 @@ export default defineConfig({
 				experimental: { async: true },
 			},
 			experimental: {
+				explicitEnvironmentVariables: true,
 				instrumentation: { server: true },
 				remoteFunctions: true,
 			},

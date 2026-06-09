@@ -1,4 +1,4 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { DATABASE_AUDIT_URL } from '$env/static/private';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { DatabaseSync } from 'node:sqlite';

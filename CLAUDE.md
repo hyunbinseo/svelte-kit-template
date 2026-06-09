@@ -230,7 +230,7 @@ Check for browser API support at the client:
 
 ```svelte
 <script lang="ts">
-  import { browser } from '$app/environment';
+  import { browser } from '$app/env';
 </script>
 
 <!-- does not trigger a hydration mismatch -->
@@ -297,7 +297,7 @@ You can reassign a derived value for features like optimistic UI. It will go bac
 Unlike `$effect`, `onMount` accepts an async function. However, the cleanup function cannot be returned:
 
 ```ts
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 let mounted = true;
 

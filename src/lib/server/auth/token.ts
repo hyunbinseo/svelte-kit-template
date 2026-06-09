@@ -1,7 +1,7 @@
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_REFRESH_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
 import type { Role } from '#lib/enums.ts';
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { getRequestEvent } from '$app/server';
 import { env } from '$env/dynamic/private';
 import { jwtVerify, SignJWT } from 'jose';

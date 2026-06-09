@@ -1,7 +1,7 @@
 import { LOG_SELECT_QUERIES } from '#lib/config.ts';
 import { relations } from '#lib/database/relations.ts';
 import * as schema from '#lib/database/schema.ts';
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { getRequestEvent } from '$app/server';
 import { DATABASE_URL } from '$env/static/private';
 import { drizzle } from 'drizzle-orm/node-sqlite';

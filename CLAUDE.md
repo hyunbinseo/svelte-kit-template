@@ -2,7 +2,8 @@
 
 - Don't add unless requested
 - No trailing period
-- Standalone lines are capitalized; inline are lowercase
+- Sentences are standalone and capitalized
+- Inline comments and labels are lowercase
 
 ## TypeScript
 
@@ -33,8 +34,7 @@ const users = await db.query.userTable.findMany({
   where: {
     contact: '010', // same as `eq`
     deactivatedAt: { isNull: true },
-    // filter by relations (uses subquery)
-    activeRoles: { role: 'admin' },
+    activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
   },
 });
 ```
@@ -118,7 +118,7 @@ import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
 import { form, query } from '$app/server';
 
 export const getPublicPosts = query(async () => {
-  // public. use prerender if static or cacheable
+  // Use prerender if static or cacheable
 });
 
 export const getPrivatePosts = query(async () => {
@@ -152,10 +152,10 @@ import { invalid } from '@sveltejs/kit';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
-  // form data has already passed schema validation
+  // Form data has already passed schema validation
   if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-  // when inserting a single row, use [0]! to assert that a row is returned
+  // When inserting a single row, use [0]! to assert that a row is returned
   const newPost = (await db.insert(postTable).values(data).returning())[0]!;
 
   return newPost; // populates `createPost.result` in Svelte
@@ -199,7 +199,7 @@ You can use the `await` keyword inside your components in three places:
 
   let { params } = $props();
 
-  // top-level await using the derived rune
+  // Top-level await using the derived rune
   const post = $derived(await getPost(params.slug));
 </script>
 
@@ -223,7 +223,7 @@ Internal navigation must use `resolve()`:
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
 
-  // applies to `pushState` and `replaceState` navigation as well
+  // Applies to `pushState` and `replaceState` navigation as well
   goto(resolve('/blog/tags?svelte')); // append search string or hash
 </script>
 
@@ -231,7 +231,7 @@ Internal navigation must use `resolve()`:
 
 <a href={resolve('/blog/posts')}>All Posts</a>
 
-<!-- for routes with parameters, use the route ID approach: -->
+<!-- For routes with parameters, use the route ID approach: -->
 <a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>
 ```
 
@@ -244,7 +244,7 @@ Check for browser API support at the client:
   import { browser } from '$app/env';
 </script>
 
-<!-- does not trigger a hydration mismatch -->
+<!-- Does not trigger a hydration mismatch -->
 {#if browser && !CSS.supports('<selector>')}
   <!-- warning message -->
 {:else}
@@ -277,7 +277,7 @@ You can reassign a derived value for features like optimistic UI. It will go bac
 
   let likes = $derived(post.likes);
 
-  // for non-inline event handler, import the appropriate type
+  // For non-inline event handler, import the appropriate type
   const onclick: HTMLButtonAttributes['onclick'] = async () => {
     likes += 1;
     await like().catch(() => (likes -= 1));
@@ -299,7 +299,7 @@ You can reassign a derived value for features like optimistic UI. It will go bac
 <img src={profile} />
 
 {#each boxes as box}
-  <!-- Non-reactive values -->
+  <!-- non-reactive values -->
   {const area = box.width * box.height}
   {const label = `${box.width} × ${box.height} = ${area}`}
   <p>{label}</p>
@@ -321,7 +321,7 @@ onMount(async () => {
   addEventListener(/* */);
 });
 
-// runs inside a server-side component
+// Runs inside a server-side component
 onDestroy(() => {
   if (!browser) return;
   mounted = false;
@@ -366,7 +366,7 @@ Use child selectors to avoid duplicate class names:
 <ul class="*:border-sky-100 *:bg-sky-50">
   <!-- valid each block without an item -->
   {#each { length: 12 }, index}
-    <!-- use per-element class for non-uniform styles -->
+    <!-- Use per-element class for non-uniform styles -->
     <li class={[index % 2 === 0 && 'font-bold']}>{index}</li>
   {/each}
 </ul>

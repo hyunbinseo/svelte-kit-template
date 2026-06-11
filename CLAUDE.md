@@ -293,14 +293,17 @@ You can reassign a derived value for features like optimistic UI. It will go bac
 
 ```svelte
 <!-- Can be placed anywhere -->
-{const msg = 'hi'}
-<p>{msg}</p>
-
-<!-- Reactive values with runes -->
 {let name = $state('')}
 {const profile = $derived(imgFromText(name))}
 <input bind:value={name} />
 <img src={profile} />
+
+{#each boxes as box}
+  <!-- Non-reactive values -->
+  {const area = box.width * box.height}
+  {const label = `${box.width} × ${box.height} = ${area}`}
+  <p>{label}</p>
+{/each}
 ```
 
 ### onMount

@@ -8,7 +8,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	build: { target: 'es2023' },
 	plugins: [
-		tailwindcss(), //
+		tailwindcss(),
 		sentrySvelteKit({ telemetry: false }),
 		sveltekit({
 			// Use Node.js subpath imports in package.json instead

@@ -1,9 +1,6 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		// "paths" - set this in `config.kit.alias` instead
-		// See https://svelte.dev/docs/kit/configuration#alias
-
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
 		"checkJs": true,
@@ -35,6 +32,10 @@
 		// Added
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
+
+		// Use Node.js subpath imports in package.json instead
+		// See https://nodejs.org/api/packages.html#subpath-imports
+		// "paths": {},
 	},
 	// Set these in `config.kit.typescript.config` instead
 	// See https://svelte.dev/docs/kit/configuration#typescript

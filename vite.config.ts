@@ -11,6 +11,9 @@ export default defineConfig({
 		tailwindcss(), //
 		sentrySvelteKit({ telemetry: false }),
 		sveltekit({
+			// Use Node.js subpath imports in package.json instead
+			// See https://nodejs.org/api/packages.html#subpath-imports
+			// alias: {},
 			compilerOptions: {
 				experimental: { async: true },
 			},

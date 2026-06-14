@@ -371,3 +371,8 @@ Use child selectors to avoid duplicate class names:
   {/each}
 </ul>
 ```
+
+For `<img>` and `<video>`, define a height to avoid layout shift.
+
+- HTML `width` and `height` attributes matching source dimensions
+- CSS `aspect-ratio` or `height` — if the aspect ratio differs from the source, use `object-fit` to avoid stretching or letterbox

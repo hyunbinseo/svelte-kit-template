@@ -3,6 +3,10 @@ import * as schema from './schema.ts';
 
 export const relations = defineRelations(schema, (r) => ({
 	userTable: {
+		profile: r.one.userProfileTable({
+			from: r.userTable.id,
+			to: r.userProfileTable.id,
+		}),
 		activeRoles: r.many.userRoleTable({
 			from: r.userTable.id,
 			to: r.userRoleTable.userId,

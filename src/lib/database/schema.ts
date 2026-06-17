@@ -29,6 +29,13 @@ export const userTable = snakeCase.table(
 	],
 );
 
+export const userProfileTable = snakeCase.table('user_profile', {
+	id: text()
+		.primaryKey()
+		.references(() => userTable.id),
+	birth: text().notNull(), // yyyy-mm-dd
+});
+
 export const userRoleTable = snakeCase.table(
 	'user_role',
 	{

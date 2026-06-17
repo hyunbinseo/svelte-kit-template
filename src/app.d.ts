@@ -8,6 +8,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			session?: Pick<Payload, 'jti' | 'sub'> & {
+				profile: boolean;
 				roles: Set<Role>;
 			};
 		}

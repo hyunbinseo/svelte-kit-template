@@ -37,6 +37,12 @@ CREATE TABLE `token` (
 	CONSTRAINT `fk_token_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
 );
 --> statement-breakpoint
+CREATE TABLE `user_profile` (
+	`id` text PRIMARY KEY,
+	`birth` text NOT NULL,
+	CONSTRAINT `fk_user_profile_id_user_id_fk` FOREIGN KEY (`id`) REFERENCES `user`(`id`)
+);
+--> statement-breakpoint
 CREATE TABLE `user_role` (
 	`id` text PRIMARY KEY,
 	`user_id` text NOT NULL,

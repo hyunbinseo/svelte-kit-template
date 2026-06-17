@@ -2,20 +2,16 @@ import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#lib/config.ts';
 import { tokenBanTable } from '#lib/database/schema.ts';
 import type { Role } from '#lib/enums.ts';
-import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { error, redirect } from '@sveltejs/kit';
 import { db } from '../database/client.ts';
+import { createRedirectUrl } from './redirect.ts';
 
 export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' | 'any' = 'any') => {
 	const event = getRequestEvent();
 
-	if (!event.locals.session) {
-		const url = new URL(resolve('/login'), event.url);
-		url.searchParams.set('returnTo', event.url.pathname + event.url.search);
-		redirect(303, url);
-	}
+	if (!event.locals.session) redirect(303, createRedirectUrl('/login', event));
 
 	event.tracing.root.setAttribute('userId', event.locals.session.sub);
 

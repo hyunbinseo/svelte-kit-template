@@ -1,6 +1,7 @@
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_CODE_MAX_ATTEMPTS } from '#lib/config.ts';
 import { loginAttemptTable } from '#lib/database/schema.ts';
+import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireNoSession } from '#lib/server/auth/session.ts';
 import { issueToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database/client.ts';
@@ -22,9 +23,8 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				where: { contact: data.contact },
 				columns: { id: true },
 				with: {
-					activeRoles: {
-						columns: { role: true },
-					},
+					profile: { columns: { id: true } },
+					activeRoles: { columns: { role: true } },
 				},
 			},
 		},
@@ -64,19 +64,8 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	await issueToken({
 		sub: login.activeUser.id,
 		roles: new Set(login.activeUser.activeRoles.map((row) => row.role)),
+		profile: !!login.activeUser.profile,
 	});
 
-	const returnTo = event.url.searchParams.get('returnTo');
-
-	if (returnTo) {
-		const url = new URL(returnTo, event.url);
-		if (
-			url.origin === event.url.origin && //
-			url.pathname !== event.url.pathname
-		) {
-			redirect(303, url);
-		}
-	}
-
-	redirect(303, LOGIN_REDIRECT);
+	redirect(303, getRedirectUrl(event) || LOGIN_REDIRECT);
 });

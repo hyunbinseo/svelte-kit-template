@@ -13,7 +13,11 @@ const encoder = new TextEncoder();
 const SECRET_NEW = encoder.encode(JWT_SECRET_NEW);
 const SECRET_OLD = JWT_SECRET_OLD ? encoder.encode(JWT_SECRET_OLD) : undefined;
 
-type PrivateClaims = { roles?: [Role, ...Role[]] };
+// NOTE Optional claims are omitted to save bytes
+type PrivateClaims = {
+	profile?: null;
+	roles?: [Role, ...Role[]];
+};
 
 type ReservedClaims = {
 	jti: string; // JWT ID
@@ -24,9 +28,9 @@ type ReservedClaims = {
 
 export type Payload = PrivateClaims & ReservedClaims;
 
-export const issueToken = async (
-	input: Pick<NonNullable<App.Locals['session']>, 'sub' | 'roles'>,
-) => {
+type TokenInput = Pick<NonNullable<App.Locals['session']>, 'sub' | 'profile' | 'roles'>;
+
+export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
 	const token = (
@@ -47,6 +51,7 @@ export const issueToken = async (
 
 	const privateClaims: PrivateClaims = {
 		...(roles && { roles }),
+		...(!input.profile && { profile: null }),
 	};
 
 	const jwt = await new SignJWT(privateClaims)
@@ -68,11 +73,12 @@ export const issueToken = async (
 	event.locals.session = {
 		jti: token.id,
 		sub: input.sub,
+		profile: input.profile,
 		roles: input.roles,
 	};
 };
 
-export const refreshToken = async () => {
+export const refreshToken = async (override?: Partial<TokenInput>) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
@@ -86,7 +92,7 @@ export const refreshToken = async () => {
 		ip: event.getClientAddress(),
 	});
 
-	await issueToken(event.locals.session);
+	await issueToken({ ...event.locals.session, ...override });
 };
 
 const jwtVerifyWithFallback = async (jwt: string) => {

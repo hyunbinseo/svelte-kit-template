@@ -12,6 +12,7 @@ export const getSelf = query(async () => {
 			deactivatedAt: { isNull: true },
 		},
 		columns: { id: true, contact: true },
+		with: { profile: { columns: { birth: true } } },
 	});
 
 	if (!user) error(500);

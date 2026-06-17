@@ -8,6 +8,7 @@
 	import { validateCode as _validateCode } from './validate.remote.ts';
 	import { ValidateCodeSchema, validateCodeAttributes } from './validate.ts';
 
+	let { data } = $props();
 	const uid = $props.id();
 
 	// NOTE Reset remote form state after navigation
@@ -28,7 +29,7 @@
 	<main class="w-full page-card xs:w-sm">
 		<header class="mt-2">
 			<p class="text-sm text-gray-600">{SITE_NAME}</p>
-			<h1 class="text-2xl font-bold">로그인</h1>
+			<h1 class="text-2xl font-bold">{data.title}</h1>
 		</header>
 		<StyledLabels>
 			{#if !sendCode.result || validateResult?.success === false}

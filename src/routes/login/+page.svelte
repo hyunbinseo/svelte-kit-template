@@ -24,14 +24,9 @@
 	});
 </script>
 
-<div
-	class="flex h-svh overflow-y-auto bg-cover bg-center xs:py-16"
-	style:background-image="url('https://images.unsplash.com/photo-1761880674035-125e9fd849fb?q=80&w=2340&auto=format')"
->
-	<main
-		class="m-auto mt-0 w-full bg-white/90 px-6 py-8 backdrop-blur xs:mt-auto xs:w-sm xs:rounded-lg"
-	>
-		<header>
+<div class="page-container">
+	<main class="w-full page-card xs:w-sm">
+		<header class="mt-2">
 			<p class="text-sm text-gray-600">{SITE_NAME}</p>
 			<h1 class="text-2xl font-bold">로그인</h1>
 		</header>

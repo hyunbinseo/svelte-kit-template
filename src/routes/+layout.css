@@ -46,6 +46,15 @@
 /* Utility declaration order does not ensure priority, since they are sorted by property count */
 /* See https://github.com/tailwindlabs/tailwindcss/discussions/14363#discussioncomment-10578813 */
 
+@utility page-container {
+	@apply flex h-svh items-start justify-center-safe overflow-y-auto bg-cover bg-center xs:items-center-safe xs:px-4 xs:py-16;
+	background-image: url('https://images.unsplash.com/photo-1761880674035-125e9fd849fb?q=80&w=2340&auto=format');
+}
+
+@utility page-card {
+	@apply bg-white/90 p-6 backdrop-blur xs:rounded-lg;
+}
+
 @utility btn {
 	@apply rounded px-3.5 py-2.25 text-[15px] font-bold shadow outline transition-colors disabled:grayscale-100;
 

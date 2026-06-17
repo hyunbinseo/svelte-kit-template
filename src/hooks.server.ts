@@ -41,7 +41,6 @@ export const handle = sequence(sentryHandle(), async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event, {
-		transformPageChunk: ({ html }) => html.replace('%lang%', 'ko'),
 		preload: ({ type }) => type === 'js' || type === 'css' || type === 'font',
 	});
 

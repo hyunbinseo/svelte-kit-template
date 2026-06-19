@@ -8,24 +8,25 @@ import { error, redirect } from '@sveltejs/kit';
 import { db } from '../database/client.ts';
 import { createRedirectUrl } from './redirect.ts';
 
-export const requireSession = (requiredRoles?: [Role, ...Role[]], match: 'all' | 'any' = 'any') => {
+export const requireSession = (
+	requiredRoles?: [Role, ...Role[]], //
+	match: 'all' | 'any' = 'any',
+) => {
 	const event = getRequestEvent();
 
-	if (!event.locals.session) redirect(303, createRedirectUrl('/login', event));
-
-	event.tracing.root.setAttribute('userId', event.locals.session.sub);
+	const session = event.locals.session;
+	if (!session) redirect(303, createRedirectUrl('/login', event));
 
 	if (requiredRoles) {
-		const roles = event.locals.session.roles;
 		if (
-			(match === 'all' && !requiredRoles.every((r) => roles.has(r))) ||
-			(match === 'any' && !requiredRoles.some((r) => roles.has(r)))
+			(match === 'all' && !requiredRoles.every((r) => session.roles.has(r))) ||
+			(match === 'any' && !requiredRoles.some((r) => session.roles.has(r)))
 		) {
 			error(403);
 		}
 	}
 
-	return event.locals.session;
+	return session;
 };
 
 export const requireNoSession = () => {

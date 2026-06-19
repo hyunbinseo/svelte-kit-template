@@ -25,14 +25,19 @@ export const handle = sequence(sentryHandle(), async ({ event, resolve }) => {
 
 			if (ban && ban.effectiveAt <= new Date()) throw new Error();
 
-			event.locals.session = {
+			const session = (event.locals.session = {
 				jti: verified.payload.jti,
 				sub: verified.payload.sub,
 				profile: verified.payload.profile !== null,
 				roles: new Set(verified.payload.roles),
-			};
+			});
 
-			setUser({ id: verified.payload.sub });
+			setUser({ id: session.sub });
+			event.tracing.root.setAttribute('userId', session.sub);
+
+			if (!session.profile && event.url.pathname !== '/profile/new') {
+				redirect(303, createRedirectUrl('/profile/new', event));
+			}
 
 			const expiresIn = verified.payload.exp * 1000 - Date.now();
 			if (!ban && expiresIn <= AUTH_TOKEN_REFRESH_THRESHOLD) await refreshToken();
@@ -41,14 +46,6 @@ export const handle = sequence(sentryHandle(), async ({ event, resolve }) => {
 			delete event.locals.session;
 			setUser(null);
 		}
-	}
-
-	if (
-		event.locals.session &&
-		!event.locals.session.profile &&
-		event.url.pathname !== '/profile/new'
-	) {
-		redirect(303, createRedirectUrl('/profile/new', event));
 	}
 
 	const response = await resolve(event, {

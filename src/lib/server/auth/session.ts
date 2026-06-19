@@ -1,32 +1,16 @@
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#lib/config.ts';
 import { tokenBanTable } from '#lib/database/schema.ts';
-import type { Role } from '#lib/enums.ts';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { db } from '../database/client.ts';
 import { createRedirectUrl } from './redirect.ts';
 
-export const requireSession = (
-	requiredRoles?: [Role, ...Role[]], //
-	match: 'all' | 'any' = 'any',
-) => {
+export const requireSession = () => {
 	const event = getRequestEvent();
-
-	const session = event.locals.session;
-	if (!session) redirect(303, createRedirectUrl('/login', event));
-
-	if (requiredRoles) {
-		if (
-			(match === 'all' && !requiredRoles.every((r) => session.roles.has(r))) ||
-			(match === 'any' && !requiredRoles.some((r) => session.roles.has(r)))
-		) {
-			error(403);
-		}
-	}
-
-	return session;
+	if (!event.locals.session) redirect(303, createRedirectUrl('/login', event));
+	return event.locals.session;
 };
 
 export const requireNoSession = () => {

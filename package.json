@@ -1,8 +1,12 @@
 {
 	"name": "svelte-kit-template",
-	"private": true,
 	"version": "0.0.1",
+	"private": true,
 	"type": "module",
+	"imports": {
+		"#cli/*": "./cli/*",
+		"#lib/*": "./src/lib/*"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "node cli/scripts/build.ts",
@@ -19,10 +23,6 @@
 		"db:prod:migrate": "drizzle-kit migrate --config=drizzle-prod.config.ts",
 		"db:audit:generate": "drizzle-kit generate --config=drizzle-audit.config.ts",
 		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
-	},
-	"imports": {
-		"#cli/*": "./cli/*",
-		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
 		"@sentry/sveltekit": "^10.53.1",
@@ -56,5 +56,8 @@
 		"ulid": "^3.0.2",
 		"valibot": "^1.4.0",
 		"vite": "^8.0.14"
+	},
+	"engines": {
+		"node": ">=24.17.0"
 	}
 }

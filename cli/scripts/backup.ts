@@ -1,10 +1,10 @@
+import { auditDb, db } from '#cli/database.ts';
+import { root } from '#cli/utilities.ts';
 import { logTable } from '#lib/server/database/audit.schema.ts';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
-import { auditDb, db } from '../database.ts';
-import { root } from '../utilities.ts';
 
 const now = new Date();
 const filename = `${now.valueOf()}-${now.toISOString().slice(0, 10)}.db`;

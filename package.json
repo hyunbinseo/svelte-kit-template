@@ -21,6 +21,7 @@
 		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
 	},
 	"imports": {
+		"#cli/*": "./cli/*",
 		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {

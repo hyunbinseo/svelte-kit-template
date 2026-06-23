@@ -19,7 +19,7 @@ CREATE TABLE `login` (
 --> statement-breakpoint
 CREATE TABLE `token_ban` (
 	`token_id` text PRIMARY KEY,
-	`type` text NOT NULL,
+	`reason` text NOT NULL,
 	`effective_at` integer NOT NULL,
 	`banned_at` integer NOT NULL,
 	`banned_by` text NOT NULL,

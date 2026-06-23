@@ -9,7 +9,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 import { ulid } from 'ulid';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
-import { roles } from '../enums.ts';
+import type { TokenBanReason, UserRole } from '../enums.ts';
 
 export const userTable = snakeCase.table(
 	'user',
@@ -43,7 +43,7 @@ export const userRoleTable = snakeCase.table(
 		userId: text()
 			.notNull()
 			.references(() => userTable.id),
-		role: text({ enum: roles }).notNull(),
+		role: text().$type<UserRole>().notNull(),
 		assignedBy: text()
 			.notNull()
 			.references(() => userTable.id),
@@ -109,9 +109,7 @@ export const tokenBanTable = snakeCase.table('token_ban', {
 	tokenId: text()
 		.primaryKey()
 		.references(() => tokenTable.id),
-	type: text({
-		enum: ['deactivate', 'logout', 'rotate', 'stale'],
-	}).notNull(),
+	reason: text().$type<TokenBanReason>().notNull(),
 	effectiveAt: integer({ mode: 'timestamp' }).notNull(),
 	bannedAt: integer({ mode: 'timestamp' })
 		.notNull()

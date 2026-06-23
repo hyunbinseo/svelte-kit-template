@@ -1,6 +1,6 @@
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
-import type { Role } from '#lib/enums.ts';
+import type { UserRole } from '#lib/enums.ts';
 import { dev } from '$app/env';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
@@ -16,7 +16,7 @@ const SECRET_OLD = JWT_SECRET_OLD ? encoder.encode(JWT_SECRET_OLD) : undefined;
 // NOTE Optional claims are omitted to save bytes
 type PrivateClaims = {
 	profile?: null;
-	roles?: [Role, ...Role[]];
+	roles?: [UserRole, ...UserRole[]];
 };
 
 type ReservedClaims = {
@@ -47,7 +47,9 @@ export const issueToken = async (input: TokenInput) => {
 			})
 	)[0]!;
 
-	const roles = input.roles.size ? (Array.from(input.roles) as [Role, ...Role[]]) : undefined;
+	const roles = input.roles.size
+		? (Array.from(input.roles) as [UserRole, ...UserRole[]])
+		: undefined;
 
 	const privateClaims: PrivateClaims = {
 		...(roles && { roles }),
@@ -88,7 +90,7 @@ export const rotateToken = async (override?: Partial<TokenInput>) => {
 	const session = event.locals.session;
 	await db.insert(tokenBanTable).values({
 		tokenId: session.jti,
-		type: 'rotate',
+		reason: 'rotate',
 		effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
 		bannedBy: session.sub,
 		ip: event.getClientAddress(),

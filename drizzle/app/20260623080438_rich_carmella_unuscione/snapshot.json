@@ -1,10 +1,10 @@
 {
-  "id": "44f16c85-f680-4c47-a9e7-b99719cc72c8",
-  "prevIds": [
-    "c7bbb612-0066-4775-9eb7-3c2968dd3200"
-  ],
   "version": "7",
   "dialect": "sqlite",
+  "id": "e9b606c0-a0da-4807-947d-fa8f8275194c",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
       "name": "login_attempt",
@@ -160,7 +160,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "type",
+      "name": "reason",
       "entityType": "columns",
       "table": "token_ban"
     },

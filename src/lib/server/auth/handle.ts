@@ -17,13 +17,13 @@ const rotateStaleToken = async (session: Session) => {
 	const claimed = await db
 		.update(tokenBanTable)
 		.set({
-			type: 'rotate',
+			reason: 'rotate',
 			effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
 		})
 		.where(
 			and(
 				eq(tokenBanTable.tokenId, session.jti), //
-				eq(tokenBanTable.type, 'stale'),
+				eq(tokenBanTable.reason, 'stale'),
 			),
 		)
 		.returning({ tokenId: tokenBanTable.tokenId });
@@ -56,7 +56,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 
 		const ban = await silentDb.query.tokenBanTable.findFirst({
 			where: { tokenId: verified.payload.jti },
-			columns: { type: true, effectiveAt: true },
+			columns: { reason: true, effectiveAt: true },
 		});
 
 		if (ban && ban.effectiveAt <= new Date()) throw new Error();
@@ -68,7 +68,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 			roles: new Set(verified.payload.roles),
 		};
 
-		if (ban?.type === 'stale') await rotateStaleToken(session);
+		if (ban?.reason === 'stale') await rotateStaleToken(session);
 
 		if (!ban) {
 			event.locals.session = session;

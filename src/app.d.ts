@@ -1,4 +1,4 @@
-import type { Role } from '#lib/enums.ts';
+import type { UserRole } from '#lib/enums.ts';
 import type { Payload } from '#lib/server/auth/token.ts';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -9,7 +9,7 @@ declare global {
 		interface Locals {
 			session?: Pick<Payload, 'jti' | 'sub'> & {
 				profile: boolean;
-				roles: Set<Role>;
+				roles: Set<UserRole>;
 			};
 		}
 		interface PageData {

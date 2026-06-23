@@ -4,6 +4,6 @@ import { form } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 
 export const logout = form(async () => {
-	await revokeSession();
+	await revokeSession('logout');
 	redirect(303, resolve('/'));
 });

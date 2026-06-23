@@ -1,6 +1,7 @@
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#lib/config.ts';
 import { tokenBanTable } from '#lib/database/schema.ts';
+import type { TokenRevokeReason } from '#lib/enums.ts';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { redirect } from '@sveltejs/kit';
@@ -18,9 +19,7 @@ export const requireNoSession = () => {
 	if (event.locals.session) redirect(303, LOGIN_REDIRECT);
 };
 
-export const revokeSession = async (
-	type: (typeof tokenBanTable.$inferInsert)['type'] = 'logout',
-) => {
+export const revokeSession = async (reason: TokenRevokeReason) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
@@ -28,7 +27,7 @@ export const revokeSession = async (
 		.insert(tokenBanTable)
 		.values({
 			tokenId: event.locals.session.jti,
-			type,
+			reason,
 			effectiveAt: new Date(),
 			bannedBy: event.locals.session.sub,
 			ip: event.getClientAddress(),

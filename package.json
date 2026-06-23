@@ -17,10 +17,9 @@
 		"check:cli": "svelte-kit sync && tsc --project ./cli/tsconfig.check.json",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"db:dev:generate": "drizzle-kit generate",
-		"db:dev:migrate": "drizzle-kit migrate",
-		"db:prod:generate": "drizzle-kit generate --config=drizzle-prod.config.ts",
-		"db:prod:migrate": "drizzle-kit migrate --config=drizzle-prod.config.ts",
+		"db:app:generate": "drizzle-kit generate",
+		"db:app:migrate:dev": "drizzle-kit migrate",
+		"db:app:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",
 		"db:audit:generate": "drizzle-kit generate --config=drizzle-audit.config.ts",
 		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
 	},

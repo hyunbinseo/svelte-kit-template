@@ -1,4 +1,4 @@
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_REFRESH_GRACE } from '#lib/config.ts';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
 import type { Role } from '#lib/enums.ts';
 import { dev } from '$app/env';
@@ -78,17 +78,19 @@ export const issueToken = async (input: TokenInput) => {
 	};
 };
 
-export const refreshToken = async (override?: Partial<TokenInput>) => {
+export const rotateToken = async (override?: Partial<TokenInput>) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
 	// BLOCKED Use transaction for ban insertion + token issuing
 
+	// TODO Handle race condition by checking conflicts
+	const session = event.locals.session;
 	await db.insert(tokenBanTable).values({
-		tokenId: event.locals.session.jti,
-		type: 'refresh',
-		effectiveAt: new Date(Date.now() + AUTH_TOKEN_REFRESH_GRACE),
-		bannedBy: event.locals.session.sub,
+		tokenId: session.jti,
+		type: 'rotate',
+		effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
+		bannedBy: session.sub,
 		ip: event.getClientAddress(),
 	});
 

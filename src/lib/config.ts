@@ -17,5 +17,5 @@ export const AUTH_COOKIE_NAME = 'auth_token';
 
 export const AUTH_TOKEN_ALGORITHM = 'HS256';
 export const AUTH_TOKEN_EXPIRES_IN = 3 * WEEK;
-export const AUTH_TOKEN_REFRESH_GRACE = 1 * MINUTE;
-export const AUTH_TOKEN_REFRESH_THRESHOLD = 1 * WEEK;
+export const AUTH_TOKEN_ROTATE_GRACE = 1 * MINUTE;
+export const AUTH_TOKEN_ROTATE_THRESHOLD = 1 * WEEK;

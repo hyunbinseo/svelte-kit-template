@@ -109,7 +109,9 @@ export const tokenBanTable = snakeCase.table('token_ban', {
 	tokenId: text()
 		.primaryKey()
 		.references(() => tokenTable.id),
-	type: text({ enum: ['logout', 'refresh', 'deactivate'] }).notNull(),
+	type: text({
+		enum: ['deactivate', 'logout', 'rotate', 'stale'],
+	}).notNull(),
 	effectiveAt: integer({ mode: 'timestamp' }).notNull(),
 	bannedAt: integer({ mode: 'timestamp' })
 		.notNull()

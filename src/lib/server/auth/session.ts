@@ -32,7 +32,11 @@ export const revokeSession = async (reason: TokenRevokeReason) => {
 			bannedBy: event.locals.session.sub,
 			ip: event.getClientAddress(),
 		})
-		.catch((e) => captureException(e));
+		.onConflictDoUpdate({
+			target: tokenBanTable.tokenId,
+			set: { effectiveAt: new Date() },
+		})
+		.catch(captureException);
 
 	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
 	delete event.locals.session;

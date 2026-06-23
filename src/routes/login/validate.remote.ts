@@ -49,8 +49,6 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 		Buffer.from(data.code),
 	);
 
-	// BLOCKED Use transaction for attempt insertion + token issuing
-
 	const event = getRequestEvent();
 
 	await db.insert(loginAttemptTable).values({

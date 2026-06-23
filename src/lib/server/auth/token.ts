@@ -30,6 +30,7 @@ export type Payload = PrivateClaims & ReservedClaims;
 
 type TokenInput = Pick<NonNullable<App.Locals['session']>, 'sub' | 'profile' | 'roles'>;
 
+// BLOCKED Use transaction for atomic ban + token issuing
 export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
@@ -84,17 +85,19 @@ export const rotateToken = async (override?: Partial<TokenInput>) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	// BLOCKED Use transaction for ban insertion + token issuing
+	const claimed = await db
+		.insert(tokenBanTable)
+		.values({
+			tokenId: event.locals.session.jti,
+			reason: 'rotate',
+			effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
+			bannedBy: event.locals.session.sub,
+			ip: event.getClientAddress(),
+		})
+		.onConflictDoNothing()
+		.returning({ tokenId: tokenBanTable.tokenId });
 
-	// TODO Handle race condition by checking conflicts
-	const session = event.locals.session;
-	await db.insert(tokenBanTable).values({
-		tokenId: session.jti,
-		reason: 'rotate',
-		effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
-		bannedBy: session.sub,
-		ip: event.getClientAddress(),
-	});
+	if (!claimed.length) return;
 
 	await issueToken({ ...event.locals.session, ...override });
 };

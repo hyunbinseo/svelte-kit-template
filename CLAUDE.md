@@ -90,7 +90,7 @@ const users = await db.query.userTable.findMany({
 SQLite async transactions don't work, so leave a comment instead:
 
 ```ts
-// BLOCKED Use transaction for ban insertion + token issuing
+// BLOCKED Use transaction for <a> + <b>
 ```
 
 ## SvelteKit

@@ -4,13 +4,12 @@ import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireSession } from '#lib/server/auth/session.ts';
 import { rotateToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database/client.ts';
-import { form, getRequestEvent } from '$app/server';
+import { form } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import { SetupProfileSchema } from './setup.ts';
 
 export const setupProfile = form(SetupProfileSchema, async (data) => {
-	const event = getRequestEvent();
-	const redirectUrl = getRedirectUrl(event) || LOGIN_REDIRECT;
+	const redirectUrl = getRedirectUrl() || LOGIN_REDIRECT;
 
 	const session = requireSession();
 	if (session.profile) redirect(303, redirectUrl);

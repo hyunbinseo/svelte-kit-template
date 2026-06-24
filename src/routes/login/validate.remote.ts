@@ -32,7 +32,10 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 	if (!login || !login.activeUser) error(400);
 
-	if (login.ip !== getRequestEvent().getClientAddress()) {
+	const event = getRequestEvent();
+	const ip = event.getClientAddress();
+
+	if (login.ip !== ip) {
 		return { success: false, code: 'IP_MISMATCH' } as const;
 	}
 
@@ -49,12 +52,10 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 		Buffer.from(data.code),
 	);
 
-	const event = getRequestEvent();
-
 	await db.insert(loginAttemptTable).values({
 		loginId: data.id,
 		isSuccessful: isCorrect,
-		ip: event.getClientAddress(),
+		ip,
 	});
 
 	if (!isCorrect) invalid(issue.code(CODE_INVALID));
@@ -65,5 +66,5 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 		profile: !!login.activeUser.profile,
 	});
 
-	redirect(303, getRedirectUrl(event) || LOGIN_REDIRECT);
+	redirect(303, getRedirectUrl() || LOGIN_REDIRECT);
 });

@@ -10,7 +10,7 @@ import { createRedirectUrl } from './redirect.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();
-	if (!event.locals.session) redirect(303, createRedirectUrl('/login', event));
+	if (!event.locals.session) redirect(303, createRedirectUrl('/login'));
 	return event.locals.session;
 };
 

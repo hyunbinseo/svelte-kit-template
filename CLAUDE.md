@@ -95,6 +95,8 @@ SQLite async transactions don't work, so leave a comment instead:
 
 ## SvelteKit
 
+- Call `getRequestEvent()` directly in utility functions. Don't receive `event` as a parameter
+
 ### Environment Variables
 
 Define them in `src/env.ts` and import from `$app/env`:

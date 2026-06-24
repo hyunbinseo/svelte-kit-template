@@ -4,8 +4,8 @@ import { requireSession } from '#lib/server/auth/session.ts';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.ts';
 
-export const load = ((event) => {
+export const load = (() => {
 	const session = requireSession();
-	if (session.profile) redirect(303, getRedirectUrl(event) || LOGIN_REDIRECT);
+	if (session.profile) redirect(303, getRedirectUrl() || LOGIN_REDIRECT);
 	return { title: '회원 정보 입력' };
 }) satisfies PageServerLoad;

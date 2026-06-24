@@ -17,7 +17,7 @@ export const handle = sequence(
 			!event.locals.session.profile &&
 			event.url.pathname !== '/profile/new'
 		) {
-			redirect(303, createRedirectUrl('/profile/new', event));
+			redirect(303, createRedirectUrl('/profile/new'));
 		}
 
 		return resolve(event, {

@@ -25,41 +25,12 @@
 - `src/lib/database/schema.ts`
 - `src/lib/database/relations.ts`
 
-Drizzle ORM v1 and Relational Queries v2 are used:
+Retrieve only necessary columns:
 
 ```ts
-// `orderBy` and `where` are now objects
 const users = await db.query.userTable.findMany({
-  orderBy: { id: 'asc' },
-  where: {
-    contact: '010', // same as `eq`
-    deactivatedAt: { isNull: true },
-    activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
-  },
+  columns: { contact: true }, // never use false to exclude
 });
-```
-
-Don't hard `DELETE`. Soft delete using columns such as `deactivatedAt` or `revokedAt`.
-
-- Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique)
-- Use `TRIGGER` for cascade (e.g. deactivating a user should revoke all of their active roles)
-
-```ts
-uniqueIndex('active_user_role_user_id_role_idx')
-  .on(table.userId, table.role)
-  .where(isNull(table.revokedAt));
-```
-
-Triggers are not supported, so SQL should be written in a custom migration file:
-
-```shell
-# See drizzle/*_triggers/migration.sql for examples
-pnpm drizzle-kit generate --custom --name=triggers
-```
-
-```sql
--- If there are multiple statements, add this comment in-between them:
---> statement-breakpoint
 ```
 
 For `db.select`, use the sync API:
@@ -73,18 +44,40 @@ db.select().from(userTable).all(); // returns User[]
 db.select().from(userTable).get(); // returns User | undefined
 ```
 
-For `db.query` API, the object key should follow this order:
-
-```
-orderBy, offset, where, columns, extras, with
-```
-
-Only query necessary data by specifying columns to retrieve:
+For `db.query` API, use Relational Queries v2:
 
 ```ts
 const users = await db.query.userTable.findMany({
-  columns: { contact: true }, // never use false to exclude
+  // sort keys in this order: orderBy, offset, where, columns, extras, with
+  orderBy: { id: 'asc' },
+  where: {
+    contact: '010', // same as `eq`
+    deactivatedAt: { isNull: true },
+    activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
+  },
 });
+```
+
+Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique):
+
+```ts
+uniqueIndex('active_user_role_user_id_role_idx')
+  .on(table.userId, table.role)
+  .where(isNull(table.revokedAt));
+```
+
+- Don't hard `DELETE`. Soft delete using columns such as `deactivatedAt` or `revokedAt`
+- Use `TRIGGER` for cascade (e.g. deactivating a user should revoke all active roles)
+
+```shell
+# Trigger API unsupported; write custom migration
+# See drizzle/*_triggers/migration.sql for examples
+pnpm drizzle-kit generate --custom --name=triggers
+```
+
+```sql
+-- Add this comment in-between statements:
+--> statement-breakpoint
 ```
 
 SQLite async transactions don't work, so leave a comment instead:
@@ -95,7 +88,7 @@ SQLite async transactions don't work, so leave a comment instead:
 
 ## SvelteKit
 
-- Call `getRequestEvent()` directly in utility functions. Don't receive `event` as a parameter
+Call `getRequestEvent()` directly in utility functions. Don't receive `event` as a parameter
 
 ### Environment Variables
 
@@ -109,11 +102,9 @@ import { DATABASE_URL } from '$app/env/private';
 
 ### Remote Functions
 
-Remote functions are exported from a `.remote.ts` file, and come in four flavors: `query`, `form`, `command`, `prerender`.
-
-On the client, the exported functions are transformed to `fetch` wrappers that invoke their counterparts on the server via a generated HTTP endpoint.
-
-Therefore, the requests must be appropriately authenticated and authorized:
+- RPC functions must be exported from `*.remote.ts` files
+- There are 4 types: `query`, `form`, `command`, `prerender`
+- Requests must be public or authenticated and authorized
 
 ```ts
 import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
@@ -134,7 +125,7 @@ export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
 
 #### `form`
 
-See `src/routes/login/` for conventions.
+See `src/routes/login/` for conventions
 
 ```ts
 // src/lib/remotes/create-post.ts
@@ -175,12 +166,12 @@ If the form includes a `<select>`, the default value must be defined:
 
 #### `query.batch`
 
-It batches requests that happen within the same macrotask. Return named tuples to reduce wire size.
-
-<!-- BLOCKED See https://github.com/sveltejs/kit/issues/15784 -->
+Batches requests within the same macrotask:
 
 ```ts
 export const getWeather = query.batch(pipe(number(), integer()), (cityIds) => {
+  // Return named tuples to reduce wire size
+  // See https://github.com/sveltejs/kit/issues/15784
   const lookup = new Map<number, [minTemp: number, maxTemp: number]>();
   return (cityId) => lookup.get(cityId);
 });
@@ -188,11 +179,7 @@ export const getWeather = query.batch(pipe(number(), integer()), (cityIds) => {
 
 ### await
 
-You can use the `await` keyword inside your components in three places:
-
-- at the top level of your component’s `<script>`
-- inside `$derived(...)` declarations
-- inside your markup
+Use the `await` keyword directly in components:
 
 ```svelte
 <script lang="ts">
@@ -201,19 +188,15 @@ You can use the `await` keyword inside your components in three places:
 
   let { params } = $props();
 
-  // Top-level await using the derived rune
   const post = $derived(await getPost(params.slug));
 </script>
 
 <h1>{post.title}</h1>
 <p>{post.body}</p>
 
-<nav>
-  <!-- inline await in an each loop -->
-  {#each await getPosts() as post}
-    <a href={resolve('/posts/[slug]', { slug: post.slug })}>{post.title}</a>
-  {/each}
-</nav>
+{#each await getPosts() as post}
+  <a href={resolve('/posts/[slug]', { slug: post.slug })}>{post.title}</a>
+{/each}
 ```
 
 ### resolve
@@ -233,7 +216,7 @@ Internal navigation must use `resolve()`:
 
 <a href={resolve('/blog/posts')}>All Posts</a>
 
-<!-- For routes with parameters, use the route ID approach: -->
+<!-- with params: -->
 <a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>
 ```
 
@@ -265,11 +248,11 @@ Check for browser API support at the client:
 
 ### $effect
 
-Don't use `$effect` for a derived state. Use it only for side effects like logging, DOM manipulation, and browser-only APIs (e.g. syncing with `localStorage`).
+Don't use `$effect` for a derived state. Use it only for side effects like logging, DOM manipulation, and browser-only APIs (e.g. syncing with `localStorage`)
 
 ### $derived
 
-You can reassign a derived value for features like optimistic UI. It will go back to the `$derived` value once an update in its dependencies happens. For example:
+Derived values can be reassigned (e.g. optimistic UI); they revert when dependencies update:
 
 ```svelte
 <script lang="ts">
@@ -310,9 +293,10 @@ You can reassign a derived value for features like optimistic UI. It will go bac
 
 ### onMount
 
-Unlike `$effect`, `onMount` accepts an async function. However, the cleanup function cannot be returned:
+Accepts async functions, but cannot return a cleanup function:
 
 ```ts
+import { onMount, onDestroy } from 'svelte';
 import { browser } from '$app/env';
 
 let mounted = true;
@@ -323,7 +307,7 @@ onMount(async () => {
   addEventListener(/* */);
 });
 
-// Runs inside a server-side component
+// Also runs on the server
 onDestroy(() => {
   if (!browser) return;
   mounted = false;
@@ -333,14 +317,14 @@ onDestroy(() => {
 
 ### Reference
 
-Svelte MCP tool provides latest Svelte 5 and SvelteKit docs:
+Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 - `list-sections` to discover all available sections
 - `get-documentation` to retrieve specific sections
 
 ## Tailwind CSS
 
-- Create utility components for shared styles in `src/routes/+layout.css`.
+- Create utility components for shared styles in `src/routes/+layout.css`
 - Don't style individual form controls. Use `StyledLabels.svelte` instead:
 
 ```svelte
@@ -374,7 +358,7 @@ Use child selectors to avoid duplicate class names:
 </ul>
 ```
 
-For `<img>` and `<video>`, define a height to avoid layout shift.
+For `<img>` and `<video>`, define a height to avoid layout shift:
 
-- HTML `width` and `height` attributes matching source dimensions
-- CSS `aspect-ratio` or `height` — if the aspect ratio differs from the source, use `object-fit` to avoid stretching or letterbox
+- Set `width` and `height` attributes matching source dimensions
+- Set `aspect-ratio` or `height` in CSS — if it differs from the source, use `object-fit`

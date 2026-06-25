@@ -4,8 +4,9 @@ import type { UserRole } from '#lib/enums.ts';
 import { dev } from '$app/env';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
+import { captureException } from '@sentry/sveltekit';
 import { jwtVerify, SignJWT } from 'jose';
-import { JWSSignatureVerificationFailed } from 'jose/errors';
+import { JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
 import { db } from '../database/client.ts';
 
 const encoder = new TextEncoder();
@@ -102,29 +103,14 @@ export const rotateToken = async (override?: Partial<TokenInput>) => {
 	await issueToken({ ...event.locals.session, ...override });
 };
 
-const jwtVerifyWithFallback = async (jwt: string) => {
-	try {
-		return await jwtVerify<Payload>(jwt, SECRET_NEW);
-	} catch (e) {
-		if (e instanceof JWSSignatureVerificationFailed && SECRET_OLD) {
-			return await jwtVerify<Payload>(jwt, SECRET_OLD);
-		}
-		throw e;
-	}
+const onJwtError = (e: unknown) => {
+	if (!(e instanceof JWTExpired)) captureException(e);
+	return null;
 };
 
-export const verifyToken = async (jwt: string) => {
-	const verified = await jwtVerifyWithFallback(jwt);
-	if (!dev) return verified;
-
-	const user = await db.query.userTable.findFirst({
-		where: {
-			id: verified.payload.sub,
-			deactivatedAt: { isNull: true },
-		},
-		columns: { id: true },
-	});
-
-	if (!user) throw new Error();
-	return verified;
-};
+export const verifyToken = (jwt: string) =>
+	jwtVerify<Payload>(jwt, SECRET_NEW).catch((e) =>
+		e instanceof JWSSignatureVerificationFailed && SECRET_OLD
+			? jwtVerify<Payload>(jwt, SECRET_OLD).catch(onJwtError)
+			: onJwtError(e),
+	);

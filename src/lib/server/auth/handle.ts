@@ -71,10 +71,13 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 		roles: new Set(verified.payload.roles),
 	};
 
-	if (ban?.reason === 'stale') await rotateStaleToken(session);
+	if (ban?.reason === 'stale') {
+		await rotateStaleToken(session);
+	} else {
+		event.locals.session = session;
+	}
 
 	if (!ban) {
-		event.locals.session = session;
 		const expiresIn = verified.payload.exp * 1000 - Date.now();
 		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) await rotateToken().catch(captureException);
 	}

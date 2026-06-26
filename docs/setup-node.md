@@ -66,9 +66,10 @@ module.exports = {
       autorestart: true,
     },
     {
-      name: '<name>:cron',
+      name: '<name>:backup',
       script: './cli/scripts/backup.ts',
       interpreter: 'node',
+      interpreter_args: '--env-file=.env.production',
       time: true,
       autorestart: false,
       cron: '0 0 * * *',

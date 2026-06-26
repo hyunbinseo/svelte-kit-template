@@ -278,17 +278,15 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 
 ```svelte
 <!-- Can be placed anywhere -->
-{let name = $state('')}
-{const profile = $derived(imgFromText(name))}
-<input bind:value={name} />
-<img src={profile} />
+{const now = new Date()}
+<p>{now.toLocaleString()}</p>
 
-{#each boxes as box}
-  <!-- non-reactive values -->
-  {const area = box.width * box.height}
-  {const label = `${box.width} × ${box.height} = ${area}`}
-  <p>{label}</p>
-{/each}
+<!-- Use runes for reactivity -->
+{let name = $state('')}
+<input bind:value={name} />
+
+{const profile = $derived(imgFromText(name))}
+<img src={profile} />
 ```
 
 ### onMount

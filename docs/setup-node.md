@@ -69,7 +69,7 @@ module.exports = {
       name: '<name>:backup',
       script: './cli/scripts/backup.ts',
       interpreter: 'node',
-      interpreter_args: '--env-file=.env.production',
+      interpreter_args: '--env-file=.env.production --import ./cli/sentry.ts',
       time: true,
       autorestart: false,
       cron: '0 0 * * *',

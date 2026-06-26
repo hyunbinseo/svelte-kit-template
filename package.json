@@ -24,7 +24,8 @@
 		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
 	},
 	"dependencies": {
-		"@sentry/sveltekit": "^10.53.1",
+		"@sentry/node": "^10.60.0",
+		"@sentry/sveltekit": "^10.60.0",
 		"drizzle-kit": "1.0.0-rc.2",
 		"drizzle-orm": "1.0.0-rc.2"
 	},

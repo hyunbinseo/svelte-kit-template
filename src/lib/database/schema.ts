@@ -1,5 +1,6 @@
-import { isNull } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import {
+	check,
 	index,
 	integer,
 	snakeCase,
@@ -9,7 +10,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 import { ulid } from 'ulid';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
-import type { TokenBanReason, UserRole } from '../enums.ts';
+import type { TokenBanReason, TokenRefreshReason, UserRole } from '../enums.ts';
 
 export const userTable = snakeCase.table(
 	'user',
@@ -91,19 +92,29 @@ export const loginAttemptTable = snakeCase.table(
 	(table) => [index('login_attempt_login_id_idx').on(table.loginId)],
 );
 
-export const tokenTable = snakeCase.table('token', {
-	id: text().primaryKey().$default(ulid), // jti
-	userId: text()
-		.notNull()
-		.references(() => userTable.id),
-	issuedAt: integer({ mode: 'timestamp' })
-		.notNull()
-		.$default(() => new Date()),
-	expiresAt: integer({ mode: 'timestamp' })
-		.notNull()
-		.$default(() => new Date(Date.now() + AUTH_TOKEN_EXPIRES_IN)),
-	ip: text().notNull(),
-});
+export const tokenTable = snakeCase.table(
+	'token',
+	{
+		id: text().primaryKey().$default(ulid), // jti
+		userId: text()
+			.notNull()
+			.references(() => userTable.id),
+		refreshedFrom: text()
+			.unique()
+			.references((): AnySQLiteColumn => tokenTable.id),
+		refreshReason: text().$type<TokenRefreshReason>(),
+		issuedAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date()),
+		expiresAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date(Date.now() + AUTH_TOKEN_EXPIRES_IN)),
+		ip: text().notNull(),
+	},
+	(table) => [
+		check('token_refresh_info_pair', eq(isNull(table.refreshedFrom), isNull(table.refreshReason))),
+	],
+);
 
 export const tokenBanTable = snakeCase.table('token_ban', {
 	tokenId: text()

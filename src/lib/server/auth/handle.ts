@@ -1,50 +1,10 @@
-import {
-	AUTH_COOKIE_NAME,
-	AUTH_TOKEN_ROTATE_GRACE,
-	AUTH_TOKEN_ROTATE_THRESHOLD,
-} from '#lib/config.ts';
-import { tokenBanTable } from '#lib/database/schema.ts';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#lib/config.ts';
 import { db, silentDb } from '#lib/server/database/client.ts';
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit';
-import { and, eq } from 'drizzle-orm';
 import { issueToken, rotateToken, verifyToken } from './token.ts';
 
 type Session = NonNullable<App.Locals['session']>;
-
-const rotateStaleToken = async (session: Session) => {
-	const claimed = await db
-		.update(tokenBanTable)
-		.set({
-			reason: 'rotate',
-			effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
-		})
-		.where(
-			and(
-				eq(tokenBanTable.tokenId, session.jti), //
-				eq(tokenBanTable.reason, 'stale'),
-			),
-		)
-		.returning({ tokenId: tokenBanTable.tokenId });
-
-	if (!claimed.length) return;
-
-	const user = await db.query.userTable.findFirst({
-		where: { id: session.sub },
-		with: {
-			profile: { columns: { id: true } },
-			activeRoles: { columns: { role: true } },
-		},
-	});
-
-	if (!user) return;
-
-	await issueToken({
-		sub: session.sub,
-		profile: !!user.profile,
-		roles: new Set(user.activeRoles.map((r) => r.role)),
-	});
-};
 
 export const handleJWT: Handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
@@ -72,14 +32,32 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	};
 
 	if (ban?.reason === 'stale') {
-		await rotateStaleToken(session);
+		const user = await db.query.userTable.findFirst({
+			where: { id: session.sub },
+			with: {
+				profile: { columns: { id: true } },
+				activeRoles: { columns: { role: true } },
+			},
+		});
+
+		if (user) {
+			await issueToken({
+				sub: session.sub,
+				profile: !!user.profile,
+				roles: new Set(user.activeRoles.map((r) => r.role)),
+				refreshedFrom: session.jti,
+				refreshReason: 'stale',
+			});
+		}
 	} else {
 		event.locals.session = session;
 	}
 
 	if (!ban) {
 		const expiresIn = verified.payload.exp * 1000 - Date.now();
-		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) await rotateToken().catch(captureException);
+		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
+			await rotateToken('threshold').catch(captureException);
+		}
 	}
 
 	const userId = event.locals.session?.sub;

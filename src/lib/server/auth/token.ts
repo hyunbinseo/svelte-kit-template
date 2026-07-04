@@ -1,6 +1,6 @@
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
-import type { UserRole } from '#lib/enums.ts';
+import type { TokenRefreshReason, UserRole } from '#lib/enums.ts';
 import { dev } from '$app/env';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
@@ -29,25 +29,45 @@ type ReservedClaims = {
 
 export type Payload = PrivateClaims & ReservedClaims;
 
-type TokenInput = Pick<NonNullable<App.Locals['session']>, 'sub' | 'profile' | 'roles'>;
+type TokenInput = Pick<
+	NonNullable<App.Locals['session']>,
+	| 'sub' //
+	| 'profile'
+	| 'roles'
+> &
+	(
+		| {
+				refreshedFrom: string;
+				refreshReason: TokenRefreshReason;
+		  }
+		| {
+				refreshedFrom?: never;
+				refreshReason?: never;
+		  }
+	);
 
 // BLOCKED Use transaction for atomic ban + token issuing
 export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
-	const token = (
-		await db
-			.insert(tokenTable)
-			.values({
-				userId: input.sub,
-				ip: event.getClientAddress(),
-			})
-			.returning({
-				id: tokenTable.id,
-				issuedAt: tokenTable.issuedAt,
-				expiresAt: tokenTable.expiresAt,
-			})
-	)[0]!;
+	const inserted = await db
+		.insert(tokenTable)
+		.values({
+			userId: input.sub,
+			refreshedFrom: input.refreshedFrom,
+			refreshReason: input.refreshReason,
+			ip: event.getClientAddress(),
+		})
+		.onConflictDoNothing()
+		.returning({
+			id: tokenTable.id,
+			issuedAt: tokenTable.issuedAt,
+			expiresAt: tokenTable.expiresAt,
+		});
+
+	if (!inserted.length) return;
+
+	const token = inserted[0]!;
 
 	const roles = input.roles.size
 		? (Array.from(input.roles) as [UserRole, ...UserRole[]])
@@ -82,7 +102,10 @@ export const issueToken = async (input: TokenInput) => {
 	};
 };
 
-export const rotateToken = async (override?: Partial<TokenInput>) => {
+export const rotateToken = async (
+	reason: Exclude<TokenRefreshReason, 'stale'>,
+	override?: Partial<Pick<TokenInput, 'sub' | 'profile' | 'roles'>>,
+) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
@@ -100,7 +123,12 @@ export const rotateToken = async (override?: Partial<TokenInput>) => {
 
 	if (!claimed.length) return;
 
-	await issueToken({ ...event.locals.session, ...override });
+	await issueToken({
+		...event.locals.session,
+		refreshedFrom: event.locals.session.jti,
+		refreshReason: reason,
+		...override,
+	});
 };
 
 const onJwtError = (e: unknown) => {

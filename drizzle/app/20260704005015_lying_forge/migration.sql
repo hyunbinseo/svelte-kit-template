@@ -31,10 +31,14 @@ CREATE TABLE `token_ban` (
 CREATE TABLE `token` (
 	`id` text PRIMARY KEY,
 	`user_id` text NOT NULL,
+	`refreshed_from` text UNIQUE,
+	`refresh_reason` text,
 	`issued_at` integer NOT NULL,
 	`expires_at` integer NOT NULL,
 	`ip` text NOT NULL,
-	CONSTRAINT `fk_token_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
+	CONSTRAINT `fk_token_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`),
+	CONSTRAINT `fk_token_refreshed_from_token_id_fk` FOREIGN KEY (`refreshed_from`) REFERENCES `token`(`id`),
+	CONSTRAINT "token_refresh_info_pair" CHECK(("refreshed_from" is null) = ("refresh_reason" is null))
 );
 --> statement-breakpoint
 CREATE TABLE `user_profile` (

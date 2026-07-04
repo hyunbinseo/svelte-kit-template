@@ -22,6 +22,6 @@ export const setupProfile = form(SetupProfileSchema, async (data) => {
 		})
 		.onConflictDoNothing();
 
-	await rotateToken({ profile: true });
+	await rotateToken('profile', { profile: true });
 	redirect(303, redirectUrl);
 });

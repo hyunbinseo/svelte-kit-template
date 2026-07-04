@@ -1,10 +1,10 @@
 {
+  "id": "b0b7b8be-569b-4725-9476-6ad7731e619c",
+  "prevIds": [
+    "642bc9b9-dec7-46f0-9d02-894b1122df4d"
+  ],
   "version": "7",
   "dialect": "sqlite",
-  "id": "e9b606c0-a0da-4807-947d-fa8f8275194c",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
   "ddl": [
     {
       "name": "login_attempt",
@@ -221,6 +221,26 @@
       "default": null,
       "generated": null,
       "name": "user_id",
+      "entityType": "columns",
+      "table": "token"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "refreshed_from",
+      "entityType": "columns",
+      "table": "token"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "refresh_reason",
       "entityType": "columns",
       "table": "token"
     },
@@ -461,6 +481,21 @@
     },
     {
       "columns": [
+        "refreshed_from"
+      ],
+      "tableTo": "token",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_token_refreshed_from_token_id_fk",
+      "entityType": "fks",
+      "table": "token"
+    },
+    {
+      "columns": [
         "id"
       ],
       "tableTo": "user",
@@ -694,6 +729,21 @@
       "name": "login_send_id_unique",
       "entityType": "uniques",
       "table": "login"
+    },
+    {
+      "columns": [
+        "refreshed_from"
+      ],
+      "nameExplicit": false,
+      "name": "token_refreshed_from_unique",
+      "entityType": "uniques",
+      "table": "token"
+    },
+    {
+      "value": "(\"refreshed_from\" is null) = (\"refresh_reason\" is null)",
+      "name": "token_refresh_info_pair",
+      "entityType": "checks",
+      "table": "token"
     }
   ],
   "renames": []

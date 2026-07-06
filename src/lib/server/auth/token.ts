@@ -103,31 +103,50 @@ export const issueToken = async (input: TokenInput) => {
 };
 
 export const rotateToken = async (
-	reason: Exclude<TokenRefreshReason, 'stale'>,
-	override?: Partial<Pick<TokenInput, 'sub' | 'profile' | 'roles'>>,
+	session: Pick<NonNullable<App.Locals['session']>, 'jti' | 'sub'>,
+	reason: TokenRefreshReason,
 ) => {
 	const event = getRequestEvent();
-	if (!event.locals.session) return;
 
-	const claimed = await db
-		.insert(tokenBanTable)
-		.values({
-			tokenId: event.locals.session.jti,
-			reason: 'rotate',
-			effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
-			bannedBy: event.locals.session.sub,
-			ip: event.getClientAddress(),
-		})
-		.onConflictDoNothing()
-		.returning({ tokenId: tokenBanTable.tokenId });
+	if (reason !== 'stale') {
+		const claimed = await db
+			.insert(tokenBanTable)
+			.values({
+				tokenId: session.jti,
+				reason: 'rotate',
+				effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
+				bannedBy: session.sub,
+				ip: event.getClientAddress(),
+			})
+			.onConflictDoNothing()
+			.returning({ tokenId: tokenBanTable.tokenId });
 
-	if (!claimed.length) return;
+		if (!claimed.length) return;
+	}
+
+	const user = await db.query.userTable.findFirst({
+		where: {
+			id: session.sub,
+			deactivatedAt: { isNull: true },
+		},
+		with: {
+			profile: { columns: { id: true } },
+			activeRoles: { columns: { role: true } },
+		},
+	});
+
+	if (!user) {
+		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+		delete event.locals.session;
+		return;
+	}
 
 	await issueToken({
-		...event.locals.session,
-		refreshedFrom: event.locals.session.jti,
+		sub: session.sub,
+		profile: !!user.profile,
+		roles: new Set(user.activeRoles.map((r) => r.role)),
+		refreshedFrom: session.jti,
 		refreshReason: reason,
-		...override,
 	});
 };
 

@@ -1,8 +1,8 @@
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#lib/config.ts';
-import { db, silentDb } from '#lib/server/database/client.ts';
+import { silentDb } from '#lib/server/database/client.ts';
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit';
-import { issueToken, rotateToken, verifyToken } from './token.ts';
+import { rotateToken, verifyToken } from './token.ts';
 
 type Session = NonNullable<App.Locals['session']>;
 
@@ -32,23 +32,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	};
 
 	if (ban?.reason === 'stale') {
-		const user = await db.query.userTable.findFirst({
-			where: { id: session.sub },
-			with: {
-				profile: { columns: { id: true } },
-				activeRoles: { columns: { role: true } },
-			},
-		});
-
-		if (user) {
-			await issueToken({
-				sub: session.sub,
-				profile: !!user.profile,
-				roles: new Set(user.activeRoles.map((r) => r.role)),
-				refreshedFrom: session.jti,
-				refreshReason: 'stale',
-			});
-		}
+		await rotateToken(session, 'stale');
 	} else {
 		event.locals.session = session;
 	}
@@ -56,7 +40,8 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	if (!ban) {
 		const expiresIn = verified.payload.exp * 1000 - Date.now();
 		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
-			await rotateToken('threshold').catch(captureException);
+			// NOTE Error can be swallowed; session is valid for this request
+			await rotateToken(session, 'threshold').catch(captureException);
 		}
 	}
 

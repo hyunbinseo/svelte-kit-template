@@ -1,4 +1,4 @@
-import { root } from '#cli/utilities.ts';
+import { root } from '#cli/lib/utilities.ts';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { cwd, env } from 'node:process';

@@ -1,6 +1,6 @@
-import { DB_AUDIT_BACKUP_RETENTION, DB_BACKUP_RETENTION } from '#cli/config.ts';
-import { auditDb, db } from '#cli/database.ts';
-import { root } from '#cli/utilities.ts';
+import { DB_AUDIT_BACKUP_RETENTION, DB_BACKUP_RETENTION } from '#cli/lib/config.ts';
+import { auditDb, db } from '#cli/lib/database.ts';
+import { root } from '#cli/lib/utilities.ts';
 import { logTable } from '#lib/server/database/audit.schema.ts';
 import { captureException } from '@sentry/node';
 import { globSync, mkdirSync } from 'node:fs';

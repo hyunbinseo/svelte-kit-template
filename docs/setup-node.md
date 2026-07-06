@@ -69,7 +69,7 @@ module.exports = {
       name: '<name>:backup',
       script: './cli/scripts/backup.ts',
       interpreter: 'node',
-      interpreter_args: '--env-file=.env.production --import ./cli/sentry.ts',
+      interpreter_args: '--env-file=.env.production --import ./cli/scripts/sentry.ts',
       time: true,
       autorestart: false,
       cron: '0 0 * * *',
@@ -112,10 +112,10 @@ pm2 reload <name>
 ### Backup Database
 
 ```ts
-// cli/scheduled.ts
+// cli/scripts/scheduled.ts
+import { db } from '#cli/lib/database.ts';
 import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
-import { db } from './database.ts';
 
 await backup(db.$client, `backup-${Date.now()}.db`); // update path
 exit();
@@ -161,7 +161,7 @@ If you encounter this error, set the [`--max-old-space-size`](https://nodejs.org
 // package.json
 {
   "scripts": {
-    "build": "node --max-old-space-size=2048 cli/build.ts",
+    "build": "node --max-old-space-size=2048 cli/scripts/build.ts",
   },
 }
 ```

@@ -50,24 +50,26 @@ type TokenInput = Pick<
 export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
-	const inserted = await db
-		.insert(tokenTable)
-		.values({
-			userId: input.sub,
-			refreshedFrom: input.refreshedFrom,
-			refreshReason: input.refreshReason,
-			ip: event.getClientAddress(),
-		})
-		.onConflictDoNothing()
-		.returning({
-			id: tokenTable.id,
-			issuedAt: tokenTable.issuedAt,
-			expiresAt: tokenTable.expiresAt,
-		});
-
-	if (!inserted.length) return;
-
-	const token = inserted[0]!;
+	const token = (
+		await db
+			.insert(tokenTable)
+			.values({
+				userId: input.sub,
+				refreshedFrom: input.refreshedFrom,
+				refreshReason: input.refreshReason,
+				ip: event.getClientAddress(),
+			})
+			// NOTE returns existing row
+			.onConflictDoUpdate({
+				target: tokenTable.refreshedFrom,
+				set: { userId: tokenTable.userId },
+			})
+			.returning({
+				id: tokenTable.id,
+				issuedAt: tokenTable.issuedAt,
+				expiresAt: tokenTable.expiresAt,
+			})
+	)[0]!;
 
 	const roles = input.roles.size
 		? (Array.from(input.roles) as [UserRole, ...UserRole[]])

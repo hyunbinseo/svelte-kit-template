@@ -6,13 +6,11 @@
 		<meta name="text-scale" content="scale" />
 		<script>
 			// NOTE Must be compatible with legacy browsers (e.g. IE)
-			if (
-				!(
-					typeof [].toReversed === 'function' && // ES2023
-					typeof CSS !== 'undefined' &&
-					CSS.supports('selector(:has(a))')
-				)
-			) {
+			if (!(
+				typeof [].toReversed === 'function' && // ES2023
+				typeof CSS !== 'undefined' &&
+				CSS.supports('selector(:has(a))')
+			)) {
 				document.open();
 				document.write('지원되지 않는 브라우저입니다.');
 				document.close();

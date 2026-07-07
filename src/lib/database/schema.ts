@@ -8,14 +8,14 @@ import {
 	uniqueIndex,
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
-import { ulid } from 'ulid';
+import { randomUUIDv7 } from 'node:crypto';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
 import type { TokenBanReason, TokenRefreshReason, UserRole } from '../enums.ts';
 
 export const userTable = snakeCase.table(
 	'user',
 	{
-		id: text().primaryKey().$default(ulid),
+		id: text().primaryKey().$default(randomUUIDv7),
 		contact: text().notNull(),
 		createdBy: text().references(
 			// NOTE Self-referencing foreign key requires explicit return type
@@ -40,7 +40,7 @@ export const userProfileTable = snakeCase.table('user_profile', {
 export const userRoleTable = snakeCase.table(
 	'user_role',
 	{
-		id: text().primaryKey().$default(ulid),
+		id: text().primaryKey().$default(randomUUIDv7),
 		userId: text()
 			.notNull()
 			.references(() => userTable.id),
@@ -62,7 +62,7 @@ export const userRoleTable = snakeCase.table(
 export const loginTable = snakeCase.table(
 	'login',
 	{
-		id: text().primaryKey().$default(ulid),
+		id: text().primaryKey().$default(randomUUIDv7),
 		sendId: text().notNull().unique(),
 		userId: text()
 			.notNull()
@@ -95,7 +95,7 @@ export const loginAttemptTable = snakeCase.table(
 export const tokenTable = snakeCase.table(
 	'token',
 	{
-		id: text().primaryKey().$default(ulid), // jti
+		id: text().primaryKey().$default(randomUUIDv7), // jti
 		userId: text()
 			.notNull()
 			.references(() => userTable.id),

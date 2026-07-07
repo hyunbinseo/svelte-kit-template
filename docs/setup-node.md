@@ -134,19 +134,19 @@ Running `pm2 update` stops all processes and will result in brief downtime.
 
 ```shell
 pm2 info <name>
-# node.js version │ 24.12.0
+# node.js version │ 26.0.0
 ```
 
 ```shell
-fnm install 24  # Installing Node v24.13.1 (x64)
-fnm use 24      # Using Node v24.13.1
+fnm install 26  # Installing Node v26.1.0 (x64)
+fnm use 26      # Using Node v26.1.0
 pm2 save
 pm2 update
 ```
 
 ```shell
 pm2 info <name>
-# node.js version │ 24.13.1
+# node.js version │ 26.1.0
 ```
 
 ### OOM (Out Of Memory)

@@ -140,6 +140,9 @@ pm2 info <name>
 ```shell
 fnm install 26  # Installing Node v26.1.0 (x64)
 fnm use 26      # Using Node v26.1.0
+
+npm install -g corepack
+
 pm2 save
 pm2 update
 ```

@@ -3,7 +3,16 @@
 ## Development Setup
 
 > [!NOTE]
-> pnpm is the recommended package manager. (e.g. MCP configuration uses `pnpm dlx` instead of `npx`)
+> [pnpm] is the recommended package manager and [corepack] is the advised way to install it
+
+[pnpm]: https://github.com/pnpm/pnpm
+[corepack]: https://github.com/nodejs/corepack
+
+```shell
+npm install -g corepack
+corepack use pnpm@latest
+pnpm update # installs as well
+```
 
 1. Create `.env.development.local` file (see `.env.[mode].local.example`)
 2. Install dependencies and run these scripts:
@@ -16,7 +25,7 @@ node --run dev
 
 ## Production Setup
 
-- See the [guide](./docs/setup.md) for VPS deployment with HTTPS.
+- See the [guide](./docs/setup.md) for VPS deployment with HTTPS
 - For other platforms, update the setup accordingly:
 
 ```diff

@@ -1,11 +1,5 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": { "paths": {} },
-	"include": [
-		"./**/*.js",
-		"./**/*.ts",
-		// modify as needed
-		"../src/lib/**/*.js",
-		"../src/lib/**/*.ts",
-	],
+	"include": ["./**/*.js", "./**/*.ts"],
 }

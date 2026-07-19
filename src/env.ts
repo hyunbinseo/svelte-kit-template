@@ -1,5 +1,5 @@
 import { dev } from '$app/env';
-import { defineEnvVars } from '@sveltejs/kit/hooks';
+import { defineEnvVars } from '@sveltejs/kit/env';
 import { endsWith, nonEmpty, optional, pipe, string, undefined_ } from 'valibot';
 
 const DatabaseURLSchema = pipe(string(), endsWith('.db'));

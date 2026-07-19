@@ -1,5 +1,4 @@
 import { relations } from '#lib/database/relations.ts';
-import * as schema from '#lib/database/schema.ts';
 import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { hash } from 'node:crypto';
@@ -12,7 +11,6 @@ export const auditDb = env.DATABASE_AUDIT_URL //
 	: null;
 
 export const db = drizzle(env.DATABASE_URL, {
-	schema,
 	relations,
 	logger: {
 		logQuery: (query, params) => {

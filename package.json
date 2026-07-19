@@ -14,7 +14,7 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"check:cli": "svelte-kit sync && tsc --project ./cli/tsconfig.check.json",
+		"check:cli": "svelte-kit sync && tsc --project ./cli/tsconfig.json",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"db:app:generate": "drizzle-kit generate",
@@ -26,8 +26,8 @@
 	"dependencies": {
 		"@sentry/node": "^10.66.0",
 		"@sentry/sveltekit": "^10.66.0",
-		"drizzle-kit": "1.0.0-rc.2",
-		"drizzle-orm": "1.0.0-rc.2",
+		"drizzle-kit": "1.0.0-rc.4",
+		"drizzle-orm": "1.0.0-rc.4",
 		"valibot": "^1.4.2"
 	},
 	"devDependencies": {

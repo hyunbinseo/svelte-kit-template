@@ -1,6 +1,5 @@
 import { LOG_SELECT_QUERIES } from '#lib/config.ts';
 import { relations } from '#lib/database/relations.ts';
-import * as schema from '#lib/database/schema.ts';
 import { dev } from '$app/env';
 import { DATABASE_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
@@ -16,7 +15,6 @@ if (!dev) client.exec('PRAGMA journal_mode = WAL');
 
 export const silentDb = drizzle({
 	client,
-	schema,
 	relations,
 	jit: true,
 	logger: false,
@@ -24,7 +22,6 @@ export const silentDb = drizzle({
 
 export const db = drizzle({
 	client,
-	schema,
 	relations,
 	jit: true,
 	logger: dev

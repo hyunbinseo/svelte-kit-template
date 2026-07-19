@@ -15,10 +15,13 @@ export default defineConfig({
 			// See https://nodejs.org/api/packages.html#subpath-imports
 			// alias: {},
 			compilerOptions: {
+				runes: ({ filename }) =>
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
 				experimental: { async: true },
 			},
 			experimental: {
 				explicitEnvironmentVariables: true,
+				handleRenderingErrors: true,
 				instrumentation: { server: true },
 				remoteFunctions: true,
 			},

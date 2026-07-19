@@ -6,7 +6,7 @@ BEGIN
   SET revoked_at = NEW.deactivated_at, revoked_by = NEW.deactivated_by
   WHERE user_id = NEW.id AND revoked_at IS NULL;
 
-  INSERT INTO token_ban (token_id, type, effective_at, banned_at, banned_by, ip)
+  INSERT INTO token_ban (token_id, reason, effective_at, banned_at, banned_by, ip)
   SELECT t.id, 'deactivate', NEW.deactivated_at, NEW.deactivated_at, NEW.deactivated_by, ''
   FROM token t
   LEFT JOIN token_ban tb ON t.id = tb.token_id

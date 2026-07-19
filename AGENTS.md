@@ -70,9 +70,11 @@ uniqueIndex('active_user_role_user_id_role_idx')
 - Use `TRIGGER` for cascade (e.g. deactivating a user should revoke all active roles)
 
 ```shell
-# Trigger API unsupported; write custom migration
-# See drizzle/*_triggers/migration.sql for examples
+# Trigger API unsupported; write migration in raw SQL
 pnpm drizzle-kit generate --custom --name=triggers
+
+# Review existing triggers when schema changes
+# See drizzle/*_triggers/migration.sql
 ```
 
 ```sql

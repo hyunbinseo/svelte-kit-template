@@ -1,4 +1,4 @@
-import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
+import { LOGIN_REDIRECT, PROFILE_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#lib/config.ts';
 import { tokenBanTable } from '#lib/database/schema.ts';
 import type { TokenRevokeReason } from '#lib/enums.ts';
@@ -11,6 +11,11 @@ import { createRedirectUrl } from './redirect.ts';
 export const requireSession = () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) redirect(303, createRedirectUrl('/login'));
+
+	if (!event.locals.session.profile && event.url.pathname !== PROFILE_REDIRECT) {
+		redirect(303, createRedirectUrl(PROFILE_REDIRECT));
+	}
+
 	return event.locals.session;
 };
 

@@ -1,5 +1,3 @@
-export const SITE_NAME = '사이트명'; // TODO
-
 export const ALLOW_UNREGISTERED = true;
 export const LOG_SELECT_QUERIES = false;
 

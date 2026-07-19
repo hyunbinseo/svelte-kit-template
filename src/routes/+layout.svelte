@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { SITE_NAME } from '#lib/config.ts';
 	import { setClientContext, type Client } from '#lib/context.ts';
+	import { SITE_NAME } from '$app/env/public';
 	import { page } from '$app/state';
 	import { slide } from 'svelte/transition';
 	import './+layout.css';

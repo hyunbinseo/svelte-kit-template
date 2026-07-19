@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
-	import { SITE_NAME } from '#lib/config.ts';
+	import { SITE_NAME } from '$app/env/public';
 	import { setupProfile as _setupProfile } from './setup.remote.ts';
 	import { SetupProfileSchema, setupProfileAttributes } from './setup.ts';
 

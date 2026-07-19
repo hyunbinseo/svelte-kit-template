@@ -9,6 +9,7 @@ export const variables = defineEnvVars({
 	DATABASE_URL: { schema: DatabaseURLSchema },
 	DATABASE_AUDIT_URL: { schema: !dev ? DatabaseURLSchema : undefined_() },
 	SENTRY_DSN: { public: true, schema: optional(NonEmptyStringSchema) },
+	SITE_NAME: { public: true, schema: NonEmptyStringSchema },
 
 	// NOTE In production, dynamic values can be updated without rebuilding
 	JWT_SECRET_NEW: { static: false, schema: NonEmptyStringSchema },

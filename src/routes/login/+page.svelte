@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
-	import { SITE_NAME } from '#lib/config.ts';
+	import { SITE_NAME } from '$app/env/public';
 	import { sendCode as _sendCode } from './send.remote.ts';
 	import { SendCodeSchema, sendCodeAttributes } from './send.ts';
 	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared.ts';

@@ -1,6 +1,7 @@
 {
 	"mcpServers": {
 		"chrome-devtools": {
+			"type": "stdio",
 			"command": "npx",
 			"args": ["chrome-devtools-mcp@latest"]
 		},
@@ -8,6 +9,10 @@
 			"type": "stdio",
 			"command": "npx",
 			"args": ["-y", "@sveltejs/mcp"]
+		},
+		"valibot": {
+			"type": "http",
+			"url": "https://valibot.dev/mcp"
 		}
 	}
 }

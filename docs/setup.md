@@ -64,6 +64,9 @@ tailscale up --ssh
 # See https://tailscale.com/docs/features/access-control/key-expiry
 ```
 
+> [!NOTE]
+> Tailscale SSH is configured with a [default policy](https://tailscale.com/docs/features/tailscale-ssh). This lets any user connect to their own devices in check mode as a root or non-root user. This is why `root` and `nodejs` are both reachable without further configuration. If the tailnet has multiple members, narrow the `ssh` rule to restrict who can reach `root` on this server.
+
 ## Local Terminal
 
 SSH into the server and clone the SvelteKit project.

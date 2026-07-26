@@ -19,20 +19,28 @@ nano Caddyfile
 > [!NOTE]
 > Since the output directory changes with each build, Caddy's static file serving cannot be used. The generated `handler` function sets appropriate caching headers for Vite hashed assets instead.
 
+> [!IMPORTANT]
+> Remove any pattern that collides with a real route or file.
+
 ```caddy
 (defaults) {
-	# NOTE This named matcher matches /.well-known/* as well
-	@denied-root path /.* /wp-admin* /wp-content* /wp-includes*
+	encode zstd gzip
+
 	@denied-database path *.db *.dump *.sql *.sqlite *.sqlite3
-	@denied-secrets path *.crt *.env *.env.* *.htpasswd *.key *.p12 *.p8 *.pem *.pfx
-	@denied-misc path *.bak *.ico *.ini *.log *.map *.orig *.php *.swp *.tmp
+	@denied-dotpaths {
+		path */.*
+		not path /.well-known/*
+	}
+	@denied-misc path *.bak *.ico *.ini *.log *.map *.orig *.php *.phtml *.py *.rb *.swp *.tmp
+	@denied-secrets path *.crt *.env *.env.* *.htpasswd *.key *.p12 *.p8 *.pem *.pfx *.tfstate *.tfvars
+	@denied-system path /bin/* /etc/* /opt/* /proc/* /root/* /srv/* /sys/* /tmp/* /usr/* /var/* /www/*
 
-	respond @denied-root 410
+	respond /wp-* 410
 	respond @denied-database 410
-	respond @denied-secrets 410
+	respond @denied-dotpaths 410
 	respond @denied-misc 410
-
-	encode
+	respond @denied-secrets 410
+	respond @denied-system 410
 }
 
 <your-domain.com> {

@@ -152,6 +152,16 @@ pm2 info <name>
 # node.js version │ 26.1.0
 ```
 
+### System Resource Usage
+
+View historical CPU, memory, and I/O usage collected by `sysstat`:
+
+```shell
+sar -h -u  # CPU
+sar -h -r  # memory
+sar -h -b  # I/O
+```
+
 ### OOM (Out Of Memory)
 
 The build can fail on servers with small RAM, especially if there are circular dependencies.

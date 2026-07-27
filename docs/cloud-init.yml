@@ -38,6 +38,7 @@ packages:
   - dnf-plugins-core
   - caddy
   - micro
+  - sysstat
   - tailscale
 
 write_files:
@@ -124,4 +125,5 @@ runcmd:
   - su - nodejs -c 'bash ~/init.sh'
   # services
   - systemctl enable pm2-nodejs
+  - systemctl enable --now sysstat sysstat-collect.timer sysstat-summary.timer
   - systemctl enable --now tailscaled

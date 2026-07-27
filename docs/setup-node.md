@@ -86,7 +86,7 @@ For initial deployment:
 pnpm db:prod:migrate
 pnpm db:audit:migrate
 pnpm build                # logs output directory
-nano build/start.js       # update the import path
+micro build/start.js      # update the import path
 pm2 start pm2.config.cjs
 pm2 save
 ```
@@ -101,7 +101,7 @@ pnpm build
 
 ```shell
 # Migrate db if needed
-nano build/start.js
+micro build/start.js
 pm2 reload <name>
 ```
 

@@ -35,8 +35,9 @@ package_upgrade: true
 package_reboot_if_required: true
 
 packages:
-  - dnf-plugins-core
   - caddy
+  - dnf-automatic
+  - dnf-plugins-core
   - micro
   - sysstat
   - tailscale
@@ -125,5 +126,6 @@ runcmd:
   - su - nodejs -c 'bash ~/init.sh'
   # services
   - systemctl enable pm2-nodejs
+  - systemctl enable --now dnf-automatic-install.timer
   - systemctl enable --now sysstat sysstat-collect.timer sysstat-summary.timer
   - systemctl enable --now tailscaled

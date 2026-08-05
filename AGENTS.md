@@ -10,7 +10,7 @@
 - Use `type` over `interface`
 - Use arrow syntax over function expressions and declarations
 - Blank `//` comments can be used to force multiline formatting
-- Don't use `!` non-null assertions (except in Drizzle insert returning)
+- Don't use `!` non-null assertions (except in Drizzle insert `.returning()`)
 
 ```json
 {
@@ -37,18 +37,15 @@ For `db.select`, use the sync API:
 
 ```diff
 - await db.select().from(userTable);
-```
-
-```ts
-db.select().from(userTable).all(); // returns User[]
-db.select().from(userTable).get(); // returns User | undefined
++ db.select().from(userTable).all(); // returns User[]
++ db.select().from(userTable).get(); // returns User | undefined
 ```
 
 For `db.query` API, use Relational Queries v2:
 
 ```ts
 const users = await db.query.userTable.findMany({
-  // sort keys in this order: orderBy, offset, where, columns, extras, with
+  // Sort keys in this order: orderBy, offset, where, columns, extras, with
   orderBy: { id: 'asc' },
   where: {
     contact: '010', // same as `eq`
@@ -66,8 +63,8 @@ uniqueIndex('active_user_role_user_id_role_idx')
   .where(isNull(table.revokedAt));
 ```
 
-- Don't hard `DELETE`. Soft delete using columns such as `deactivatedAt` or `revokedAt`
-- Use `TRIGGER` for cascade (e.g. deactivating a user should revoke all active roles)
+- Don't hard `DELETE` — soft-delete (e.g. `deactivatedAt`, `revokedAt`)
+- Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles)
 
 ```shell
 # Trigger API unsupported; write migration in raw SQL
@@ -82,7 +79,7 @@ pnpm drizzle-kit generate --custom --name=triggers
 --> statement-breakpoint
 ```
 
-SQLite async transactions don't work, so leave a comment instead:
+SQLite has no async transactions — leave a comment instead:
 
 ```ts
 // BLOCKED Use transaction for <a> + <b>
@@ -90,7 +87,7 @@ SQLite async transactions don't work, so leave a comment instead:
 
 ## SvelteKit
 
-Call `getRequestEvent()` directly in utility functions. Don't receive `event` as a parameter
+Call `getRequestEvent()` directly in utility functions instead of passing `event`
 
 ### Environment Variables
 
@@ -179,7 +176,7 @@ export const getWeather = query.batch(pipe(number(), integer()), (cityIds) => {
 });
 ```
 
-### await
+### `await`
 
 Use the `await` keyword directly in components:
 
@@ -201,7 +198,7 @@ Use the `await` keyword directly in components:
 {/each}
 ```
 
-### resolve
+### `resolve`
 
 Internal navigation must use `resolve()`:
 
@@ -241,18 +238,23 @@ Check for browser API support at the client:
 
 ## Svelte
 
-- Use the Svelte 5 API (e.g. runes, `createContext`)
-- Use the array syntax for class names:
+Use the Svelte 5 API (e.g. runes, `createContext`)
 
 ```svelte
-<div class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}>...</div>
+<div
+  // Comments are valid in attribute list
+  // Use the array syntax for class names
+  class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}
+>
+  ...
+</div>
 ```
 
-### $effect
+### `$effect`
 
-Don't use `$effect` for a derived state. Use it only for side effects like logging, DOM manipulation, and browser-only APIs (e.g. syncing with `localStorage`)
+Don't use `$effect` for derived state — only for side effects (logging, DOM manipulation, browser APIs like `localStorage`)
 
-### $derived
+### `$derived`
 
 Derived values can be reassigned (e.g. optimistic UI); they revert when dependencies update:
 
@@ -291,9 +293,9 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 <img src={profile} />
 ```
 
-### onMount
+### `onMount`
 
-Accepts async functions, but cannot return a cleanup function:
+Accepts async functions; cannot return a cleanup function:
 
 ```ts
 import { onMount, onDestroy } from 'svelte';
@@ -315,6 +317,20 @@ onDestroy(() => {
 });
 ```
 
+### `{#each}` with fixed length
+
+```svelte
+<script lang="ts">
+  const featured = new Set([2, 5, 9]);
+</script>
+
+<ul>
+  {#each { length: 12 }, index}
+    <li class={[featured.has(index) && 'font-bold']}>{index}</li>
+  {/each}
+</ul>
+```
+
 ### Reference
 
 Svelte MCP provides Svelte 5 and SvelteKit docs:
@@ -325,7 +341,7 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 ## Tailwind CSS
 
 - Create utility components for shared styles in `src/routes/+layout.css`
-- Don't style individual form controls. Use `StyledLabels.svelte` instead:
+- Don't style individual form controls — use `StyledLabels.svelte` instead:
 
 ```svelte
 <script lang="ts">
@@ -338,8 +354,11 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
       <span>이메일</span>
       <input {...remoteForm.fields.contact.as('email')} />
     </label>
-    <!-- Tailwind utility components -->
-    <button class="btn btn-primary disabled:btn-busy" disabled={!!remoteForm.pending}>
+    <button
+      // utility components
+      class="btn btn-primary disabled:btn-busy"
+      disabled={!!remoteForm.pending}
+    >
       인증번호 전송
     </button>
   </form>
@@ -348,14 +367,14 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 Use child selectors to avoid duplicate class names:
 
-```svelte
-<ul class="*:border-sky-100 *:bg-sky-50">
-  <!-- valid each block without an item -->
-  {#each { length: 12 }, index}
-    <!-- Use per-element class for non-uniform styles -->
-    <li class={[index % 2 === 0 && 'font-bold']}>{index}</li>
-  {/each}
-</ul>
+```diff
+- <ul>
++ <ul class="*:odd:bg-sky-50 *:even:bg-sky-100">
+    {#each { length: 12 }, index}
+-     <li class={[index % 2 === 0 ? 'bg-sky-50' : 'bg-sky-100']}></li>
++     <li></li>
+    {/each}
+  </ul>
 ```
 
 For `<img>` and `<video>`, define a height to avoid layout shift:

@@ -1,6 +1,6 @@
 # svelte-kit-template
 
-## Development Setup
+## Setup
 
 > [!NOTE]
 > [pnpm] is the recommended package manager and [corepack] is the advised way to install it
@@ -9,21 +9,23 @@
 [corepack]: https://github.com/nodejs/corepack
 
 ```shell
+# Install pnpm via corepack
 npm install -g corepack
 corepack use pnpm@latest
 pnpm update # installs as well
 ```
 
-1. Create `.env.development.local` file (see `.env.[mode].local.example`)
-2. Install dependencies and run these scripts:
+### Development
+
+1. Create a `.env.development.local` file (see `.env.[mode].local.example`)
+2. Run these `package.json` scripts (`node --run`, `npm run`, etc. also works)
 
 ```shell
-node --run db:generate
-node --run db:migrate
-node --run dev
+pnpm db:app:migrate:dev
+pnpm dev
 ```
 
-## Production Setup
+### Production
 
 - See the [guide](./docs/setup.md) for VPS deployment with HTTPS
 - For other platforms, update the setup accordingly:

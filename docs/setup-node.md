@@ -83,7 +83,7 @@ module.exports = {
 For initial deployment:
 
 ```shell
-pnpm db:prod:migrate
+pnpm db:app:migrate:prod
 pnpm db:audit:migrate
 pnpm build                # logs output directory
 micro build/start.js      # update the import path
@@ -112,7 +112,7 @@ pm2 reload <name>
 ### Backup Database
 
 ```ts
-// cli/scripts/scheduled.ts
+// cli/scripts/backup.ts
 import { db } from '#cli/lib/database.ts';
 import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
@@ -123,7 +123,7 @@ exit();
 
 ### Update Environment Variables
 
-See `src/env.ts` to see if the variables are static.
+Check `src/env.ts` to see if the variables are static.
 
 - Dynamic: reload pm2 applications
 - Static: rebuild and switch

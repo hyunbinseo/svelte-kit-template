@@ -1,3 +1,6 @@
+import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/config.ts';
+import type { TokenBanReason, TokenRefreshReason, UserRole } from '#lib/enums.ts';
+import type { ISODateString } from '#lib/types.ts';
 import { eq, isNull } from 'drizzle-orm';
 import {
 	check,
@@ -9,8 +12,6 @@ import {
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import { randomUUIDv7 } from 'node:crypto';
-import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '../config.ts';
-import type { TokenBanReason, TokenRefreshReason, UserRole } from '../enums.ts';
 
 export const userTable = snakeCase.table(
 	'user',
@@ -34,7 +35,7 @@ export const userProfileTable = snakeCase.table('user_profile', {
 	id: text()
 		.primaryKey()
 		.references(() => userTable.id),
-	birth: text().notNull(), // yyyy-mm-dd
+	birth: text().$type<ISODateString>().notNull(),
 });
 
 export const userRoleTable = snakeCase.table(

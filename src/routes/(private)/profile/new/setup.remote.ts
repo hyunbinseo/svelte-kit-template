@@ -14,13 +14,13 @@ export const setupProfile = form(SetupProfileSchema, async (data) => {
 	const session = requireSession();
 	if (session.profile) redirect(303, redirectUrl);
 
-	await db
-		.insert(userProfileTable)
+	db.insert(userProfileTable)
 		.values({
 			id: session.sub,
 			birth: data.birth,
 		})
-		.onConflictDoNothing();
+		.onConflictDoNothing()
+		.run();
 
 	await rotateToken(session, 'profile');
 	redirect(303, redirectUrl);

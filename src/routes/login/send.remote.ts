@@ -12,31 +12,35 @@ import { RATE_LIMITED, UNREGISTERED } from './shared.ts';
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireNoSession();
 
-	let user = await db.query.userTable.findFirst({
-		where: {
-			contact: data.contact,
-			deactivatedAt: { isNull: true },
-		},
-		columns: { id: true },
-	});
+	let user = db.query.userTable
+		.findFirst({
+			where: {
+				contact: data.contact,
+				deactivatedAt: { isNull: true },
+			},
+			columns: { id: true },
+		})
+		.sync();
 
 	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
 
-	user = user ?? (await db.insert(userTable).values(data).returning({ id: userTable.id }))[0]!;
+	user = user ?? db.insert(userTable).values(data).returning({ id: userTable.id }).all()[0]!;
 
-	const existingLogin = await db.query.loginTable.findFirst({
-		orderBy: { id: 'desc' },
-		where: {
-			userId: user.id,
-			expiresAt: { gte: new Date() },
-		},
-		columns: {},
-		with: {
-			successfulAttempts: {
-				columns: { id: true },
+	const existingLogin = db.query.loginTable
+		.findFirst({
+			orderBy: { id: 'desc' },
+			where: {
+				userId: user.id,
+				expiresAt: { gte: new Date() },
 			},
-		},
-	});
+			columns: {},
+			with: {
+				successfulAttempts: {
+					columns: { id: true },
+				},
+			},
+		})
+		.sync();
 
 	if (existingLogin && !existingLogin.successfulAttempts.length) {
 		invalid(issue.contact(RATE_LIMITED));
@@ -50,17 +54,16 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	if (dev) console.table({ contact: data.contact, code });
 
-	const login = (
-		await db
-			.insert(loginTable)
-			.values({
-				sendId,
-				userId: user.id,
-				code,
-				ip: getRequestEvent().getClientAddress(),
-			})
-			.returning({ id: loginTable.id })
-	)[0]!;
+	const login = db
+		.insert(loginTable)
+		.values({
+			sendId,
+			userId: user.id,
+			code,
+			ip: getRequestEvent().getClientAddress(),
+		})
+		.returning({ id: loginTable.id })
+		.all()[0]!;
 
 	return {
 		id: login.id,

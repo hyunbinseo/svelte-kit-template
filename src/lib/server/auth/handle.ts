@@ -14,10 +14,12 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 
 	const ban =
 		verified &&
-		(await silentDb.query.tokenBanTable.findFirst({
-			where: { tokenId: verified.payload.jti },
-			columns: { reason: true, effectiveAt: true },
-		}));
+		silentDb.query.tokenBanTable
+			.findFirst({
+				where: { tokenId: verified.payload.jti },
+				columns: { reason: true, effectiveAt: true },
+			})
+			.sync();
 
 	if (!verified || (ban && ban.effectiveAt <= new Date())) {
 		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });

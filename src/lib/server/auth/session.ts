@@ -24,24 +24,27 @@ export const requireNoSession = () => {
 	if (event.locals.session) redirect(303, LOGIN_REDIRECT);
 };
 
-export const revokeSession = async (reason: TokenRevokeReason) => {
+export const revokeSession = (reason: TokenRevokeReason) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	await db
-		.insert(tokenBanTable)
-		.values({
-			tokenId: event.locals.session.jti,
-			reason,
-			effectiveAt: new Date(),
-			bannedBy: event.locals.session.sub,
-			ip: event.getClientAddress(),
-		})
-		.onConflictDoUpdate({
-			target: tokenBanTable.tokenId,
-			set: { effectiveAt: new Date() },
-		})
-		.catch(captureException);
+	try {
+		db.insert(tokenBanTable)
+			.values({
+				tokenId: event.locals.session.jti,
+				reason,
+				effectiveAt: new Date(),
+				bannedBy: event.locals.session.sub,
+				ip: event.getClientAddress(),
+			})
+			.onConflictDoUpdate({
+				target: tokenBanTable.tokenId,
+				set: { effectiveAt: new Date() },
+			})
+			.run();
+	} catch (e) {
+		captureException(e);
+	}
 
 	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
 	delete event.locals.session;

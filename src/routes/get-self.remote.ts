@@ -6,14 +6,16 @@ export const getSelf = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return null;
 
-	const user = await db.query.userTable.findFirst({
-		where: {
-			id: event.locals.session.sub,
-			deactivatedAt: { isNull: true },
-		},
-		columns: { id: true, contact: true },
-		with: { profile: { columns: { birth: true } } },
-	});
+	const user = db.query.userTable
+		.findFirst({
+			where: {
+				id: event.locals.session.sub,
+				deactivatedAt: { isNull: true },
+			},
+			columns: { id: true, contact: true },
+			with: { profile: { columns: { birth: true } } },
+		})
+		.sync();
 
 	if (!user) error(500);
 	return user;

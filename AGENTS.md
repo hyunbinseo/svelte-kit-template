@@ -7,10 +7,7 @@
 
 ## TypeScript
 
-- Use `type` over `interface`
-- Use arrow syntax over function expressions and declarations
-- Blank `//` comments can be used to force multiline formatting
-- Don't use `!` non-null assertions (except in Drizzle insert `.returning()`)
+These options are enabled:
 
 ```json
 {
@@ -19,40 +16,59 @@
 }
 ```
 
+- Use `type` over `interface`
+- Use arrow syntax over function expressions and declarations
+- Blank `//` comments can be used to force multiline formatting
+- Don't use `!` non-null assertions, except:
+
+```ts
+// Assert only if insertion is guaranteed
+// e.g. no `onConflictDoNothing()` inserts all or throws
+db.insert(userTable).values(users).returning().all()[0]!;
+```
+
 ## Drizzle ORM
 
 - `src/lib/server/database/client.ts`
 - `src/lib/database/schema.ts`
 - `src/lib/database/relations.ts`
 
-Retrieve only necessary columns:
+Use the sync API instead of `await`:
 
 ```ts
-const users = await db.query.userTable.findMany({
-  columns: { contact: true }, // never use false to exclude
-});
+db.query.userTable.findFirst().sync(); // User | undefined
+db.query.userTable.findMany().sync(); // User[]
+
+db.select().from(userTable).get(); // User | undefined
+db.select().from(userTable).all(); // User[]
+
+db.update(userTable).set(data).where(eq(userTable.id, id)).run();
+db.delete(userTable).where(eq(userTable.id, id)).run();
+
+db.insert(userTable).values(data).returning().all(); // User[]
 ```
 
-For `db.select`, use the sync API:
+Don't use insert `.get()`. See https://github.com/drizzle-team/drizzle-orm/issues/6107
 
 ```diff
-- await db.select().from(userTable);
-+ db.select().from(userTable).all(); // returns User[]
-+ db.select().from(userTable).get(); // returns User | undefined
+- db.insert(userTable).values(data).returning().get();
 ```
 
-For `db.query` API, use Relational Queries v2:
+Use Relational Queries v2:
 
 ```ts
-const users = await db.query.userTable.findMany({
-  // Sort keys in this order: orderBy, offset, where, columns, extras, with
-  orderBy: { id: 'asc' },
-  where: {
-    contact: '010', // same as `eq`
-    deactivatedAt: { isNull: true },
-    activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
-  },
-});
+const users = db.query.userTable
+  .findMany({
+    // Sort keys in this order: orderBy, offset, where, columns, extras, with
+    orderBy: { id: 'asc' },
+    where: {
+      contact: '010', // same as `eq`
+      deactivatedAt: { isNull: true },
+      activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
+    },
+    columns: { contact: true }, // never use false to exclude
+  })
+  .sync();
 ```
 
 Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique):
@@ -79,7 +95,16 @@ pnpm drizzle-kit generate --custom --name=triggers
 --> statement-breakpoint
 ```
 
-SQLite has no async transactions — leave a comment instead:
+Don't pass async callbacks to `db.transaction()`. See https://github.com/drizzle-team/drizzle-orm/issues/2275
+
+```ts
+db.transaction((tx) => {
+  tx.insert(userTable).values(data).run();
+  tx.update(postTable).set(data).where(eq(postTable.id, id)).run();
+});
+```
+
+If the transaction can't be made sync, leave a comment instead:
 
 ```ts
 // BLOCKED Use transaction for <a> + <b>
@@ -147,8 +172,8 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
   // Form data has already passed schema validation
   if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-  // When inserting a single row, use [0]! to assert that a row is returned
-  const newPost = (await db.insert(postTable).values(data).returning())[0]!;
+  // Insertion is guaranteed to return exactly one row
+  const newPost = db.insert(postTable).values(data).returning().all()[0]!;
 
   return newPost; // populates `createPost.result` in Svelte
 });
@@ -221,7 +246,7 @@ Internal navigation must use `resolve()`:
 
 ### Feature Detection
 
-Check for browser API support at the client:
+Check for browser API support on the client:
 
 ```svelte
 <script lang="ts">

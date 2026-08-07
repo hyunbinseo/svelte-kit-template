@@ -50,26 +50,25 @@ type TokenInput = Pick<
 export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
-	const token = (
-		await db
-			.insert(tokenTable)
-			.values({
-				userId: input.sub,
-				refreshedFrom: input.refreshedFrom,
-				refreshReason: input.refreshReason,
-				ip: event.getClientAddress(),
-			})
-			// NOTE returns existing row
-			.onConflictDoUpdate({
-				target: tokenTable.refreshedFrom,
-				set: { userId: tokenTable.userId },
-			})
-			.returning({
-				id: tokenTable.id,
-				issuedAt: tokenTable.issuedAt,
-				expiresAt: tokenTable.expiresAt,
-			})
-	)[0]!;
+	const token = db
+		.insert(tokenTable)
+		.values({
+			userId: input.sub,
+			refreshedFrom: input.refreshedFrom,
+			refreshReason: input.refreshReason,
+			ip: event.getClientAddress(),
+		})
+		// NOTE returns existing row
+		.onConflictDoUpdate({
+			target: tokenTable.refreshedFrom,
+			set: { userId: tokenTable.userId },
+		})
+		.returning({
+			id: tokenTable.id,
+			issuedAt: tokenTable.issuedAt,
+			expiresAt: tokenTable.expiresAt,
+		})
+		.all()[0]!;
 
 	const roles = input.roles.size
 		? (Array.from(input.roles) as [UserRole, ...UserRole[]])
@@ -111,7 +110,7 @@ export const rotateToken = async (
 	const event = getRequestEvent();
 
 	if (reason !== 'stale') {
-		const claimed = await db
+		const claimed = db
 			.insert(tokenBanTable)
 			.values({
 				tokenId: session.jti,
@@ -121,21 +120,24 @@ export const rotateToken = async (
 				ip: event.getClientAddress(),
 			})
 			.onConflictDoNothing()
-			.returning({ tokenId: tokenBanTable.tokenId });
+			.returning({ tokenId: tokenBanTable.tokenId })
+			.all();
 
 		if (!claimed.length) return;
 	}
 
-	const user = await db.query.userTable.findFirst({
-		where: {
-			id: session.sub,
-			deactivatedAt: { isNull: true },
-		},
-		with: {
-			profile: { columns: { id: true } },
-			activeRoles: { columns: { role: true } },
-		},
-	});
+	const user = db.query.userTable
+		.findFirst({
+			where: {
+				id: session.sub,
+				deactivatedAt: { isNull: true },
+			},
+			with: {
+				profile: { columns: { id: true } },
+				activeRoles: { columns: { role: true } },
+			},
+		})
+		.sync();
 
 	if (!user) {
 		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });

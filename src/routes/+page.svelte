@@ -17,12 +17,10 @@
 			<dd class="font-mono">{user.id}</dd>
 			<dt>연락처</dt>
 			<dd>{user.contact}</dd>
-			{#if user.profile}
-				<dt>생년월일</dt>
-				<dd>
-					<time datetime={user.profile.birth}>{user.profile.birth}</time>
-				</dd>
-			{/if}
+			<dt>생년월일</dt>
+			<dd>
+				<time datetime={user.profile.birth}>{user.profile.birth}</time>
+			</dd>
 		</dl>
 		<form {...logout} class="contents">
 			<button disabled={!!logout.pending} class="mt-8 btn btn-primary disabled:btn-busy">

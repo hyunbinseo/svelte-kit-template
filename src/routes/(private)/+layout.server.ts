@@ -1,6 +1,6 @@
-import { requireSession } from '#lib/server/auth/session.ts';
+import { requireOnboarded } from '#lib/server/auth/session.ts';
 
 export const load = () => {
-	const session = requireSession();
+	const session = requireOnboarded();
 	return { userId: session.sub };
 };

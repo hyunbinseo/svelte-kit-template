@@ -1,6 +1,6 @@
 import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
-import { requireNoSession } from '#lib/server/auth/session.ts';
+import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { db } from '#lib/server/database/client.ts';
 import { dev } from '$app/env';
 import { form, getRequestEvent } from '$app/server';
@@ -10,7 +10,7 @@ import { SendCodeSchema } from './send.ts';
 import { RATE_LIMITED, UNREGISTERED } from './shared.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
-	requireNoSession();
+	requireLoggedOut();
 
 	let user = db.query.userTable
 		.findFirst({

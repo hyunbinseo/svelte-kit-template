@@ -129,9 +129,10 @@ import { DATABASE_URL } from '$app/env/private';
 - RPC functions must be exported from `*.remote.ts` files
 - There are 4 types: `query`, `form`, `command`, `prerender`
 - Requests must be public or authenticated and authorized
+- `event.url` refers to the calling page, not the endpoint
 
 ```ts
-import { requireNoSession, requireSession } from '#lib/server/auth/session.ts';
+import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';
 import { form, query } from '$app/server';
 
 export const getPublicPosts = query(async () => {
@@ -143,7 +144,7 @@ export const getPrivatePosts = query(async () => {
 });
 
 export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
-  requireNoSession(); // must be logged out
+  requireLoggedOut(); // must be logged out
 });
 ```
 

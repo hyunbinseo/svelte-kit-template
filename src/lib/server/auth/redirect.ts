@@ -1,7 +1,7 @@
 import { getRequestEvent } from '$app/server';
 import type { ResolvedPathname } from '$app/types';
 
-// NOTE Request event's `url` relate to the page the remote function was called from
+// NOTE Don't call `event.url`-based helpers in form actions
 
 const REDIRECT_PARAM = 'returnTo';
 

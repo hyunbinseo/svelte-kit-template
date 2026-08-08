@@ -21,6 +21,13 @@ pnpm update # installs as well
 2. Run these `package.json` scripts (`node --run`, `npm run`, etc. also works)
 
 ```shell
+pnpm db:app:generate
+pnpm drizzle-kit generate --custom --name=triggers
+# Paste `drizzle/app/triggers.temp.sql` into the generated `migration.sql`
+
+# Purge `drizzle/app` to reset the schema
+# Commit the migrations once ready to deploy
+
 pnpm db:app:migrate:dev
 pnpm dev
 ```

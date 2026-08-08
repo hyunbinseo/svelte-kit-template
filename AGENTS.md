@@ -1,3 +1,5 @@
+Before finalizing changes, update any `*.md` files that reference changed code or config to avoid stale content (e.g. this file)
+
 ## Comments
 
 - Don't add unless requested

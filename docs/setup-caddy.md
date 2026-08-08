@@ -1,6 +1,9 @@
 # Setup Caddy
 
 > [!CAUTION]
+> Before exposing the service to the internet, complete required legal measures (e.g. [privacy policy](./privacy-kr.md), terms of service) for your jurisdiction.
+
+> [!CAUTION]
 > This is a reference material, not a complete guide. See [Caddy documentation](https://caddyserver.com/docs/quick-starts/https).
 
 1. Set the domain's A record to point to the VPS's public IPv4 address.

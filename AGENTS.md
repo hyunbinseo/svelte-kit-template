@@ -152,6 +152,8 @@ export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
 
 #### `form`
 
+Always use `form` instead of `command` for user-triggered actions (e.g. a button click). Customize `enhance()` as needed. See https://github.com/sveltejs/kit/issues/16275
+
 See `src/routes/login/` for conventions
 
 ```ts

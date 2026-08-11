@@ -1,11 +1,11 @@
+import { randomInt, randomUUID } from 'node:crypto';
+import { dev } from '$app/env';
+import { form, getRequestEvent } from '$app/server';
+import { invalid } from '@sveltejs/kit';
 import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { db } from '#lib/server/database/client.ts';
-import { dev } from '$app/env';
-import { form, getRequestEvent } from '$app/server';
-import { invalid } from '@sveltejs/kit';
-import { randomInt, randomUUID } from 'node:crypto';
 import { SendCodeSchema } from './send.ts';
 import { RATE_LIMITED, UNREGISTERED } from './shared.ts';
 

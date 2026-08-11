@@ -1,8 +1,8 @@
-import { relations } from '#lib/database/relations.ts';
-import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
-import { drizzle } from 'drizzle-orm/node-sqlite';
 import { hash } from 'node:crypto';
 import { env } from 'node:process';
+import { drizzle } from 'drizzle-orm/node-sqlite';
+import { relations } from '#lib/database/relations.ts';
+import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 

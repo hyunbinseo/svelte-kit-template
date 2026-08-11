@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { setClientContext, type Client } from '#lib/context.ts';
 	import { SITE_NAME } from '$app/env/public';
 	import { page } from '$app/state';
 	import { slide } from 'svelte/transition';
+	import { setClientContext, type Client } from '#lib/context.ts';
 	import './+layout.css';
 
 	let { children } = $props();

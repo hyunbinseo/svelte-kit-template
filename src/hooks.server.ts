@@ -1,9 +1,9 @@
-import { handleJWT } from '#lib/server/auth/handle.ts';
 import { captureMessage, handleErrorWithSentry, sentryHandle } from '@sentry/sveltekit';
 import type { HandleValidationError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import '@valibot/i18n/ko';
 import * as valibot from 'valibot';
+import '@valibot/i18n/ko';
+import { handleJWT } from '#lib/server/auth/handle.ts';
 
 valibot.setGlobalConfig({ lang: 'ko' });
 

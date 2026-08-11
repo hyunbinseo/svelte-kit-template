@@ -1,3 +1,6 @@
+import { timingSafeEqual } from 'node:crypto';
+import { form, getRequestEvent } from '$app/server';
+import { error, invalid, redirect } from '@sveltejs/kit';
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_CODE_MAX_ATTEMPTS } from '#lib/config.ts';
 import { loginAttemptTable } from '#lib/database/schema.ts';
@@ -5,9 +8,6 @@ import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { issueToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database/client.ts';
-import { form, getRequestEvent } from '$app/server';
-import { error, invalid, redirect } from '@sveltejs/kit';
-import { timingSafeEqual } from 'node:crypto';
 import { CODE_INVALID } from './shared.ts';
 import { ValidateCodeSchema } from './validate.ts';
 

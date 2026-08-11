@@ -1,7 +1,7 @@
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#lib/config.ts';
-import { silentDb } from '#lib/server/database/client.ts';
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#lib/config.ts';
+import { silentDb } from '#lib/server/database/client.ts';
 import { rotateToken, verifyToken } from './token.ts';
 
 type Session = NonNullable<App.Locals['session']>;

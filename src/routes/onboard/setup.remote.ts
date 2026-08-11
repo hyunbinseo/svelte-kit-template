@@ -1,11 +1,11 @@
+import { form } from '$app/server';
+import { redirect } from '@sveltejs/kit';
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { userProfileTable } from '#lib/database/schema.ts';
 import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireSession } from '#lib/server/auth/session.ts';
 import { rotateToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database/client.ts';
-import { form } from '$app/server';
-import { redirect } from '@sveltejs/kit';
 import { SetupProfileSchema } from './setup.ts';
 
 export const setupProfile = form(SetupProfileSchema, async (data) => {

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { logout } from '#lib/remotes/logout.remote.ts';
 	import { resolve } from '$app/paths';
+	import { logout } from '#lib/remotes/logout.remote.ts';
 	import { getSelf } from './get-self.remote.ts';
 
 	const user = $derived(await getSelf());

@@ -1,6 +1,6 @@
+import { isoDate, object, pipe, string, transform } from 'valibot';
 import type { FormAttributes } from '#lib/remote/form.ts';
 import type { ISODateString } from '#lib/types.ts';
-import { isoDate, object, pipe, string, transform } from 'valibot';
 
 export const SetupProfileSchema = object({
 	birth: pipe(

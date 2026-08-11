@@ -13,8 +13,8 @@ These options are enabled:
 
 ```json
 {
-  "noUncheckedIndexedAccess": true,
-  "exactOptionalPropertyTypes": true
+	"noUncheckedIndexedAccess": true,
+	"exactOptionalPropertyTypes": true
 }
 ```
 
@@ -60,25 +60,25 @@ Use Relational Queries v2:
 
 ```ts
 const users = db.query.userTable
-  .findMany({
-    // Sort keys in this order: orderBy, offset, where, columns, extras, with
-    orderBy: { id: 'asc' },
-    where: {
-      contact: '010', // same as `eq`
-      deactivatedAt: { isNull: true },
-      activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
-    },
-    columns: { contact: true }, // never use false to exclude
-  })
-  .sync();
+	.findMany({
+		// Sort keys in this order: orderBy, offset, where, columns, extras, with
+		orderBy: { id: 'asc' },
+		where: {
+			contact: '010', // same as `eq`
+			deactivatedAt: { isNull: true },
+			activeRoles: { role: 'admin' }, // filter by relations (uses subquery)
+		},
+		columns: { contact: true }, // never use false to exclude
+	})
+	.sync();
 ```
 
 Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique):
 
 ```ts
 uniqueIndex('active_user_role_user_id_role_idx')
-  .on(table.userId, table.role)
-  .where(isNull(table.revokedAt));
+	.on(table.userId, table.role)
+	.where(isNull(table.revokedAt));
 ```
 
 - Don't hard `DELETE` — soft-delete (e.g. `deactivatedAt`, `revokedAt`)
@@ -101,8 +101,8 @@ Don't pass async callbacks to `db.transaction()`. See https://github.com/drizzle
 
 ```ts
 db.transaction((tx) => {
-  tx.insert(userTable).values(data).run();
-  tx.update(postTable).set(data).where(eq(postTable.id, id)).run();
+	tx.insert(userTable).values(data).run();
+	tx.update(postTable).set(data).where(eq(postTable.id, id)).run();
 });
 ```
 
@@ -138,15 +138,15 @@ import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';
 import { form, query } from '$app/server';
 
 export const getPublicPosts = query(async () => {
-  // Use prerender if static or cacheable
+	// Use prerender if static or cacheable
 });
 
 export const getPrivatePosts = query(async () => {
-  const session = requireSession();
+	const session = requireSession();
 });
 
 export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
-  requireLoggedOut(); // must be logged out
+	requireLoggedOut(); // must be logged out
 });
 ```
 
@@ -161,8 +161,8 @@ See `src/routes/login/` for conventions
 import { nonEmpty, object, pipe, string } from 'valibot';
 
 export const CreatePostSchema = object({
-  title: pipe(string(), nonEmpty()),
-  content: pipe(string(), nonEmpty()),
+	title: pipe(string(), nonEmpty()),
+	content: pipe(string(), nonEmpty()),
 });
 ```
 
@@ -174,13 +174,13 @@ import { invalid } from '@sveltejs/kit';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
-  // Form data has already passed schema validation
-  if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
+	// Form data has already passed schema validation
+	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-  // Insertion is guaranteed to return exactly one row
-  const newPost = db.insert(postTable).values(data).returning().all()[0]!;
+	// Insertion is guaranteed to return exactly one row
+	const newPost = db.insert(postTable).values(data).returning().all()[0]!;
 
-  return newPost; // populates `createPost.result` in Svelte
+	return newPost; // populates `createPost.result` in Svelte
 });
 ```
 
@@ -188,8 +188,8 @@ If the form includes a `<select>`, the default value must be defined:
 
 ```svelte
 <select {...remoteForm.fields.fruit.as('select', 'apple')}>
-  <option>apple</option>
-  <option>banana</option>
+	<option>apple</option>
+	<option>banana</option>
 </select>
 ```
 
@@ -199,10 +199,10 @@ Batches requests within the same macrotask:
 
 ```ts
 export const getWeather = query.batch(pipe(number(), integer()), (cityIds) => {
-  // Return named tuples to reduce wire size
-  // See https://github.com/sveltejs/kit/issues/15784
-  const lookup = new Map<number, [minTemp: number, maxTemp: number]>();
-  return (cityId) => lookup.get(cityId);
+	// Return named tuples to reduce wire size
+	// See https://github.com/sveltejs/kit/issues/15784
+	const lookup = new Map<number, [minTemp: number, maxTemp: number]>();
+	return (cityId) => lookup.get(cityId);
 });
 ```
 
@@ -212,19 +212,19 @@ Use the `await` keyword directly in components:
 
 ```svelte
 <script lang="ts">
-  import { resolve } from '$app/paths';
-  import { getPost, getPosts } from '../data.remote';
+	import { resolve } from '$app/paths';
+	import { getPost, getPosts } from '../data.remote';
 
-  let { params } = $props();
+	let { params } = $props();
 
-  const post = $derived(await getPost(params.slug));
+	const post = $derived(await getPost(params.slug));
 </script>
 
 <h1>{post.title}</h1>
 <p>{post.body}</p>
 
 {#each await getPosts() as post}
-  <a href={resolve('/posts/[slug]', { slug: post.slug })}>{post.title}</a>
+	<a href={resolve('/posts/[slug]', { slug: post.slug })}>{post.title}</a>
 {/each}
 ```
 
@@ -234,11 +234,11 @@ Internal navigation must use `resolve()`:
 
 ```svelte
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
-  // Applies to `pushState` and `replaceState` navigation as well
-  goto(resolve('/blog/tags?svelte')); // append search string or hash
+	// Applies to `pushState` and `replaceState` navigation as well
+	goto(resolve('/blog/tags?svelte')); // append search string or hash
 </script>
 
 <a href={externalURL} rel="external">Click me!</a>
@@ -255,14 +255,14 @@ Check for browser API support on the client:
 
 ```svelte
 <script lang="ts">
-  import { browser } from '$app/env';
+	import { browser } from '$app/env';
 </script>
 
 <!-- Does not trigger a hydration mismatch -->
 {#if browser && !CSS.supports('<selector>')}
-  <!-- warning message -->
+	<!-- warning message -->
 {:else}
-  {@render children()}
+	{@render children()}
 {/if}
 ```
 
@@ -272,11 +272,11 @@ Use the Svelte 5 API (e.g. runes, `createContext`)
 
 ```svelte
 <div
-  // Comments are valid in attribute list
-  // Use the array syntax for class names
-  class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}
+	// Comments are valid in attribute list
+	// Use the array syntax for class names
+	class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}
 >
-  ...
+	...
 </div>
 ```
 
@@ -290,17 +290,17 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 
 ```svelte
 <script lang="ts">
-  import type { HTMLButtonAttributes } from 'svelte/elements';
+	import type { HTMLButtonAttributes } from 'svelte/elements';
 
-  let { post, like } = $props();
+	let { post, like } = $props();
 
-  let likes = $derived(post.likes);
+	let likes = $derived(post.likes);
 
-  // For non-inline event handler, import the appropriate type
-  const onclick: HTMLButtonAttributes['onclick'] = async () => {
-    likes += 1;
-    await like().catch(() => (likes -= 1));
-  };
+	// For non-inline event handler, import the appropriate type
+	const onclick: HTMLButtonAttributes['onclick'] = async () => {
+		likes += 1;
+		await like().catch(() => (likes -= 1));
+	};
 </script>
 
 <button {onclick}>🧡 {likes}</button>
@@ -334,16 +334,16 @@ import { browser } from '$app/env';
 let mounted = true;
 
 onMount(async () => {
-  await promise;
-  if (!mounted) return; // skip side effects
-  addEventListener(/* */);
+	await promise;
+	if (!mounted) return; // skip side effects
+	addEventListener(/* */);
 });
 
 // Also runs on the server
 onDestroy(() => {
-  if (!browser) return;
-  mounted = false;
-  removeEventListener(/* */);
+	if (!browser) return;
+	mounted = false;
+	removeEventListener(/* */);
 });
 ```
 
@@ -351,13 +351,13 @@ onDestroy(() => {
 
 ```svelte
 <script lang="ts">
-  const featured = new Set([2, 5, 9]);
+	const featured = new Set([2, 5, 9]);
 </script>
 
 <ul>
-  {#each { length: 12 }, index}
-    <li class={[featured.has(index) && 'font-bold']}>{index}</li>
-  {/each}
+	{#each { length: 12 }, index}
+		<li class={[featured.has(index) && 'font-bold']}>{index}</li>
+	{/each}
 </ul>
 ```
 
@@ -375,23 +375,23 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 ```svelte
 <script lang="ts">
-  import StyledLabels from '#lib/components/StyledLabels.svelte';
+	import StyledLabels from '#lib/components/StyledLabels.svelte';
 </script>
 
 <StyledLabels>
-  <form>
-    <label>
-      <span>이메일</span>
-      <input {...remoteForm.fields.contact.as('email')} />
-    </label>
-    <button
-      // utility components
-      class="btn btn-primary disabled:btn-busy"
-      disabled={!!remoteForm.pending}
-    >
-      인증번호 전송
-    </button>
-  </form>
+	<form>
+		<label>
+			<span>이메일</span>
+			<input {...remoteForm.fields.contact.as('email')} />
+		</label>
+		<button
+			// utility components
+			class="btn btn-primary disabled:btn-busy"
+			disabled={!!remoteForm.pending}
+		>
+			인증번호 전송
+		</button>
+	</form>
 </StyledLabels>
 ```
 

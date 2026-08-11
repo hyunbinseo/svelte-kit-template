@@ -1,6 +1,6 @@
+import { object } from 'valibot';
 import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
 import type { FormAttributes } from '#lib/remote/form.ts';
-import { object } from 'valibot';
 import { ContactSchema } from './shared.ts';
 
 export const SendCodeSchema = object({

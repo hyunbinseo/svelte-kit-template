@@ -1,7 +1,7 @@
+import { redirect } from '@sveltejs/kit';
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireSession } from '#lib/server/auth/session.ts';
-import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.ts';
 
 export const load = (() => {

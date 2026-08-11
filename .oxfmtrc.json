@@ -1,0 +1,12 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"ignorePatterns": ["/drizzle/", "/static/"],
+	"printWidth": 100,
+	"quoteProps": "consistent",
+	"singleQuote": true,
+	"sortImports": { "newlinesBetween": false },
+	"sortTailwindcss": { "stylesheet": "./src/routes/+layout.css" },
+	"svelte": true,
+	"trailingComma": "all",
+	"useTabs": true
+}

@@ -1,6 +1,4 @@
-import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/config.ts';
-import type { TokenBanReason, TokenRefreshReason, UserRole } from '#lib/enums.ts';
-import type { ISODateString } from '#lib/types.ts';
+import { randomUUIDv7 } from 'node:crypto';
 import { eq, isNull } from 'drizzle-orm';
 import {
 	check,
@@ -11,7 +9,9 @@ import {
 	uniqueIndex,
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
-import { randomUUIDv7 } from 'node:crypto';
+import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/config.ts';
+import type { TokenBanReason, TokenRefreshReason, UserRole } from '#lib/enums.ts';
+import type { ISODateString } from '#lib/types.ts';
 
 export const userTable = snakeCase.table(
 	'user',

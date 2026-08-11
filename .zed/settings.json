@@ -1,0 +1,16 @@
+{
+	"format_on_save": "on",
+	"formatter": [{ "language_server": { "name": "oxfmt" } }],
+	"languages": { "Svelte": { "language_servers": ["!oxlint", "..."] } },
+	"lsp": {
+		"oxfmt": {
+			"initialization_options": {
+				"settings": {
+					"fmt.configPath": null,
+					"run": "onSave"
+				}
+			}
+		}
+	},
+	"prettier": { "allowed": false }
+}

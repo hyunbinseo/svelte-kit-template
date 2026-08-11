@@ -1,11 +1,11 @@
-import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
-import { AUTH_COOKIE_NAME } from '#lib/config.ts';
-import { tokenBanTable } from '#lib/database/schema.ts';
-import type { TokenRevokeReason } from '#lib/enums.ts';
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { error, redirect } from '@sveltejs/kit';
+import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
+import { AUTH_COOKIE_NAME } from '#lib/config.ts';
+import { tokenBanTable } from '#lib/database/schema.ts';
+import type { TokenRevokeReason } from '#lib/enums.ts';
 import { db } from '../database/client.ts';
 import { createRedirectUrl } from './redirect.ts';
 

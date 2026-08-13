@@ -6,11 +6,11 @@
 - [Vultr](https://www.vultr.com/) Account
 - [Tailscale](https://tailscale.com/) Account and [Client](https://tailscale.com/download)
 
-## Vultr Dashboard
+## Vultr Console
 
-### Add a firewall group
+### Create a firewall group
 
-https://my.vultr.com/firewall/add
+https://console.vultr.com/firewall
 
 | Type | Action | Protocol    | Port      | Source    |
 | ---- | ------ | ----------- | --------- | --------- |
@@ -23,13 +23,13 @@ https://my.vultr.com/firewall/add
 
 ### Deploy a server
 
-https://my.vultr.com/deploy
+https://console.vultr.com/deploy
 
 | Item             | Value                         |
 | ---------------- | ----------------------------- |
-| Type             | Shared CPU                    |
+| Plan             | Shared CPU                    |
+| Plan Selection   | `vhf-1c-1gb` (High Frequency) |
 | Location         | Any                           |
-| Plan             | `vhf-1c-1gb` (High Frequency) |
 | Operating System | Rocky Linux 10 x64            |
 | Server Settings  | Firewall Group: `HTTP(S)`     |
 | Server Hostname  | e.g. `nodejs-host`            |
@@ -51,7 +51,7 @@ Additional Features:
 
 ```shell
 root
-Password: # see server details page's overview section
+Password: # see instance page's overview section
 
 cloud-init status # status: done
 

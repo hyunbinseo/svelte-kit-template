@@ -1,14 +1,18 @@
 # svelte-kit-template
 
-## Setup
-
 > [!NOTE]
-> [pnpm] is the recommended package manager and the [standalone script] is the advised way to install it
+> [pnpm] is the recommended package manager, and the [standalone script] is the advised installation method
+
+## AI Agent Setup
+
+- `AGENTS.md` documents general coding conventions
+- `CLAUDE.md` and `.mcp.json` add Claude Code support
+- Other coding agents require manual MCP server setup
+
+## Development Setup
 
 [pnpm]: https://github.com/pnpm/pnpm
 [standalone script]: https://pnpm.io/installation#using-a-standalone-script
-
-### Development
 
 1. Create a `.env.development.local` file (see `.env.[mode].local.example`)
 2. Run these `package.json` scripts (`node --run`, `npm run`, etc. also works)
@@ -25,7 +29,7 @@ pnpm db:app:migrate:dev
 pnpm dev
 ```
 
-### Production
+## Production Setup
 
 - See the [guide](./docs/setup.md) for VPS deployment with HTTPS
 - For other platforms, update the setup accordingly:

@@ -33,8 +33,8 @@ export default defineConfig({
 			}),
 		}),
 	],
-	server: { port: 5526, strictPort: true },
-	preview: { port: 4526, strictPort: true },
+	server: { port: 5526 },
+	preview: { port: 4526 },
 });
 
 // vite@8 roughly requires ES2023:

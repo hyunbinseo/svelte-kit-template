@@ -38,36 +38,12 @@ packages:
   - caddy
   - dnf-automatic
   - dnf-plugins-core
+  - libatomic # pnpm
   - micro
   - sysstat
   - tailscale
 
 write_files:
-  - path: /home/nodejs/.noderc
-    # See https://github.com/Schniz/fnm/issues/1119
-    # See https://github.com/Schniz/fnm/issues/1315
-    content: |
-      # fnm
-      FNM_PATH="/home/nodejs/.local/share/fnm"
-      if [ -d "$FNM_PATH" ]; then
-        export PATH="$FNM_PATH:$PATH"
-        export XDG_RUNTIME_DIR="/tmp/run/user/$(id -u)"
-        eval "$(fnm env --use-on-cd)"
-      fi
-
-      # pnpm
-      export PNPM_HOME="/home/nodejs/.local/share/pnpm"
-      case ":$PATH:" in
-        *":$PNPM_HOME:"*) ;;
-        *) export PATH="$PNPM_HOME:$PATH" ;;
-      esac
-
-  - path: /home/nodejs/.bashrc
-    append: true
-    content: |
-
-      source ~/.noderc
-
   - path: /home/nodejs/.bash_profile
     content: |
       if [ -f ~/.bashrc ]; then
@@ -80,12 +56,9 @@ write_files:
       #!/bin/bash
       set -e
 
-      curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
-      source ~/.noderc
-      fnm install 26
-
-      npm install -g corepack
-      corepack install --global pnpm@latest
+      curl -fsSL https://get.pnpm.io/install.sh | sh -
+      source ~/.bashrc
+      pnpm runtime set node lts -g
       pnpm add pm2@latest --global
 
       pm2 install pm2-logrotate
@@ -109,9 +82,9 @@ write_files:
       PIDFile=/home/nodejs/.pm2/pm2.pid
       Restart=on-failure
 
-      ExecStart=/bin/bash -c 'source /home/nodejs/.noderc && pm2 resurrect'
-      ExecReload=/bin/bash -c 'source /home/nodejs/.noderc && pm2 reload all'
-      ExecStop=/bin/bash -c 'source /home/nodejs/.noderc && pm2 kill'
+      ExecStart=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 resurrect'
+      ExecReload=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 reload all'
+      ExecStop=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 kill'
 
       [Install]
       WantedBy=multi-user.target
@@ -120,10 +93,12 @@ runcmd:
   # firewall
   - firewall-cmd --permanent --add-service=http --add-service=https
   - firewall-cmd --reload
+
   # user
   - chown -R nodejs:nodejs /home/nodejs
   - chmod 700 /home/nodejs
   - su - nodejs -c 'bash ~/init.sh'
+
   # services
   - systemctl enable pm2-nodejs
   - systemctl enable --now dnf-automatic-install.timer

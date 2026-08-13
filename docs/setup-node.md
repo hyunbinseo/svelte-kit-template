@@ -132,24 +132,20 @@ Check `src/env.ts` to see if the variables are static.
 
 Running `pm2 update` stops all processes and will result in brief downtime.
 
-```shell
-pm2 info <name>
-# node.js version │ 26.0.0
-```
+> [!NOTE]
+> Version numbers below are illustrative only
 
 ```shell
-fnm install 26  # Installing Node v26.1.0 (x64)
-fnm use 26      # Using Node v26.1.0
+pm2 info <name> # node.js version │ 24.11.1
 
-npm install -g corepack
+pnpm runtime set node lts # updates package.json `devEngines.runtime`
+# devDependencies:
+# - node 24.11.1
+# + node 24.19.0
 
-pm2 save
 pm2 update
-```
 
-```shell
-pm2 info <name>
-# node.js version │ 26.1.0
+pm2 info <name> # node.js version │ 24.19.0
 ```
 
 ### System Resource Usage

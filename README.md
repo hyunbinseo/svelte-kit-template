@@ -3,17 +3,10 @@
 ## Setup
 
 > [!NOTE]
-> [pnpm] is the recommended package manager and [corepack] is the advised way to install it
+> [pnpm] is the recommended package manager and the [standalone script] is the advised way to install it
 
 [pnpm]: https://github.com/pnpm/pnpm
-[corepack]: https://github.com/nodejs/corepack
-
-```shell
-# Install pnpm via corepack
-npm install -g corepack
-corepack use pnpm@latest
-pnpm update # installs as well
-```
+[standalone script]: https://pnpm.io/installation#using-a-standalone-script
 
 ### Development
 

@@ -2,13 +2,13 @@
 	"mcpServers": {
 		"chrome-devtools": {
 			"type": "stdio",
-			"command": "npx",
-			"args": ["-y", "chrome-devtools-mcp@latest", "--no-usage-statistics"]
+			"command": "pnpm",
+			"args": ["dlx", "chrome-devtools-mcp@latest", "--no-usage-statistics"]
 		},
 		"svelte": {
 			"type": "stdio",
-			"command": "npx",
-			"args": ["-y", "@sveltejs/mcp"]
+			"command": "pnpm",
+			"args": ["dlx", "@sveltejs/mcp"]
 		},
 		"valibot": {
 			"type": "http",

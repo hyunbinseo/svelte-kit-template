@@ -15,7 +15,14 @@
 [standalone script]: https://pnpm.io/installation#using-a-standalone-script
 
 1. Create a `.env.development.local` file (see `.env.[mode].local.example`)
-2. Run these `package.json` scripts (`node --run`, `npm run`, etc. also works)
+2. Run these periodically to keep `package.json`'s `devEngines` versions current
+
+```shell
+pnpm runtime set node lts
+pnpm self-update
+```
+
+3. Run these `package.json` scripts (`node --run`, `npm run`, etc. also works)
 
 ```shell
 pnpm db:app:generate

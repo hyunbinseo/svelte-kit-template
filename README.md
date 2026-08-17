@@ -15,9 +15,12 @@
 [standalone script]: https://pnpm.io/installation#using-a-standalone-script
 
 1. Create a `.env.development.local` file (see `.env.[mode].local.example`)
-2. Run these periodically to keep `package.json`'s `devEngines` versions current
+2. Run these periodically to keep dependencies and `devEngines` versions current
 
 ```shell
+pnpm update
+pnpm approve-builds # once, select none
+
 pnpm runtime set node lts
 pnpm self-update
 ```

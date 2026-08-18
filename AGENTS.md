@@ -81,21 +81,25 @@ uniqueIndex('active_user_role_user_id_role_idx')
 	.where(isNull(table.revokedAt));
 ```
 
-- Don't hard `DELETE` — soft-delete (e.g. `deactivatedAt`, `revokedAt`)
+Don't hard `DELETE` — soft-delete (e.g. `deactivatedAt`, `revokedAt`)
+
+### Triggers
+
 - Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles)
+- When modifying the db schema, review `drizzle/*/*_triggers/migration.sql` and edit `drizzle/*-triggers.staged.sql` accordingly
+- When running `drizzle-kit generate`, or if `drizzle/*/` has been modified, check if `*-triggers.staged.sql` needs to be flushed
 
 ```shell
 # Trigger API unsupported; write migration in raw SQL
 pnpm drizzle-kit generate --custom --name=triggers
-
-# Review existing triggers when schema changes
-# See drizzle/*_triggers/migration.sql
 ```
 
 ```sql
--- Add this comment in-between statements:
+-- Add this comment in-between trigger statements
 --> statement-breakpoint
 ```
+
+### Transactions
 
 Don't pass async callbacks to `db.transaction()`. See https://github.com/drizzle-team/drizzle-orm/issues/2275
 

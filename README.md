@@ -30,7 +30,7 @@ pnpm self-update
 ```shell
 pnpm db:app:generate
 pnpm drizzle-kit generate --custom --name=triggers
-# Paste `drizzle/app/triggers.temp.sql` into the generated `migration.sql`
+# Flush `drizzle/app-triggers.staged.sql` into the generated `migration.sql`
 
 # Purge `drizzle/app` to reset the schema
 # Commit the migrations once ready to deploy

@@ -6,7 +6,8 @@ import { jwtVerify, SignJWT } from 'jose';
 import { JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
-import type { TokenRefreshReason, UserRole } from '#lib/enums.ts';
+import type { TokenRefreshReason } from '#lib/enums/token.ts';
+import type { UserRole } from '#lib/enums/user.ts';
 import { db } from '../database/client.ts';
 
 const encoder = new TextEncoder();

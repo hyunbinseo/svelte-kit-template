@@ -10,7 +10,8 @@ import {
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/config.ts';
-import type { TokenBanReason, TokenRefreshReason, UserRole } from '#lib/enums.ts';
+import type { TokenBanReason, TokenRefreshReason } from '#lib/enums/token.ts';
+import type { UserRole } from '#lib/enums/user.ts';
 import type { ISODateString } from '#lib/types.ts';
 
 export const userTable = snakeCase.table(

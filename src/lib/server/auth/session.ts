@@ -5,7 +5,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#lib/config.ts';
 import { tokenBanTable } from '#lib/database/schema.ts';
-import type { TokenRevokeReason } from '#lib/enums.ts';
+import type { TokenRevokeReason } from '#lib/enums/token.ts';
 import { db } from '../database/client.ts';
 import { createRedirectUrl } from './redirect.ts';
 

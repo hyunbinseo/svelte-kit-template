@@ -1,4 +1,4 @@
-import type { UserRole } from '#lib/enums.ts';
+import type { UserRole } from '#lib/enums/user.ts';
 import type { Payload } from '#lib/server/auth/token.ts';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts

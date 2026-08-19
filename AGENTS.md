@@ -29,6 +29,14 @@ These options are enabled:
 db.insert(userTable).values(users).returning().all()[0]!;
 ```
 
+```ts
+// Assert only if the combined condition is guaranteed non-empty
+and(
+	eq(isNull(table.a), isNull(table.b)), //
+	eq(isNull(table.b), isNull(table.c)),
+)!;
+```
+
 ## Drizzle ORM
 
 - `src/lib/server/database/client.ts`
@@ -85,7 +93,8 @@ Don't hard `DELETE` — soft-delete (e.g. `deactivatedAt`, `revokedAt`)
 
 ### Triggers
 
-- Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles)
+Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles)
+
 - When modifying the db schema, review `drizzle/*/*_triggers/migration.sql` and edit `drizzle/*-triggers.staged.sql` accordingly
 - When running `drizzle-kit generate`, or if `drizzle/*/` has been modified, check if `*-triggers.staged.sql` needs to be flushed
 

@@ -1,5 +1,5 @@
 import { randomUUIDv7 } from 'node:crypto';
-import { eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import {
 	check,
 	index,
@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/config.ts';
 import type { TokenBanReason, TokenRefreshReason } from '#lib/enums/token.ts';
-import type { UserRole } from '#lib/enums/user.ts';
+import type { UserRole, UserRoleRevokeReason } from '#lib/enums/user.ts';
 import type { ISODateString } from '#lib/types.ts';
 
 export const userTable = snakeCase.table(
@@ -29,6 +29,10 @@ export const userTable = snakeCase.table(
 	},
 	(table) => [
 		uniqueIndex('active_user_contact_idx').on(table.contact).where(isNull(table.deactivatedAt)),
+		check(
+			'user_deactivate_info_pair',
+			eq(isNull(table.deactivatedAt), isNull(table.deactivatedBy)),
+		),
 	],
 );
 
@@ -52,12 +56,20 @@ export const userRoleTable = snakeCase.table(
 			.references(() => userTable.id),
 		revokedAt: integer({ mode: 'timestamp' }),
 		revokedBy: text().references(() => userTable.id),
+		revokeReason: text().$type<UserRoleRevokeReason>(),
 	},
 	(table) => [
 		index('user_role_user_id_idx').on(table.userId),
 		uniqueIndex('active_user_role_user_id_role_idx')
 			.on(table.userId, table.role)
 			.where(isNull(table.revokedAt)),
+		check(
+			'user_role_revoke_info_group',
+			and(
+				eq(isNull(table.revokedAt), isNull(table.revokedBy)),
+				eq(isNull(table.revokedBy), isNull(table.revokeReason)),
+			)!,
+		),
 	],
 );
 

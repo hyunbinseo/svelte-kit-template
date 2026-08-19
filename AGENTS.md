@@ -81,6 +81,19 @@ const users = db.query.userTable
 	.sync();
 ```
 
+### Schema
+
+Table names follow 2 conventions:
+
+- Owner + attribute — 1:N tables, no `To` (e.g. `userTable` → `userProfileTable`/`userRoleTable`)
+- `<subject>To<other>` — M:N join tables (e.g. `postToTagTable`)
+
+Tables are grouped by owner in FK order in `schema.ts`:
+
+- Subject table (e.g. `userTable`)
+- Subject's own attribute tables (e.g. `userProfileTable`, `userRoleTable`)
+- Join table (e.g. `postToTagTable`) — even if it forward-references a table declared later (e.g. `tagTable`)
+
 Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique):
 
 ```ts

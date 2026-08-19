@@ -89,7 +89,7 @@ uniqueIndex('active_user_role_user_id_role_idx')
 	.where(isNull(table.revokedAt));
 ```
 
-Don't hard `DELETE` — soft-delete (e.g. `deactivatedAt`, `revokedAt`)
+Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if audit trail is needed — join-table rows typically don't
 
 ### Triggers
 

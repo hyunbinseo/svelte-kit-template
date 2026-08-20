@@ -37,6 +37,10 @@ and(
 )!;
 ```
 
+### Enums
+
+Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/enums/` — see `example.ts` for the available patterns
+
 ## Drizzle ORM
 
 - `src/lib/server/database/client.ts`
@@ -85,8 +89,8 @@ const users = db.query.userTable
 
 Table names follow 2 conventions:
 
-- Owner + attribute — 1:N tables, no `To` (e.g. `userTable` → `userProfileTable`/`userRoleTable`)
-- `<subject>To<other>` — M:N join tables (e.g. `postToTagTable`)
+- `<owner><Attribute>` — 1:N tables, no `To` (e.g. `userTable` → `userProfileTable`/`userRoleTable`)
+- `<subject>To<Other>` — M:N join tables (e.g. `postToTagTable`)
 
 Tables are grouped by owner in FK order in `schema.ts`:
 
@@ -115,6 +119,8 @@ Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active r
 # Trigger API unsupported; write migration in raw SQL
 pnpm drizzle-kit generate --custom --name=triggers
 ```
+
+Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table
 
 ```sql
 -- Add this comment in-between trigger statements
@@ -152,11 +158,11 @@ import { SENTRY_DSN } from '$app/env/public';
 import { DATABASE_URL } from '$app/env/private';
 ```
 
-### Remote Functions
+### Remote Functions (RPC)
 
-- RPC functions must be exported from `*.remote.ts` files
+- Remote functions must be exported from `*.remote.ts` files
 - There are 4 types: `query`, `form`, `command`, `prerender`
-- Requests must be public or authenticated and authorized
+- Requests must be public, or authenticated and authorized
 - `event.url` refers to the calling page, not the endpoint
 
 ```ts
@@ -373,7 +379,7 @@ onDestroy(() => {
 });
 ```
 
-### `{#each}` with fixed length
+### `{#each}` with Fixed Length
 
 ```svelte
 <script lang="ts">

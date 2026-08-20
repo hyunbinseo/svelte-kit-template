@@ -12,7 +12,7 @@ export type ExampleStatus2 = (typeof exampleStatuses2)[number];
 export const exampleStatusLabels = {
 	draft: '임시저장',
 	published: '게시됨',
-} as const satisfies Record<ExampleStatus2, string>;
+} as const;
 
 export const exampleStatuses3 = Object.keys(exampleStatusLabels) as readonly ExampleStatus3[];
 export type ExampleStatus3 = keyof typeof exampleStatusLabels;

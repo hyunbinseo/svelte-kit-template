@@ -1,12 +1,17 @@
-@import '@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.css';
-
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 
-@theme {
-	--breakpoint-xs: 28rem; /* iPhone 17 Pro Max: 440px */
+@font-face {
+	font-family: 'SUIT Variable';
+	font-weight: 100 900;
+	font-display: swap;
+	src: url('@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.woff2') format('woff2-variations');
+}
 
-	--font-sans: 'SUIT Variable';
+@theme {
+	--font-sans: 'SUIT Variable', system-ui, sans-serif;
+
+	--breakpoint-xs: 28rem; /* iPhone 17 Pro Max: 440px */
 
 	@keyframes loop-background {
 		0% {

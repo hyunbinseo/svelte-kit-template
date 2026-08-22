@@ -225,6 +225,30 @@ If the form includes a `<select>`, the default value must be defined:
 </select>
 ```
 
+#### Single-Flight Mutations
+
+A successful `form` submission calls `invalidateAll()` by default, re-running every load function and query on the page. This is wasteful and slow: the refresh is a second round-trip after the submission response comes back.
+
+Use client-requested refreshes instead: request queries with `.updates(...)` on submit, then `requested(...).refreshAll()` on the server, returning the refreshed data in the same response as the mutation. See https://github.com/sveltejs/kit/issues/16904
+
+```ts
+import { requested } from '$app/server';
+
+export const createPost = form(CreatePostSchema, async (data, issue) => {
+	db.insert(postTable).values(data).run();
+	await requested(getPosts, 10).refreshAll(); // limit bounds refresh requests
+});
+```
+
+```svelte
+<form
+	{...createPost.enhance(async (form) => {
+		await form.submit().updates(getPosts);
+		form.element.reset(); // must be called manually
+	})}
+></form>
+```
+
 #### `query.batch`
 
 Batches requests within the same macrotask:

@@ -1,5 +1,9 @@
 Before finalizing changes, update any `*.md` files that reference changed code or config to avoid stale content (e.g. this file)
 
+## Debugging
+
+Consider whether a bug may originate from a library or framework, not just application code. If so, ask before checking issues, writing an MRE, or inspecting the source
+
 ## Comments
 
 - Don't add unless requested
@@ -106,7 +110,7 @@ uniqueIndex('active_user_role_user_id_role_idx')
 	.where(isNull(table.revokedAt));
 ```
 
-Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if audit trail is needed — join-table rows typically don't
+Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one
 
 ### Triggers
 
@@ -162,8 +166,8 @@ import { DATABASE_URL } from '$app/env/private';
 
 - Remote functions must be exported from `*.remote.ts` files
 - There are 4 types: `query`, `form`, `command`, `prerender`
-- Requests must be public, or authenticated and authorized
-- `event.url` refers to the calling page, not the endpoint
+- Requests must be either public, or authenticated and authorized
+- Inside callbacks, `event.url` refers to the page, not the endpoint
 
 ```ts
 import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';

@@ -2,6 +2,7 @@ import { randomInt, randomUUID } from 'node:crypto';
 import { dev } from '$app/env';
 import { form, getRequestEvent } from '$app/server';
 import { invalid } from '@sveltejs/kit';
+import { isNull } from 'drizzle-orm';
 import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
@@ -24,7 +25,18 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
 
-	user = user ?? db.insert(userTable).values(data).returning({ id: userTable.id }).all()[0]!;
+	user =
+		user ??
+		db
+			.insert(userTable)
+			.values(data)
+			.onConflictDoUpdate({
+				target: userTable.contact,
+				targetWhere: isNull(userTable.deactivatedAt),
+				set: { contact: userTable.contact },
+			})
+			.returning({ id: userTable.id })
+			.all()[0]!;
 
 	const existingLogin = db.query.loginTable
 		.findFirst({

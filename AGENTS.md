@@ -165,7 +165,7 @@ import { DATABASE_URL } from '$app/env/private';
 ### Remote Functions (RPC)
 
 - Remote functions must be exported from `*.remote.ts` files
-- There are 4 types: `query`, `form`, `command`, `prerender`
+- There are 4 types: `command`, `form`, `query`, `prerender`
 - Requests must be either public, or authenticated and authorized
 - Inside callbacks, `event.url` refers to the page, not the endpoint
 
@@ -186,9 +186,11 @@ export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
 });
 ```
 
-#### `form`
+#### `command`
 
-Always use `form` instead of `command` for user-triggered actions (e.g. a button click). Customize `enhance()` as needed. See https://github.com/sveltejs/kit/issues/16275
+Don't use for user-triggered actions (e.g. a button click) — use `form` instead. See https://github.com/sveltejs/kit/issues/16275
+
+#### `form`
 
 See `src/routes/login/` for conventions
 
@@ -229,7 +231,7 @@ If the form includes a `<select>`, the default value must be defined:
 </select>
 ```
 
-#### Single-Flight Mutations
+##### Single-Flight Mutations
 
 A successful `form` submission calls `invalidateAll()` by default, re-running every load function and query on the page. This is wasteful and slow: the refresh is a second round-trip after the submission response comes back.
 

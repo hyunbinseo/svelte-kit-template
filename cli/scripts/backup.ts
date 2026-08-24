@@ -4,49 +4,45 @@ import { resolve } from 'node:path';
 import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
 import { captureException } from '@sentry/sveltekit';
-import { digits, minLength, pipe, safeParse, string, transform } from 'valibot';
 import { DB_AUDIT_BACKUP_RETENTION, DB_BACKUP_RETENTION } from '#cli/lib/config.ts';
 import { auditDb, db } from '#cli/lib/database.ts';
 import { root } from '#cli/lib/utilities.ts';
 import { logTable } from '#lib/server/database/audit.schema.ts';
 
-const now = new Date();
+const dateToFilename = (date = new Date()) => date.toISOString().replace(/[^0-9TZ]/g, '-') + '.db';
+const FILENAME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.db$/;
 
-const filename = `${now.valueOf()}-${now.toISOString().slice(0, 10)}.db`;
-const FilenameToTimestampSchema = pipe(
-	string(),
-	transform((s) => {
-		const i = s.indexOf('-');
-		return i !== -1 ? s.slice(0, i) : '';
-	}),
-	minLength(13),
-	digits(),
-	transform(Number),
-);
-
-const pruneBackups = async (dir: string, cutoff: number) => {
+const pruneBackups = async (cwd: string, retention: number) => {
+	const cutoff = dateToFilename(new Date(Date.now() - retention));
 	await Promise.all(
-		globSync('*.db', { cwd: dir }).flatMap((filename) => {
-			const result = safeParse(FilenameToTimestampSchema, filename);
-			if (!result.success || result.output >= cutoff) return [];
-			return rm(resolve(dir, filename)).catch(captureException);
-		}),
+		globSync('*.db', { cwd })
+			.filter((existing) => FILENAME_REGEX.test(existing) && existing < cutoff)
+			.map((existing) => rm(resolve(cwd, existing)).catch(captureException)),
 	);
 };
 
-const dataBackupDir = resolve(root, 'backups/app');
-mkdirSync(dataBackupDir, { recursive: true });
-await backup(db.$client, resolve(dataBackupDir, filename));
-db.$client.close();
-await pruneBackups(dataBackupDir, now.valueOf() - DB_BACKUP_RETENTION);
+{
+	const dir = resolve(root, 'backups/app');
+	mkdirSync(dir, { recursive: true });
+	await Promise.all([
+		pruneBackups(dir, DB_BACKUP_RETENTION),
+		backup(db.$client, resolve(dir, dateToFilename()))
+			.finally(() => db.$client.close())
+			.catch(captureException),
+	]);
+}
 
 if (auditDb) {
-	const auditBackupDir = resolve(root, 'backups/audit');
-	mkdirSync(auditBackupDir, { recursive: true });
-	await backup(auditDb.$client, resolve(auditBackupDir, filename));
-	auditDb.delete(logTable).run();
-	auditDb.$client.close();
-	await pruneBackups(auditBackupDir, now.valueOf() - DB_AUDIT_BACKUP_RETENTION);
+	const db = auditDb;
+	const dir = resolve(root, 'backups/audit');
+	mkdirSync(dir, { recursive: true });
+	await Promise.all([
+		pruneBackups(dir, DB_AUDIT_BACKUP_RETENTION),
+		backup(db.$client, resolve(dir, dateToFilename()))
+			.then(() => db.delete(logTable).run())
+			.finally(() => db.$client.close())
+			.catch(captureException),
+	]);
 }
 
 exit();

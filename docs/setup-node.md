@@ -109,18 +109,6 @@ pm2 reload <name>
 
 ## Miscellaneous
 
-### Backup Database
-
-```ts
-// cli/scripts/backup.ts
-import { db } from '#cli/lib/database.ts';
-import { exit } from 'node:process';
-import { backup } from 'node:sqlite';
-
-await backup(db.$client, `backup-${Date.now()}.db`); // update path
-exit();
-```
-
 ### Update Environment Variables
 
 Check `src/env.ts` to see if the variables are static.

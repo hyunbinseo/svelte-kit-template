@@ -45,38 +45,10 @@ loadEnvFile(resolve(import.meta.dirname, '../.env.production.local'));
 await import('./<build-directory>/index.js');
 ```
 
-Create a `pm2.config.cjs` file and define applications:
+Create a `pm2.config.cjs` file and define applications (see `pm2.config.example.cjs`).
 
 > [!NOTE]
 > For zero-downtime [`pm2 reload`](https://pm2.keymetrics.io/docs/usage/cluster-mode/#reload), the cluster instance count must resolve to 2 or above.
-
-```js
-// See https://pm2.keymetrics.io/docs/usage/application-declaration
-
-module.exports = {
-	/** @type {import('pm2-ecosystem').StartOptions[]} */
-	apps: [
-		{
-			name: '<name>', // e.g. server, example.com
-			script: './build/start.js',
-			interpreter: 'node',
-			instances: -1,
-			exec_mode: 'cluster',
-			time: true,
-			autorestart: true,
-		},
-		{
-			name: '<name>:backup',
-			script: './cli/scripts/backup.ts',
-			interpreter: 'node',
-			interpreter_args: '--env-file=.env.production --import ./cli/scripts/sentry.ts',
-			time: true,
-			autorestart: false,
-			cron: '0 0 * * *',
-		},
-	],
-};
-```
 
 ## Startup
 
@@ -105,6 +77,13 @@ micro build/start.js
 pm2 reload <name>
 ```
 
+If `pm2.config.cjs` changed, use `startOrReload` instead:
+
+```shell
+pm2 startOrReload pm2.config.cjs # all apps
+pm2 startOrReload pm2.config.cjs --only <name>
+```
+
 [Continue Setup](./setup-caddy.md)
 
 ## Miscellaneous
@@ -116,24 +95,34 @@ Check `src/env.ts` to see if the variables are static.
 - Dynamic: reload pm2 applications
 - Static: rebuild and switch
 
-### Update Node.js
+### Update PM2
 
-Running `pm2 update` stops all processes and will result in brief downtime.
-
-> [!NOTE]
-> Version numbers below are illustrative only
+> [!WARNING]
+> Running `pm2 update` stops all processes and will result in brief downtime.
 
 ```shell
-pm2 info <name> # node.js version │ 24.11.1
+pnpm i -g pm2@latest
+pm2 update
+```
+
+`pm2-ecosystem`'s version is pinned to match the installed `pm2` version, so it doubles as a version log.
+
+```shell
+pnpm i -D pm2-ecosystem@latest # verify version matches `pm2 --version`, then commit
+```
+
+### Update Node.js
+
+```shell
+pm2 info <name> # node.js version │ <old-version>
 
 pnpm runtime set node lts # updates package.json `devEngines.runtime`
 # devDependencies:
-# - node 24.11.1
-# + node 24.19.0
+# - node <old-version>
+# + node <new-version>
 
 pm2 update
-
-pm2 info <name> # node.js version │ 24.19.0
+pm2 info <name> # node.js version │ <new-version>
 ```
 
 ### System Resource Usage

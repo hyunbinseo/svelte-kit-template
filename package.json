@@ -45,7 +45,7 @@
 		"globals": "^17.11.0",
 		"jose": "^6.2.10",
 		"oxfmt": "^0.64.0",
-		"pm2-ecosystem": "^7.0.3",
+		"pm2-ecosystem": "7.0.3",
 		"svelte": "^5.56.10",
 		"svelte-check": "^4.7.6",
 		"tailwindcss": "^4.3.3",

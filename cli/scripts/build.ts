@@ -14,4 +14,4 @@ if (existsSync(resolve(root, outDir))) throw new Error();
 env.SVELTE_KIT_BUILD_TIMESTAMP = BUILD_TIMESTAMP;
 await build();
 
-console.table({ outDir });
+console.table({ BUILD_ID: BUILD_TIMESTAMP });

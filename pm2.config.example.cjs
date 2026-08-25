@@ -5,8 +5,9 @@ module.exports = {
 	apps: [
 		{
 			name: '<name>', // e.g. server, example.com
-			script: './build/start.js',
+			script: './cli/scripts/start.ts',
 			interpreter: 'node',
+			interpreter_args: '--env-file=.env.production --env-file=.env.production.local',
 			instances: -1,
 			exec_mode: 'cluster',
 			time: true,

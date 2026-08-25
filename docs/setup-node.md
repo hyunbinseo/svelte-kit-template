@@ -11,73 +11,50 @@ ssh nodejs@<tailscale-device-name>
 cd ~/<name>
 ```
 
-## Environment Variables
-
-Create an `.env.production.local` file and define **all** secrets and environment variables:
-
-```shell
-JWT_SECRET_NEW="" # see .env.[mode].local.example
-# JWT_SECRET_OLD=""
-
-
-# SvelteKit Node.js build environment variables
-# See https://svelte.dev/docs/kit/adapter-node
-
-HOST="0.0.0.0"
-PORT="3000"
-
-ORIGIN="https://example.com" # set to actual domain
-ADDRESS_HEADER="X-Forwarded-For"
-XFF_DEPTH="1"
-```
-
 ## PM2
 
-Create a `./build/start.js` file.
+On your dev machine:
 
-```js
-import { resolve } from 'node:path';
-import { loadEnvFile } from 'node:process';
+- Create a `pm2.config.cjs` file and define applications (see `pm2.config.example.cjs`).
+- Review environment variables in `.env.production`.
+- Commit and push both files.
 
-// NOTE Files containing dynamic variables should be loaded
-loadEnvFile(resolve(import.meta.dirname, '../.env.production.local'));
-
-await import('./<build-directory>/index.js');
-```
-
-Create a `pm2.config.cjs` file and define applications (see `pm2.config.example.cjs`).
+On the server, create an `.env.production.local` file (see `.env.[mode].local.example`).
 
 > [!NOTE]
 > For zero-downtime [`pm2 reload`](https://pm2.keymetrics.io/docs/usage/cluster-mode/#reload), the cluster instance count must resolve to 2 or above.
 
 ## Startup
 
-For initial deployment:
+> [!WARNING]
+> Always sync to the latest commit first — this discards any local changes on the server.
 
 ```shell
+git fetch origin main
+git reset --hard origin/main
+
+pnpm i
 pnpm db:app:migrate:prod
 pnpm db:audit:migrate
-pnpm build                # logs output directory
-micro build/start.js      # update the import path
+
+pnpm build
+micro .env.production.local # set/update BUILD_ID
+```
+
+For the initial deployment, start and save the process list:
+
+```shell
 pm2 start pm2.config.cjs
 pm2 save
 ```
 
-To switch builds, simply reload the pm2 processes:
+For subsequent builds, reload the app:
 
 ```shell
-git pull origin main
-pnpm i
-pnpm build
-```
-
-```shell
-# Migrate db if needed
-micro build/start.js
 pm2 reload <name>
 ```
 
-If `pm2.config.cjs` changed, use `startOrReload` instead:
+If `pm2.config.cjs` changed, use `startOrReload`:
 
 ```shell
 pm2 startOrReload pm2.config.cjs # all apps

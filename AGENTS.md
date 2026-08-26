@@ -52,6 +52,21 @@ and(
 
 Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/enums/` — see `example.ts` for the available patterns.
 
+## SQLite
+
+If a `PRAGMA` matters, verify it against runtime and document it.
+
+```ts
+import { DatabaseSync } from 'node:sqlite';
+
+new DatabaseSync(':memory:').prepare('PRAGMA recursive_triggers').get();
+```
+
+- `PRAGMA recursive_triggers` (off by default)
+  - Direct (`A -> A`) — blocked
+  - Cycle (`A -> B -> A`) — blocked
+  - Unrelated cascade (`A -> B -> C`) — not blocked
+
 ## Drizzle ORM
 
 - `src/lib/server/database/client.ts`

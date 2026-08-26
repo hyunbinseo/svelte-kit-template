@@ -51,6 +51,8 @@ Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/en
 - `src/lib/database/schema.ts`
 - `src/lib/database/relations.ts`
 
+Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them
+
 Use the sync API instead of `await`:
 
 ```ts

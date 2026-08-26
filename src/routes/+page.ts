@@ -5,4 +5,5 @@ export const load = (() => {
 		title: '홈',
 		robots: 'index',
 	};
-}) satisfies PageLoad; // See https://github.com/sveltejs/kit/issues/11018
+}) satisfies PageLoad;
+// See https://github.com/sveltejs/kit/issues/11018

@@ -8,7 +8,7 @@ users:
     shell: /bin/bash
     lock_passwd: true
 
-# Vultr Rocky Linux 10 x64 provisions 3GB by default
+# Vultr Rocky Linux 10 x64 provisions 3GB by default.
 
 yum_repos:
   caddy-stable:
@@ -90,16 +90,16 @@ write_files:
       WantedBy=multi-user.target
 
 runcmd:
-  # firewall
+  # Firewall
   - firewall-cmd --permanent --add-service=http --add-service=https
   - firewall-cmd --reload
 
-  # user
+  # User
   - chown -R nodejs:nodejs /home/nodejs
   - chmod 700 /home/nodejs
   - su - nodejs -c 'bash ~/init.sh'
 
-  # services
+  # Services
   - systemctl enable pm2-nodejs
   - systemctl enable --now dnf-automatic-install.timer
   - systemctl enable --now sysstat sysstat-collect.timer sysstat-summary.timer

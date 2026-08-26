@@ -42,7 +42,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	if (!ban) {
 		const expiresIn = verified.payload.exp * 1000 - Date.now();
 		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
-			// NOTE Error can be swallowed; session is valid for this request
+			// Error can be swallowed; session is valid for this request.
 			await rotateToken(session, 'threshold').catch(captureException);
 		}
 	}

@@ -1,15 +1,22 @@
-Before finalizing changes, update any `*.md` files that reference changed code or config to avoid stale content (e.g. this file)
+Before finalizing changes, update any `*.md` files that reference changed code or config to avoid stale content (e.g. this file).
 
 ## Debugging
 
-Consider whether a bug may originate from a library or framework, not just application code. If so, ask before checking issues, writing an MRE, or inspecting the source
+Consider whether a bug may originate from a library or framework, not just application code. If so, ask before checking issues, writing an MRE, or inspecting the source.
 
-## Comments
+## Documentation
 
-- Don't add unless requested
-- No trailing period
-- Sentences are standalone and capitalized
-- Inline comments and labels are lowercase
+- Prose sentences are capitalized and end with a period.
+- List items are capitalized and uniform per list: all sentence-style (period) or fragment-style (no period).
+- Acronyms and proper nouns keep their casing (e.g. `JWT ID`, not `jwt id`).
+- Don't add a trailing period after a bare URL, even at the end of a sentence.
+
+### Code Comments
+
+- Don't add comments unless requested.
+- Trailing comments are lowercase fragments — move full sentences into a standalone comment.
+- Standalone comments are capitalized — sentences end with a period, fragments don't.
+- Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag (e.g. `TODO lowercase fragment`).
 
 ## TypeScript
 
@@ -22,19 +29,19 @@ These options are enabled:
 }
 ```
 
-- Use `type` over `interface`
-- Use arrow syntax over function expressions and declarations
-- Blank `//` comments can be used to force multiline formatting
+- Use `type` over `interface`.
+- Use arrow syntax over function expressions and declarations.
+- Blank `//` comments can be used to force multiline formatting.
 - Don't use `!` non-null assertions, except:
 
 ```ts
-// Assert only if insertion is guaranteed
-// e.g. no `onConflictDoNothing()` inserts all or throws
+// Assert only if insertion is guaranteed.
+// e.g. No `onConflictDoNothing()` inserts all or throws
 db.insert(userTable).values(users).returning().all()[0]!;
 ```
 
 ```ts
-// Assert only if the combined condition is guaranteed non-empty
+// Assert only if the combined condition is guaranteed non-empty.
 and(
 	eq(isNull(table.a), isNull(table.b)), //
 	eq(isNull(table.b), isNull(table.c)),
@@ -43,7 +50,7 @@ and(
 
 ### Enums
 
-Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/enums/` — see `example.ts` for the available patterns
+Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/enums/` — see `example.ts` for the available patterns.
 
 ## Drizzle ORM
 
@@ -51,7 +58,7 @@ Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/en
 - `src/lib/database/schema.ts`
 - `src/lib/database/relations.ts`
 
-Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them
+Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
 Use the sync API instead of `await`:
 
@@ -79,7 +86,7 @@ Use Relational Queries v2:
 ```ts
 const users = db.query.userTable
 	.findMany({
-		// Sort keys in this order: orderBy, offset, where, columns, extras, with
+		// Sort keys in this order: orderBy, offset, where, columns, extras, with.
 		orderBy: { id: 'asc' },
 		where: {
 			contact: '010', // same as `eq`
@@ -112,24 +119,24 @@ uniqueIndex('active_user_role_user_id_role_idx')
 	.where(isNull(table.revokedAt));
 ```
 
-Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one
+Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one.
 
 ### Triggers
 
-Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles)
+Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles).
 
-- When modifying the db schema, review `drizzle/*/*_triggers/migration.sql` and edit `drizzle/*-triggers.staged.sql` accordingly
-- When running `drizzle-kit generate`, or if `drizzle/*/` has been modified, check if `*-triggers.staged.sql` needs to be flushed
+- When modifying the db schema, review `drizzle/*/*_triggers/migration.sql` and edit `drizzle/*-triggers.staged.sql` accordingly.
+- When running `drizzle-kit generate`, or if `drizzle/*/` has been modified, check if `*-triggers.staged.sql` needs to be flushed.
 
 ```shell
-# Trigger API unsupported; write migration in raw SQL
+# Trigger API unsupported; write migration in raw SQL.
 pnpm drizzle-kit generate --custom --name=triggers
 ```
 
-Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table
+Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table.
 
 ```sql
--- Add this comment in-between trigger statements
+-- Add this comment in-between trigger statements.
 --> statement-breakpoint
 ```
 
@@ -152,7 +159,7 @@ If the transaction can't be made sync, leave a comment instead:
 
 ## SvelteKit
 
-Call `getRequestEvent()` directly in utility functions instead of passing `event`
+Call `getRequestEvent()` directly in utility functions instead of passing `event`.
 
 ### Environment Variables
 
@@ -166,17 +173,17 @@ import { DATABASE_URL } from '$app/env/private';
 
 ### Remote Functions (RPC)
 
-- Remote functions must be exported from `*.remote.ts` files
-- There are 4 types: `command`, `form`, `query`, `prerender`
-- Requests must be either public, or authenticated and authorized
-- Inside callbacks, `event.url` refers to the page, not the endpoint
+- Remote functions must be exported from `*.remote.ts` files.
+- There are 4 types: `command`, `form`, `query`, `prerender`.
+- Requests must be either public, or authenticated and authorized.
+- Inside callbacks, `event.url` refers to the page, not the endpoint.
 
 ```ts
 import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';
 import { form, query } from '$app/server';
 
 export const getPublicPosts = query(async () => {
-	// Use prerender if static or cacheable
+	// Use prerender if static or cacheable.
 });
 
 export const getPrivatePosts = query(async () => {
@@ -194,7 +201,7 @@ Don't use for user-triggered actions (e.g. a button click) — use `form` instea
 
 #### `form`
 
-See `src/routes/login/` for conventions
+See `src/routes/login/` for conventions.
 
 ```ts
 // src/lib/remotes/create-post.ts
@@ -214,10 +221,10 @@ import { invalid } from '@sveltejs/kit';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
-	// Form data has already passed schema validation
+	// Form data has already passed schema validation.
 	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-	// Insertion is guaranteed to return exactly one row
+	// Insertion is guaranteed to return exactly one row.
 	const newPost = db.insert(postTable).values(data).returning().all()[0]!;
 
 	return newPost; // populates `createPost.result` in Svelte
@@ -263,7 +270,7 @@ Batches requests within the same macrotask:
 
 ```ts
 export const getWeather = query.batch(pipe(number(), integer()), (cityIds) => {
-	// Return named tuples to reduce wire size
+	// Return named tuples to reduce wire size.
 	// See https://github.com/sveltejs/kit/issues/15784
 	const lookup = new Map<number, [minTemp: number, maxTemp: number]>();
 	return (cityId) => lookup.get(cityId);
@@ -301,7 +308,7 @@ Internal navigation must use `resolve()`:
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
-	// Applies to `pushState` and `replaceState` navigation as well
+	// Applies to `pushState` and `replaceState` navigation as well.
 	goto(resolve('/blog/tags?svelte')); // append search string or hash
 </script>
 
@@ -322,7 +329,7 @@ Check for browser API support on the client:
 	import { browser } from '$app/env';
 </script>
 
-<!-- Does not trigger a hydration mismatch -->
+<!-- Does not trigger a hydration mismatch. -->
 {#if browser && !CSS.supports('<selector>')}
 	<!-- warning message -->
 {:else}
@@ -332,12 +339,12 @@ Check for browser API support on the client:
 
 ## Svelte
 
-Use the Svelte 5 API (e.g. runes, `createContext`)
+Use the Svelte 5 API (e.g. runes, `createContext`).
 
 ```svelte
 <div
-	// Comments are valid in attribute list
-	// Use the array syntax for class names
+	// Comments are valid in attribute list.
+	// Use the array syntax for class names.
 	class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}
 >
 	...
@@ -346,7 +353,7 @@ Use the Svelte 5 API (e.g. runes, `createContext`)
 
 ### `$effect`
 
-Don't use `$effect` for derived state — only for side effects (logging, DOM manipulation, browser APIs like `localStorage`)
+Don't use `$effect` for derived state — only for side effects (logging, DOM manipulation, browser APIs like `localStorage`).
 
 ### `$derived`
 
@@ -360,7 +367,7 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 
 	let likes = $derived(post.likes);
 
-	// For non-inline event handler, import the appropriate type
+	// For non-inline event handler, import the appropriate type.
 	const onclick: HTMLButtonAttributes['onclick'] = async () => {
 		likes += 1;
 		await like().catch(() => (likes -= 1));
@@ -375,11 +382,11 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 `{@const x = y}` is legacy syntax; use `const` or `let`:
 
 ```svelte
-<!-- Can be placed anywhere -->
+<!-- Can be placed anywhere. -->
 {const now = new Date()}
 <p>{now.toLocaleString()}</p>
 
-<!-- Use runes for reactivity -->
+<!-- Use runes for reactivity. -->
 {let name = $state('')}
 <input bind:value={name} />
 
@@ -403,7 +410,7 @@ onMount(async () => {
 	addEventListener(/* */);
 });
 
-// Also runs on the server
+// Also runs on the server.
 onDestroy(() => {
 	if (!browser) return;
 	mounted = false;
@@ -434,7 +441,7 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 ## Tailwind CSS
 
-- Create utility components for shared styles in `src/routes/+layout.css`
+- Create utility components for shared styles in `src/routes/+layout.css`.
 - Don't style individual form controls — use `StyledLabels.svelte` instead:
 
 ```svelte
@@ -449,7 +456,7 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 			<input {...remoteForm.fields.contact.as('email')} />
 		</label>
 		<button
-			// utility components
+			// Utility components
 			class="btn btn-primary disabled:btn-busy"
 			disabled={!!remoteForm.pending}
 		>
@@ -473,5 +480,5 @@ Use child selectors to avoid duplicate class names:
 
 For `<img>` and `<video>`, define a height to avoid layout shift:
 
-- Set `width` and `height` attributes matching source dimensions
-- Set `aspect-ratio` or `height` in CSS — if it differs from the source, use `object-fit`
+- Set `width` and `height` attributes matching source dimensions.
+- Set `aspect-ratio` or `height` in CSS — if it differs from the source, use `object-fit`.

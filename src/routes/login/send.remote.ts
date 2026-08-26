@@ -62,7 +62,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		.toString()
 		.padStart(AUTH_CODE_LENGTH, '0');
 
-	const sendId = randomUUID(); // TODO Implement actual send logic
+	const sendId = randomUUID(); // TODO implement actual send logic
 
 	if (dev) console.table({ contact: data.contact, code });
 

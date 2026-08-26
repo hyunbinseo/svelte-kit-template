@@ -18,7 +18,7 @@ export const validateCodeAttributes: FormAttributes<typeof ValidateCodeSchema> =
 		placeholder: '0'.repeat(AUTH_CODE_LENGTH),
 		inputmode: 'numeric',
 
-		// BLOCKED HTML constraint validation is not enforced
+		// BLOCKED HTML constraint validation is not enforced.
 		// See https://github.com/sveltejs/kit/issues/15270
 		minlength: AUTH_CODE_LENGTH,
 		maxlength: AUTH_CODE_LENGTH,

@@ -11,12 +11,12 @@
 	let { data } = $props();
 	const uid = $props.id();
 
-	// NOTE Reset remote form state after navigation
+	// Reset remote form state after navigation.
 	// See https://github.com/sveltejs/kit/issues/14802
 	const sendCode = _sendCode.for(uid);
 	const validateCode = _validateCode.for(uid);
 
-	// BLOCKED Programmatically reset remote form state
+	// BLOCKED Programmatically reset remote form state.
 	// See https://github.com/sveltejs/kit/pull/14779
 	let validateResult = $derived(validateCode.result);
 
@@ -47,12 +47,12 @@
 					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
 				>
-					<!-- BLOCKED Use top-level fieldset to disable form during submission -->
+					<!-- BLOCKED Use top-level fieldset to disable form during submission. -->
 					<!-- See https://github.com/sveltejs/kit/issues/15104 -->
 					<fieldset disabled={false} class="contents">
 						<label>
 							<span>이메일</span>
-							<!-- NOTE Virtual keyboard might not open despite autofocus (e.g. no prior user interaction) -->
+							<!-- Virtual keyboard might not open despite autofocus (e.g. no prior user interaction). -->
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...sendCode.fields.contact.as('email')}

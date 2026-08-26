@@ -15,7 +15,7 @@ const encoder = new TextEncoder();
 const SECRET_NEW = encoder.encode(JWT_SECRET_NEW);
 const SECRET_OLD = JWT_SECRET_OLD ? encoder.encode(JWT_SECRET_OLD) : undefined;
 
-// NOTE Optional claims are omitted to save bytes
+// Optional claims are omitted to save bytes.
 type PrivateClaims = {
 	profile?: null;
 	roles?: [UserRole, ...UserRole[]];
@@ -47,7 +47,7 @@ type TokenInput = Pick<
 		  }
 	);
 
-// BLOCKED Use transaction for atomic ban + token issuing
+// BLOCKED Use transaction for atomic ban + token issuing.
 export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
@@ -59,7 +59,7 @@ export const issueToken = async (input: TokenInput) => {
 			refreshReason: input.refreshReason,
 			ip: event.getClientAddress(),
 		})
-		// NOTE returns existing row
+		// Returns existing row.
 		.onConflictDoUpdate({
 			target: tokenTable.refreshedFrom,
 			set: { userId: tokenTable.userId },
@@ -82,7 +82,7 @@ export const issueToken = async (input: TokenInput) => {
 
 	const jwt = await new SignJWT(privateClaims)
 		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })
-		// NOTE Must match the ReservedClaims type
+		// Must match the ReservedClaims type.
 		.setJti(token.id)
 		.setSubject(input.sub)
 		.setExpirationTime(token.expiresAt)

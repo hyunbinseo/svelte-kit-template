@@ -11,7 +11,7 @@ export const variables = defineEnvVars({
 	SENTRY_DSN: { public: true, schema: optional(NonEmptyStringSchema) },
 	SITE_NAME: { public: true, schema: NonEmptyStringSchema },
 
-	// NOTE In production, dynamic values can be updated without rebuilding
+	// In production, dynamic values can be updated without rebuilding.
 	JWT_SECRET_NEW: { static: false, schema: NonEmptyStringSchema },
 	JWT_SECRET_OLD: { static: false, schema: optional(NonEmptyStringSchema) },
 });

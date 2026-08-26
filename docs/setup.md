@@ -35,7 +35,7 @@ https://console.vultr.com/deploy
 | Server Hostname  | e.g. `nodejs-host`            |
 
 > [!NOTE]
-> 1 vCPU results in maximum 1 cluster instance, causing brief downtime during `pm2 reload` (build switch, etc.)
+> 1 vCPU results in maximum 1 cluster instance, causing brief downtime during `pm2 reload` (build switch, etc.).
 
 Additional Features:
 
@@ -46,8 +46,8 @@ Additional Features:
 
 [Open the web console](https://docs.vultr.com/vultr-web-console-faq) and set up [Tailscale SSH](https://tailscale.com/docs/features/tailscale-ssh):
 
-- Log in after the cloud-init is completed (takes several minutes)
-- If the setup hangs, restart the server and check `cloud-init status`
+- Log in after the cloud-init is completed (takes several minutes).
+- If the setup hangs, restart the server and check `cloud-init status`.
 
 ```shell
 root
@@ -55,12 +55,12 @@ Password: # see instance page's overview section
 
 cloud-init status # status: done
 
-# Connect VPS to Tailscale and run a Tailscale SSH server
+# Connect VPS to Tailscale and run a Tailscale SSH server.
 # See https://tailscale.com/docs/reference/tailscale-cli/up
 
 tailscale up --ssh
 
-# Disable key expiry in the admin console
+# Disable key expiry in the admin console.
 # See https://tailscale.com/docs/features/access-control/key-expiry
 ```
 

@@ -45,10 +45,10 @@
 	}
 }
 
-/* Component utilities support autocomplete unlike `@layer` CSS at-rules */
+/* Component utilities support autocomplete unlike `@layer` CSS at-rules. */
 /* See https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
 
-/* Utility declaration order does not ensure priority, since they are sorted by property count */
+/* Utility declaration order does not ensure priority, since they are sorted by property count. */
 /* See https://github.com/tailwindlabs/tailwindcss/discussions/14363#discussioncomment-10578813 */
 
 @utility page-container {

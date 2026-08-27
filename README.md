@@ -3,6 +3,9 @@
 > [!NOTE]
 > [pnpm] is the recommended package manager, and the [standalone script] is the advised installation method.
 
+[pnpm]: https://github.com/pnpm/pnpm
+[standalone script]: https://pnpm.io/installation#using-a-standalone-script
+
 ## AI Agent Setup
 
 - `AGENTS.md` documents general coding conventions.
@@ -10,9 +13,6 @@
 - Other coding agents require manual MCP server setup.
 
 ## Development Setup
-
-[pnpm]: https://github.com/pnpm/pnpm
-[standalone script]: https://pnpm.io/installation#using-a-standalone-script
 
 1. Create a `.env.development.local` file (see `.env.[mode].local.example`).
 2. Run these periodically to keep dependencies and `devEngines` versions current.
@@ -22,6 +22,7 @@ pnpm update
 pnpm approve-builds # once, select none
 
 pnpm runtime set node lts
+pnpm shim add node # once
 pnpm self-update
 ```
 

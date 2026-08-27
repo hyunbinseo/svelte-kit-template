@@ -56,9 +56,13 @@ write_files:
       #!/bin/bash
       set -e
 
-      curl -fsSL https://get.pnpm.io/install.sh | sh -
+      # pnpm v12.0.0 is distributed as `next-12`
+      # See https://github.com/pnpm/pnpm/issues/14203
+      curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=next-12 sh
+
       source ~/.bashrc
       pnpm runtime set node lts -g
+      pnpm shim add node
       pnpm add pm2@latest --global
 
       pm2 install pm2-logrotate

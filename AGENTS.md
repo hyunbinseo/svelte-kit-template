@@ -155,6 +155,15 @@ Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guar
 --> statement-breakpoint
 ```
 
+Add a test case in `test/db-app-triggers/<trigger_name>.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
+
+- Direct effect: the cascade fires under the trigger's condition.
+- Guards: each condition that blocks the effect (e.g. already revoked, already banned, already expired).
+- Transition guard: the `WHEN` clause blocks re-firing on a repeat update.
+- Cross-trigger state: a condition reading another trigger's output (e.g. `revoke_reason != 'deactivate'`) — test it directly, not only through that trigger's cascade.
+
+Run these tests only after `*-triggers.staged.sql` is flushed into a migration.
+
 ### Transactions
 
 Don't pass async callbacks to `db.transaction()`. See https://github.com/drizzle-team/drizzle-orm/issues/2275

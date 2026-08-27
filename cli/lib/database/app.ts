@@ -3,12 +3,9 @@ import { env } from 'node:process';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { relations } from '#lib/database/relations.ts';
 import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
+import { auditDb } from './audit.ts';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
-
-export const auditDb = env.DATABASE_AUDIT_URL //
-	? drizzle(env.DATABASE_AUDIT_URL)
-	: null;
 
 export const db = drizzle(env.DATABASE_URL, {
 	relations,

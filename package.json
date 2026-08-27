@@ -17,6 +17,7 @@
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
 		"lint": "oxfmt --check . && eslint .",
+		"test": "node --test",
 		"db:app:generate": "drizzle-kit generate",
 		"db:app:migrate:dev": "drizzle-kit migrate",
 		"db:app:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",

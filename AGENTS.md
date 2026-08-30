@@ -255,15 +255,6 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 });
 ```
 
-If the form includes a `<select>`, the default value must be defined:
-
-```svelte
-<select {...remoteForm.fields.fruit.as('select', 'apple')}>
-	<option>apple</option>
-	<option>banana</option>
-</select>
-```
-
 ##### Single-Flight Mutations
 
 A successful `form` submission calls `invalidateAll()` by default, re-running every load function and query on the page. This is wasteful and slow: the refresh is a second round-trip after the submission response comes back.

@@ -16,7 +16,7 @@ ssh root@<tailscale-device-name>
 ```shell
 cd /etc/caddy
 rm -f Caddyfile
-micro Caddyfile
+nano Caddyfile
 ```
 
 > [!NOTE]

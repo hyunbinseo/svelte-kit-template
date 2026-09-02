@@ -39,7 +39,7 @@ packages:
   - dnf-automatic
   - dnf-plugins-core
   - libatomic # pnpm
-  - micro
+  - nano
   - sysstat
   - tailscale
 
@@ -61,8 +61,7 @@ write_files:
 
       source ~/.bashrc
       pnpm runtime set node lts -g
-      pnpm shim add node
-      pnpm add pm2@latest --global
+      pnpm add npm pm2 --global
 
       pm2 install pm2-logrotate
 
@@ -76,14 +75,14 @@ write_files:
       After=network.target
 
       [Service]
-      Type=forking
+      # SELinux blocks init_t from reading a PIDFile under /home.
+      Type=oneshot
+      RemainAfterExit=yes
       User=nodejs
       LimitNOFILE=infinity
       LimitNPROC=infinity
       LimitCORE=infinity
       Environment=PM2_HOME=/home/nodejs/.pm2
-      PIDFile=/home/nodejs/.pm2/pm2.pid
-      Restart=on-failure
 
       ExecStart=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 resurrect'
       ExecReload=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 reload all'

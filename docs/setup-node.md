@@ -38,7 +38,7 @@ pnpm db:app:migrate:prod
 pnpm db:audit:migrate
 
 pnpm build
-micro .env.production.local # set/update BUILD_ID
+nano .env.production.local # set/update BUILD_ID
 ```
 
 For the initial deployment, start and save the process list:

@@ -56,8 +56,7 @@ write_files:
       #!/bin/bash
       set -e
 
-      # TODO Drop PNPM_VERSION once pnpm 12+ becomes the default release.
-      curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=12 sh
+      curl -fsSL https://get.pnpm.io/install.sh | sh
 
       source ~/.bashrc
       pnpm runtime set node lts -g

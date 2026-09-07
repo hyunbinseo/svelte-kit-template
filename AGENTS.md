@@ -191,8 +191,8 @@ Define them in `src/env.ts` and import from `$app/env`:
 
 ```ts
 import { browser } from '$app/env'; // SvelteKit provided
-import { SENTRY_DSN } from '$app/env/public';
 import { DATABASE_URL } from '$app/env/private';
+import { SENTRY_DSN } from '$app/env/public';
 ```
 
 ### Remote Functions (RPC)
@@ -203,8 +203,8 @@ import { DATABASE_URL } from '$app/env/private';
 - Inside callbacks, `event.url` refers to the page, not the endpoint.
 
 ```ts
-import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';
 import { form, query } from '$app/server';
+import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';
 
 export const getPublicPosts = query(async () => {
 	// Use prerender if static or cacheable.
@@ -239,9 +239,9 @@ export const CreatePostSchema = object({
 
 ```ts
 // src/lib/remotes/create-post.remote.ts
-import { db } from '#lib/server/database.ts';
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
+import { db } from '#lib/server/database.ts';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
@@ -436,8 +436,8 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 Accepts async functions; cannot return a cleanup function:
 
 ```ts
-import { onMount, onDestroy } from 'svelte';
 import { browser } from '$app/env';
+import { onMount, onDestroy } from 'svelte';
 
 let mounted = true;
 

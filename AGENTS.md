@@ -251,32 +251,54 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Insertion is guaranteed to return exactly one row.
 	const newPost = db.insert(postTable).values(data).returning().all()[0]!;
 
-	return newPost; // populates `createPost.result` in Svelte
+	return { slug: newPost.slug }; // populates `createPost.result` in Svelte
 });
 ```
 
-##### Single-Flight Mutations
+##### Refreshing Queries on Mutation
 
-A successful `form` submission calls `invalidateAll()` by default, re-running every load function and query on the page. This is wasteful and slow: the refresh is a second round-trip after the submission response comes back.
+By default a successful `form` submission calls `invalidateAll()`, re-running every load function and query on the page in a second round-trip after the submission response.
 
-Use client-requested refreshes instead: request queries with `.updates(...)` on submit, then `requested(...).refreshAll()` on the server, returning the refreshed data in the same response as the mutation. See https://github.com/sveltejs/kit/issues/16904
-
-```ts
-import { requested } from '$app/server';
-
-export const createPost = form(CreatePostSchema, async (data, issue) => {
-	db.insert(postTable).values(data).run();
-	await requested(getPosts, 10).refreshAll(); // limit bounds refresh requests
-});
-```
+Single-flight mutations fold that refresh into the mutation response. The client names the query instances to refresh with `.updates(...)`, and the server accepts them with `requested(...)`.
 
 ```svelte
 <form
 	{...createPost.enhance(async (form) => {
-		await form.submit().updates(getPosts);
-		form.element.reset(); // must be called manually
+		await form.submit().updates(
+			// Chain `.withOverride(...)` when an optimistic update is viable.
+			getPosts(10).withOverride((posts) => {
+				const title = form.fields.title.value(); // undefined if untouched
+				return title ? [{ slug: '', title }, ...posts].slice(0, 10) : posts;
+			}),
+		);
+		form.element.reset(); // enhance skips the default auto-reset
 	})}
 ></form>
+```
+
+> [!WARNING]
+> `query().set()` doesn't narrow to the return type — pass a projection, not a raw row. See https://github.com/sveltejs/kit/issues/14612
+
+```ts
+// src/lib/remotes/create-post.remote.ts
+import { resolve } from '$app/paths';
+import { form, requested } from '$app/server';
+import { redirect } from '@sveltejs/kit';
+import { db } from '#lib/server/database.ts';
+import { CreatePostSchema } from './create-post.ts';
+import { getPost, getPosts } from './posts.remote.ts';
+
+export const createPost = form(CreatePostSchema, async (data) => {
+	const post = db.insert(postTable).values(data).returning().all()[0]!;
+
+	// Unknown args — the client must request it.
+	await requested(getPosts, 2).refreshAll(); // max 2 instances
+
+	// Known args — set it directly; survives the redirect.
+	getPost(post.slug).set({ title: post.title, content: post.content });
+
+	redirect(303, resolve('/posts/[slug]', { slug: post.slug }));
+});
 ```
 
 #### `query.batch`
@@ -299,7 +321,7 @@ Use the `await` keyword directly in components:
 ```svelte
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { getPost, getPosts } from '../data.remote';
+	import { getPost, getPosts } from '#lib/remotes/posts.remote.ts';
 
 	let { params } = $props();
 
@@ -307,7 +329,7 @@ Use the `await` keyword directly in components:
 </script>
 
 <h1>{post.title}</h1>
-<p>{post.body}</p>
+<p>{post.content}</p>
 
 {#each await getPosts() as post}
 	<a href={resolve('/posts/[slug]', { slug: post.slug })}>{post.title}</a>

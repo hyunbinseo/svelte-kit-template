@@ -38,7 +38,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/vite": "^4.3.3",
-		"@types/node": "^26.4.1",
+		"@types/node": "^26.5.0",
 		"@valibot/i18n": "^1.2.0",
 		"eslint": "^10.10.0",
 		"eslint-config-prettier": "^10.1.8",
@@ -57,12 +57,12 @@
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "12.3.4",
+			"version": "12.4.0",
 			"onFail": "download"
 		},
 		"runtime": {
 			"name": "node",
-			"version": "26.8.1",
+			"version": "26.8.2",
 			"onFail": "download"
 		}
 	}

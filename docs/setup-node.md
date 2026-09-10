@@ -90,15 +90,15 @@ pnpm i -D pm2-ecosystem@latest # verify version matches `pm2 --version`, then co
 
 ### Update Node.js
 
+> [!WARNING]
+> PM2 runs whatever Node its daemon started with, so the running server can drift from `package.json`'s `devEngines.runtime`.
+
 ```shell
 pm2 info <name> # node.js version │ <old-version>
 
-pnpm runtime set node lts # updates package.json `devEngines.runtime`
-# devDependencies:
-# - node <old-version>
-# + node <new-version>
-
+pnpm runtime set node lts -g
 pm2 update
+
 pm2 info <name> # node.js version │ <new-version>
 ```
 

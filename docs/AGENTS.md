@@ -1,0 +1,2 @@
+- Validate `cloud-init.yml` and related provisioning changes by running the full setup on a fresh VM before finalizing.
+- Ask before downloading a cloud image or ISO — one may be available locally.

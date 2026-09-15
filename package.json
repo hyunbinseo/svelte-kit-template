@@ -1,6 +1,4 @@
 {
-	"name": "svelte-kit-template",
-	"version": "0.0.10",
 	"private": true,
 	"type": "module",
 	"imports": {
@@ -68,5 +66,9 @@
 			"version": "26.8.2",
 			"onFail": "download"
 		}
+	},
+	"scaffoldedFrom": {
+		"url": "https://github.com/hyunbinseo/svelte-kit-template",
+		"version": "0.0.10"
 	}
 }

@@ -257,9 +257,9 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 
 ##### Refreshing Queries on Mutation
 
-By default a successful `form` submission calls `invalidateAll()`, re-running every load function and query on the page in a second round-trip after the submission response.
+By default, a successful `form` submission calls `invalidateAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
 
-Single-flight mutations fold that refresh into the mutation response. The client names the query instances to refresh with `.updates(...)`, and the server accepts them with `requested(...)`.
+The client names query instances to refresh with `.updates(...)`; the server accepts them with `requested(...)`.
 
 ```svelte
 <form

@@ -10,9 +10,9 @@ import {
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/config.ts';
+import { instant, plainDate } from '#lib/database/columns.ts';
 import type { TokenBanReason, TokenRefreshReason } from '#lib/enums/token.ts';
 import type { UserRole, UserRoleRevokeReason } from '#lib/enums/user.ts';
-import type { ISODateString } from '#lib/types.ts';
 
 export const userTable = snakeCase.table(
 	'user',
@@ -24,7 +24,7 @@ export const userTable = snakeCase.table(
 			// See https://orm.drizzle.team/docs/indexes-constraints#foreign-key
 			(): AnySQLiteColumn => userTable.id,
 		),
-		deactivatedAt: integer({ mode: 'timestamp' }),
+		deactivatedAt: instant(),
 		deactivatedBy: text().references((): AnySQLiteColumn => userTable.id),
 	},
 	(table) => [
@@ -40,7 +40,7 @@ export const userProfileTable = snakeCase.table('user_profile', {
 	id: text()
 		.primaryKey()
 		.references(() => userTable.id),
-	birth: text().$type<ISODateString>().notNull(),
+	birth: plainDate().notNull(),
 });
 
 export const userRoleTable = snakeCase.table(
@@ -54,7 +54,7 @@ export const userRoleTable = snakeCase.table(
 		assignedBy: text()
 			.notNull()
 			.references(() => userTable.id),
-		revokedAt: integer({ mode: 'timestamp' }),
+		revokedAt: instant(),
 		revokedBy: text().references(() => userTable.id),
 		revokeReason: text().$type<UserRoleRevokeReason>(),
 	},
@@ -82,9 +82,9 @@ export const loginTable = snakeCase.table(
 			.notNull()
 			.references(() => userTable.id),
 		code: text().notNull(),
-		expiresAt: integer({ mode: 'timestamp' })
+		expiresAt: instant()
 			.notNull()
-			.$default(() => new Date(Date.now() + AUTH_CODE_EXPIRES_IN)),
+			.$default(() => Temporal.Now.instant().add({ milliseconds: AUTH_CODE_EXPIRES_IN })),
 		ip: text().notNull(),
 	},
 	(table) => [index('login_user_id_idx').on(table.userId)],
@@ -98,9 +98,9 @@ export const loginAttemptTable = snakeCase.table(
 			.notNull()
 			.references(() => loginTable.id),
 		isSuccessful: integer({ mode: 'boolean' }).notNull(),
-		attemptedAt: integer({ mode: 'timestamp' })
+		attemptedAt: instant()
 			.notNull()
-			.$default(() => new Date()),
+			.$default(() => Temporal.Now.instant()),
 		ip: text().notNull(),
 	},
 	(table) => [index('login_attempt_login_id_idx').on(table.loginId)],
@@ -117,12 +117,12 @@ export const tokenTable = snakeCase.table(
 			.unique()
 			.references((): AnySQLiteColumn => tokenTable.id),
 		refreshReason: text().$type<TokenRefreshReason>(),
-		issuedAt: integer({ mode: 'timestamp' })
+		issuedAt: instant()
 			.notNull()
-			.$default(() => new Date()),
-		expiresAt: integer({ mode: 'timestamp' })
+			.$default(() => Temporal.Now.instant()),
+		expiresAt: instant()
 			.notNull()
-			.$default(() => new Date(Date.now() + AUTH_TOKEN_EXPIRES_IN)),
+			.$default(() => Temporal.Now.instant().add({ milliseconds: AUTH_TOKEN_EXPIRES_IN })),
 		ip: text().notNull(),
 	},
 	(table) => [
@@ -135,10 +135,10 @@ export const tokenBanTable = snakeCase.table('token_ban', {
 		.primaryKey()
 		.references(() => tokenTable.id),
 	reason: text().$type<TokenBanReason>().notNull(),
-	effectiveAt: integer({ mode: 'timestamp' }).notNull(),
-	bannedAt: integer({ mode: 'timestamp' })
+	effectiveAt: instant().notNull(),
+	bannedAt: instant()
 		.notNull()
-		.$default(() => new Date()),
+		.$default(() => Temporal.Now.instant()),
 	bannedBy: text()
 		.notNull()
 		.references(() => userTable.id),

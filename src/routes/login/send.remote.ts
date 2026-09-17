@@ -43,7 +43,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 			orderBy: { id: 'desc' },
 			where: {
 				userId: user.id,
-				expiresAt: { gte: new Date() },
+				expiresAt: { gte: Temporal.Now.instant() },
 			},
 			columns: {},
 			with: {

@@ -41,7 +41,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 		return { success: false, code: 'IP_MISMATCH' } as const;
 	}
 
-	if (login.expiresAt < new Date()) {
+	if (Temporal.Instant.compare(login.expiresAt, Temporal.Now.instant()) < 0) {
 		return { success: false, code: 'CODE_EXPIRED' } as const;
 	}
 

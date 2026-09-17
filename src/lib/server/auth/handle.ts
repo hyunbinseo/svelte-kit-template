@@ -21,7 +21,10 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 			})
 			.sync();
 
-	if (!verified || (ban && ban.effectiveAt <= new Date())) {
+	if (
+		!verified ||
+		(ban && Temporal.Instant.compare(ban.effectiveAt, Temporal.Now.instant()) <= 0)
+	) {
 		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
 		return resolve(event);
 	}
@@ -40,8 +43,9 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	}
 
 	if (!ban) {
-		const expiresIn = verified.payload.exp * 1000 - Date.now();
-		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
+		const expiresAt = Temporal.Instant.fromEpochMilliseconds(verified.payload.exp * 1000);
+		const threshold = Temporal.Now.instant().add({ milliseconds: AUTH_TOKEN_ROTATE_THRESHOLD });
+		if (Temporal.Instant.compare(expiresAt, threshold) <= 0) {
 			// Error can be swallowed; session is valid for this request.
 			await rotateToken(session, 'threshold').catch(captureException);
 		}

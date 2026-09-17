@@ -14,13 +14,17 @@ describe('user_role.revoked_at set', () => {
 			const role = seedRole(db, user, admin);
 
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(100_000), revokedBy: admin, revokeReason: 'manual' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					revokedBy: admin,
+					revokeReason: 'manual',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 
 			const ban = banFor(db, token);
 			assert.equal(ban?.reason, 'stale');
-			assert.equal(ban?.effectiveAt.getTime(), 999_999_000); // deferred, not immediate
+			assert.equal(ban?.effectiveAt.epochMilliseconds, 999_999_000); // deferred, not immediate
 		});
 	});
 
@@ -33,7 +37,11 @@ describe('user_role.revoked_at set', () => {
 			const role = seedRole(db, user, admin);
 
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(100_000), revokedBy: admin, revokeReason: 'manual' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					revokedBy: admin,
+					revokeReason: 'manual',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 
@@ -49,7 +57,7 @@ describe('user_role.revoked_at set', () => {
 				.values({
 					tokenId: token,
 					reason: 'logout',
-					effectiveAt: new Date(1_000),
+					effectiveAt: Temporal.Instant.fromEpochMilliseconds(1_000),
 					bannedBy: user,
 					ip: '',
 				})
@@ -57,7 +65,11 @@ describe('user_role.revoked_at set', () => {
 			const role = seedRole(db, user, admin);
 
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(100_000), revokedBy: admin, revokeReason: 'manual' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					revokedBy: admin,
+					revokeReason: 'manual',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 
@@ -73,7 +85,11 @@ describe('user_role.revoked_at set', () => {
 			const role = seedRole(db, user, admin);
 
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(100_000), revokedBy: admin, revokeReason: 'manual' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					revokedBy: admin,
+					revokeReason: 'manual',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 
@@ -81,7 +97,11 @@ describe('user_role.revoked_at set', () => {
 			const token = seedToken(db, user, 999_999_000);
 
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(200_000), revokedBy: admin, revokeReason: 'manual' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(200_000),
+					revokedBy: admin,
+					revokeReason: 'manual',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 
@@ -99,7 +119,11 @@ describe('user_role.revoked_at set', () => {
 
 			// Bypasses on_user_deactivate entirely, to test this trigger's own guard in isolation.
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(100_000), revokedBy: admin, revokeReason: 'deactivate' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					revokedBy: admin,
+					revokeReason: 'deactivate',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 

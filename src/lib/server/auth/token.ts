@@ -85,13 +85,14 @@ export const issueToken = async (input: TokenInput) => {
 		// Must match the ReservedClaims type.
 		.setJti(token.id)
 		.setSubject(input.sub)
-		.setExpirationTime(token.expiresAt)
-		.setIssuedAt(token.issuedAt)
+		// jose accepts a Date at this third-party boundary.
+		.setExpirationTime(new Date(token.expiresAt.epochMilliseconds))
+		.setIssuedAt(new Date(token.issuedAt.epochMilliseconds))
 		.sign(SECRET_NEW);
 
 	event.cookies.set(AUTH_COOKIE_NAME, jwt, {
 		path: '/',
-		expires: token.expiresAt,
+		expires: new Date(token.expiresAt.epochMilliseconds),
 		// See https://github.com/sveltejs/kit/issues/10438
 		secure: !dev || event.url.protocol === 'https:',
 	});
@@ -116,7 +117,7 @@ export const rotateToken = async (
 			.values({
 				tokenId: session.jti,
 				reason: 'rotate',
-				effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
+				effectiveAt: Temporal.Now.instant().add({ milliseconds: AUTH_TOKEN_ROTATE_GRACE }),
 				bannedBy: session.sub,
 				ip: event.getClientAddress(),
 			})

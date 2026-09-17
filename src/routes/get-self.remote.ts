@@ -21,5 +21,6 @@ export const getSelf = query(async () => {
 
 	if (!user?.profile) error(500);
 
-	return { ...user, profile: user.profile };
+	// Serialize to `YYYY-MM-DD`; Temporal does not cross the wire.
+	return { ...user, profile: { birth: user.profile.birth.toString() } };
 });

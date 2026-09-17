@@ -14,7 +14,7 @@
 		// Environment Settings
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
-		"lib": ["ES2023", "DOM"], // sync with app.html browser check
+		"lib": ["ES2023", "ESNext.Temporal", "DOM"], // runtime baseline (sync with app.html); Temporal is types-only
 		"types": ["node"],
 
 		// Stricter Typechecking Options

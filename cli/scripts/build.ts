@@ -4,7 +4,7 @@ import { cwd, env } from 'node:process';
 import { build } from 'vite';
 import { root } from '#cli/lib/utilities.ts';
 
-const BUILD_TIMESTAMP = Math.floor(Date.now() / 1000).toString();
+const BUILD_TIMESTAMP = Math.floor(Temporal.Now.instant().epochMilliseconds / 1000).toString();
 
 if (cwd() !== root) throw new Error();
 

@@ -17,7 +17,7 @@ export const setupProfile = form(SetupProfileSchema, async (data) => {
 	db.insert(userProfileTable)
 		.values({
 			id: session.sub,
-			birth: data.birth,
+			birth: Temporal.PlainDate.from(data.birth),
 		})
 		.onConflictDoNothing()
 		.run();

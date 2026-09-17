@@ -113,6 +113,30 @@ const users = db.query.userTable
 	.sync();
 ```
 
+### Dates & Times
+
+Use the native `Temporal` API for dates and times. The `ESNext.Temporal` lib provides the global types (added in `tsconfig.json` and `cli/tsconfig.json`).
+
+Custom column types in `src/lib/database/columns.ts` map storage to Temporal — DDL is unchanged from the previous `integer`/`text` columns, so no migration is needed to adopt them:
+
+- `instant()` — `Temporal.Instant` over an epoch-seconds `integer` (matches Drizzle's former `{ mode: 'timestamp' }` storage).
+- `plainDate()` — `Temporal.PlainDate` over ISO `YYYY-MM-DD` `text`.
+
+```ts
+import { instant, plainDate } from '#lib/database/columns.ts';
+
+expiresAt: instant()
+	.notNull()
+	.$default(() => Temporal.Now.instant().add({ milliseconds: AUTH_TOKEN_EXPIRES_IN })),
+birth: plainDate().notNull(),
+```
+
+`Temporal.Instant.prototype.valueOf()` throws, so compare with `Temporal.Instant.compare(a, b)` instead of `<`/`>` — this applies to relational query filters too (e.g. `where: { expiresAt: { gte: Temporal.Now.instant() } }`).
+
+Use `Date` only at third-party boundaries that require it (e.g. `jose`'s `setExpirationTime`, `cookies.set`'s `expires`) via `new Date(inst.epochMilliseconds)`.
+
+Temporal objects don't cross the wire — browsers lack the API (unlike Node), and remote-function serialization has no transport for them. Return `.toString()` from remote functions and parse back on the server (e.g. `Temporal.PlainDate.from(data.birth)`).
+
 ### Schema
 
 Table names follow 2 conventions:

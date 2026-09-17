@@ -18,11 +18,12 @@ const captureException = (error: unknown) => {
 	_captureException(error);
 };
 
-const dateToFilename = (date = new Date()) => date.toISOString().replace(/[^0-9TZ]/g, '-') + '.db';
+const dateToFilename = (instant = Temporal.Now.instant()) =>
+	instant.toString({ fractionalSecondDigits: 3 }).replace(/[^0-9TZ]/g, '-') + '.db';
 const FILENAME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.db$/;
 
 const pruneBackups = async (cwd: string, retention: number) => {
-	const cutoff = dateToFilename(new Date(Date.now() - retention));
+	const cutoff = dateToFilename(Temporal.Now.instant().subtract({ milliseconds: retention }));
 	await Promise.all(
 		globSync('*.db', { cwd })
 			.filter((existing) => FILENAME_REGEX.test(existing) && existing < cutoff)

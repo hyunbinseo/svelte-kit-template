@@ -20,7 +20,7 @@ export const seedUser = (db: ReturnType<typeof createDb>) =>
 export const seedToken = (db: ReturnType<typeof createDb>, userId: string, expiresAt: number) =>
 	db
 		.insert(tokenTable)
-		.values({ userId, expiresAt: new Date(expiresAt), ip: '' })
+		.values({ userId, expiresAt: Temporal.Instant.fromEpochMilliseconds(expiresAt), ip: '' })
 		.returning()
 		.all()[0]!.id;
 

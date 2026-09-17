@@ -13,12 +13,15 @@ describe('user.deactivated_at set', () => {
 			db.insert(userRoleTable).values({ userId: user, role: 'admin', assignedBy: admin }).run();
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 
 			const role = db.select().from(userRoleTable).where(eq(userRoleTable.userId, user)).get();
-			assert.equal(role?.revokedAt?.getTime(), 100_000);
+			assert.equal(role?.revokedAt?.epochMilliseconds, 100_000);
 			assert.equal(role?.revokedBy, admin);
 			assert.equal(role?.revokeReason, 'deactivate');
 		});
@@ -30,13 +33,16 @@ describe('user.deactivated_at set', () => {
 			const token = seedToken(db, user, 999_999_000);
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 
 			const ban = banFor(db, token);
 			assert.equal(ban?.reason, 'deactivate');
-			assert.equal(ban?.effectiveAt.getTime(), 100_000); // immediate, not deferred to expiry
+			assert.equal(ban?.effectiveAt.epochMilliseconds, 100_000); // immediate, not deferred to expiry
 		});
 	});
 
@@ -51,17 +57,24 @@ describe('user.deactivated_at set', () => {
 				.returning()
 				.all()[0]!;
 			db.update(userRoleTable)
-				.set({ revokedAt: new Date(50_000), revokedBy: admin, revokeReason: 'manual' })
+				.set({
+					revokedAt: Temporal.Instant.fromEpochMilliseconds(50_000),
+					revokedBy: admin,
+					revokeReason: 'manual',
+				})
 				.where(eq(userRoleTable.id, role.id))
 				.run();
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 
 			const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
-			assert.equal(after?.revokedAt?.getTime(), 50_000);
+			assert.equal(after?.revokedAt?.epochMilliseconds, 50_000);
 			assert.equal(after?.revokeReason, 'manual');
 		});
 
@@ -72,7 +85,10 @@ describe('user.deactivated_at set', () => {
 			const token = seedToken(db, user, 50_000);
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 
@@ -88,14 +104,17 @@ describe('user.deactivated_at set', () => {
 				.values({
 					tokenId: token,
 					reason: 'logout',
-					effectiveAt: new Date(1_000),
+					effectiveAt: Temporal.Instant.fromEpochMilliseconds(1_000),
 					bannedBy: user,
 					ip: '',
 				})
 				.run();
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 
@@ -110,7 +129,10 @@ describe('user.deactivated_at set', () => {
 			const user = seedUser(db);
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(100_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 
@@ -119,7 +141,10 @@ describe('user.deactivated_at set', () => {
 			const token = seedToken(db, user, 999_999_000);
 
 			db.update(userTable)
-				.set({ deactivatedAt: new Date(200_000), deactivatedBy: admin })
+				.set({
+					deactivatedAt: Temporal.Instant.fromEpochMilliseconds(200_000),
+					deactivatedBy: admin,
+				})
 				.where(eq(userTable.id, user))
 				.run();
 

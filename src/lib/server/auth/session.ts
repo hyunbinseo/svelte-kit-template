@@ -38,7 +38,7 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	const bannedAt = new Date();
+	const bannedAt = Temporal.Now.instant();
 
 	db.insert(tokenBanTable)
 		.values({

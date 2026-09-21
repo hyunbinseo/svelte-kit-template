@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { eq } from 'drizzle-orm';
-import { banFor, createDb, seedRole, seedToken, seedUser } from '#cli/lib/database/app.memory.ts';
+import { banFor, createDb, seedRole, seedToken, seedUser } from '#cli/lib/database/app.testing.ts';
 import { tokenBanTable, userRoleTable } from '#lib/database/schema.ts';
 
 describe('user_role.revoked_at set', () => {

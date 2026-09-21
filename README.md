@@ -7,6 +7,7 @@ An opinionated SvelteKit template for agent-assisted development.
 - Best practices documented in `AGENTS.md` and demonstrated in the code
 - Claude Code support — `CLAUDE.md`, `.mcp.json`, format-on-edit hook
 - Custom auth — JWT revocation, ban tracking, onboarding flows
+- Unit, E2E tests — database trigger cascades, auth cookie rotation
 
 ## Stack
 

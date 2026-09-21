@@ -20,6 +20,9 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Playwright
+test-results
+
 # SQLite
 *.db
 *.db-shm

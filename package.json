@@ -15,7 +15,8 @@
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
 		"lint": "oxfmt --check . && eslint .",
-		"test": "node --test",
+		"test": "node --test && node --run test:e2e",
+		"test:e2e": "playwright test",
 		"db:app:generate": "drizzle-kit generate",
 		"db:app:migrate:dev": "drizzle-kit migrate",
 		"db:app:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",
@@ -30,6 +31,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@playwright/test": "^1.60.0",
 		"@sun-typeface/suit": "^2.0.5",
 		"@sveltejs/adapter-node": "5.5.6",
 		"@sveltejs/kit": "^2.70.3",

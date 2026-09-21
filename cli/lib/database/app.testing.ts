@@ -8,8 +8,8 @@ import { root } from '#cli/lib/utilities.ts';
 import { relations } from '#lib/database/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#lib/database/schema.ts';
 
-export const createDb = () => {
-	const db = drizzle({ client: new DatabaseSync(':memory:'), relations });
+export const createDb = (filename = ':memory:') => {
+	const db = drizzle({ client: new DatabaseSync(filename), relations });
 	migrate(db, { migrationsFolder: resolve(root, 'drizzle/app') });
 	return db;
 };

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { eq } from 'drizzle-orm';
+import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { root } from '#cli/lib/utilities.ts';
@@ -9,8 +10,11 @@ import { relations } from '#lib/database/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#lib/database/schema.ts';
 
 export const createDb = (filename = ':memory:') => {
+	const migrationsFolder = resolve(root, 'drizzle/app');
+	if (!readMigrationFiles({ migrationsFolder }).length) throw new Error('No migrations found');
+
 	const db = drizzle({ client: new DatabaseSync(filename), relations });
-	migrate(db, { migrationsFolder: resolve(root, 'drizzle/app') });
+	migrate(db, { migrationsFolder });
 	return db;
 };
 

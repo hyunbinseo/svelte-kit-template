@@ -1,11 +1,11 @@
 import { digits, length, object, pipe, string, uuid } from 'valibot';
 import { AUTH_CODE_LENGTH } from '#lib/config.ts';
 import type { FormAttributes } from '#lib/remote/form.ts';
-import { ContactSchema } from './shared.ts';
+import { EmailSchema } from '#lib/valibot.ts';
 
 export const ValidateCodeSchema = object({
 	id: pipe(string(), uuid()),
-	contact: ContactSchema,
+	contact: EmailSchema,
 	code: pipe(string(), digits(), length(AUTH_CODE_LENGTH)),
 });
 

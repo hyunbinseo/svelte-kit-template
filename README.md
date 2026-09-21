@@ -59,3 +59,26 @@ pnpm dev
 - @sveltejs/adapter-node
 - pm2-ecosystem
 ```
+
+## Migration
+
+Each release has a Git tag, so you can diff any two tags to see what changed and port it into your project.
+
+You can also paste the following section into a coding agent to run the upgrade for you.
+
+> [!TIP]
+> To upgrade a project based on this template, find the current version in `package.json`, then diff it against the target version.
+>
+> ```shell
+> # Clone the template outside the project.
+> git clone https://github.com/hyunbinseo/svelte-kit-template /tmp/svelte-kit-template
+>
+> # List the available versions.
+> git -C /tmp/svelte-kit-template tag --sort=v:refname
+>
+> # Diff the current version against the target.
+> # Tags are prefixed with `v` (e.g. `v0.0.1`).
+> git -C /tmp/svelte-kit-template diff <old-tag> <new-tag>
+> ```
+>
+> Read `AGENTS.md` first, as it documents the conventions to preserve. Apply the relevant changes by hand, and skip files the project has diverged on.

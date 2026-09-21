@@ -18,6 +18,10 @@ Consider whether a bug may originate from a library or framework, not just appli
 - Standalone comments are capitalized — sentences end with a period, fragments don't.
 - Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag (e.g. `TODO lowercase fragment`).
 
+## Testing
+
+Unit and E2E tests exist. In E2E tests, import the custom `test` to get a worker-scoped `db`.
+
 ## TypeScript
 
 These options are enabled:

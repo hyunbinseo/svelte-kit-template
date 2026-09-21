@@ -61,7 +61,10 @@
 }
 
 @utility btn {
-	@apply rounded px-3.5 py-2.25 text-[15px] font-bold shadow outline transition-colors disabled:grayscale-100;
+	@apply rounded px-3.5 py-2.25 text-[15px] font-bold shadow outline transition-[color,background-color] disabled:grayscale-100;
+
+	/* Match Tailwind Forms input focus, which does not style buttons */
+	@apply focus-visible:outline-2 focus-visible:outline-blue-600;
 
 	@supports (text-box: trim-both cap alphabetic) {
 		text-box: trim-both cap alphabetic;

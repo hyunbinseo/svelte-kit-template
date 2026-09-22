@@ -16,6 +16,7 @@
 		}
 		&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
 			display: flex;
+			width: fit-content;
 			flex-direction: row;
 			align-items: center;
 			column-gap: calc(var(--spacing) * 2);

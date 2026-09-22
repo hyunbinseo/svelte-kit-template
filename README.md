@@ -81,4 +81,6 @@ You can also paste the following section into a coding agent to run the upgrade 
 > git -C /tmp/svelte-kit-template diff <old-tag> <new-tag>
 > ```
 >
-> Read `AGENTS.md` first, as it documents the conventions to preserve. Apply the relevant changes by hand, and skip files the project has diverged on.
+> Read `AGENTS.md` from the cloned upstream repo first — it documents the new conventions to follow. Update the local `AGENTS.md` to match, and apply the relevant changes. Ask before skipping a diverged file, or before leaving existing code on an old convention — note any such exception in `AGENTS.md`.
+>
+> Commit the result as `chore: sync with svelte-kit-template@<new-version>`

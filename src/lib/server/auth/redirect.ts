@@ -1,8 +1,6 @@
 import { getRequestEvent } from '$app/server';
 import type { ResolvedPathname } from '$app/types';
 
-// Don't call `event.url`-based helpers in form actions.
-
 const REDIRECT_PARAM = 'returnTo';
 
 export const createRedirectUrl = (pathname: ResolvedPathname) => {

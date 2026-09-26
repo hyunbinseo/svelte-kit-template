@@ -187,7 +187,8 @@ If the transaction can't be made sync, leave a comment instead:
 
 ## SvelteKit
 
-Call `getRequestEvent()` directly in utility functions instead of passing `event`.
+- Call `getRequestEvent()` in utility functions instead of passing `event`.
+- Use `form` remote functions instead of `actions` in `+page.server.ts`.
 
 ### Environment Variables
 
@@ -203,8 +204,9 @@ import { SENTRY_DSN } from '$app/env/public';
 
 - Remote functions must be exported from `*.remote.ts` files.
 - There are 4 types: `command`, `form`, `query`, `prerender`.
-- Requests must be either public, or authenticated and authorized.
-- Inside callbacks, `event.url` refers to the page, not the endpoint.
+- Requests must be public, or guarded via `session.ts` helpers.
+- `event.request.url` is the endpoint (`/_app/remote/<id>`).
+- `event.url`, `event.route`, and `event.params` reflect the calling page.
 
 ```ts
 import { form, query } from '$app/server';

@@ -58,14 +58,16 @@ Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/en
 
 ## SQLite
 
-If a `PRAGMA` matters, verify it against runtime and document it.
+If a `PRAGMA` matters, verify it against runtime in `test/db-pragmas/<pragma>.ts` and document it.
 
 ```ts
 import { DatabaseSync } from 'node:sqlite';
+import { databaseSyncOptions } from '#lib/server/database/options.ts';
 
-new DatabaseSync(':memory:').prepare('PRAGMA recursive_triggers').get();
+new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_triggers').get();
 ```
 
+- `PRAGMA busy_timeout` (0 by default, overridden)
 - `PRAGMA recursive_triggers` (off by default)
   - Direct (`A -> A`) — blocked
   - Cycle (`A -> B -> A`) — blocked
@@ -183,6 +185,18 @@ If the transaction can't be made sync, leave a comment instead:
 
 ```ts
 // BLOCKED Use transaction for <a> + <b>
+```
+
+Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing — see `test/db-pragmas/busy_timeout.ts`.
+
+```ts
+db.transaction(
+	(tx) => {
+		const post = tx.select().from(postTable).where(eq(postTable.id, id)).get();
+		tx.update(postTable).set(data).where(eq(postTable.id, id)).run();
+	},
+	{ behavior: 'immediate' },
+);
 ```
 
 ## SvelteKit

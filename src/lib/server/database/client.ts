@@ -8,8 +8,9 @@ import { LOG_SELECT_QUERIES } from '#lib/config.ts';
 import { relations } from '#lib/database/relations.ts';
 import { auditDb } from './audit.client.ts';
 import { logTable, queryTable } from './audit.schema.ts';
+import { databaseSyncOptions } from './options.ts';
 
-const client = new DatabaseSync(DATABASE_URL);
+const client = new DatabaseSync(DATABASE_URL, databaseSyncOptions);
 
 if (!dev) client.exec('PRAGMA journal_mode = WAL');
 

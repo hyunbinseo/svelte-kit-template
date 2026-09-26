@@ -8,12 +8,13 @@ import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { root } from '#cli/lib/utilities.ts';
 import { relations } from '#lib/database/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#lib/database/schema.ts';
+import { databaseSyncOptions } from '#lib/server/database/options.ts';
 
 export const createDb = (filename = ':memory:') => {
 	const migrationsFolder = resolve(root, 'drizzle/app');
 	if (!readMigrationFiles({ migrationsFolder }).length) throw new Error('No migrations found');
 
-	const db = drizzle({ client: new DatabaseSync(filename), relations });
+	const db = drizzle({ client: new DatabaseSync(filename, databaseSyncOptions), relations });
 	migrate(db, { migrationsFolder });
 	return db;
 };

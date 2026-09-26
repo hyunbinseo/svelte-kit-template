@@ -1,13 +1,16 @@
 import { hash } from 'node:crypto';
 import { env } from 'node:process';
+import { DatabaseSync } from 'node:sqlite';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { relations } from '#lib/database/relations.ts';
 import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
+import { databaseSyncOptions } from '#lib/server/database/options.ts';
 import { auditDb } from './audit.ts';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 
-export const db = drizzle(env.DATABASE_URL, {
+export const db = drizzle({
+	client: new DatabaseSync(env.DATABASE_URL, databaseSyncOptions),
 	relations,
 	logger: {
 		logQuery: (query, params) => {

@@ -72,6 +72,6 @@
 	},
 	"scaffoldedFrom": {
 		"url": "https://github.com/hyunbinseo/svelte-kit-template",
-		"version": "0.0.12"
+		"version": "0.0.13"
 	}
 }

@@ -22,7 +22,7 @@
 	</h1>
 	<nav class="mt-4 flex gap-x-4">
 		<!-- TODO v3. See https://github.com/sveltejs/kit/issues/15694 -->
-		<a href={resolve('/')} data-sveltekit-reload class="btn btn-primary"> 처음으로 </a>
+		<a href={resolve('/')} data-sveltekit-reload class="btn btn-primary">처음으로</a>
 		{#if page.status >= 500}
 			<form method="POST" class="contents">
 				<button formaction={resolve('/api/clear-site-data')} class="btn btn-primary">

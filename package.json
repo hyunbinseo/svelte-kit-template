@@ -24,7 +24,7 @@
 		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
 	},
 	"dependencies": {
-		"@sentry/sveltekit": "^10.75.0",
+		"@sentry/sveltekit": "^11.0.0",
 		"drizzle-kit": "1.0.0-rc.4",
 		"drizzle-orm": "1.0.0-rc.4",
 		"valibot": "^1.5.0"

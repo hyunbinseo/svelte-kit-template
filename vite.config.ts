@@ -1,5 +1,5 @@
 import { env } from 'node:process';
-import { sentrySvelteKit } from '@sentry/sveltekit';
+import { sentrySvelteKit } from '@sentry/sveltekit/vite';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';

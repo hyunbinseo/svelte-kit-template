@@ -1,9 +1,9 @@
 import { dev } from '$app/env';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
-import { captureException } from '@sentry/sveltekit';
+import { captureException, logger } from '@sentry/sveltekit';
 import { jwtVerify, SignJWT } from 'jose';
-import { JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
+import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
 import type { TokenRefreshReason } from '#lib/enums/token.ts';
@@ -155,14 +155,22 @@ export const rotateToken = async (
 	});
 };
 
-const onJwtError = (e: unknown) => {
-	if (!(e instanceof JWTExpired)) captureException(e);
-	return null;
+const verifyWithSecretFallback = async (jwt: string) => {
+	try {
+		return await jwtVerify<Payload>(jwt, SECRET_NEW);
+	} catch (e) {
+		if (!SECRET_OLD || !(e instanceof JWSSignatureVerificationFailed)) throw e;
+		return await jwtVerify<Payload>(jwt, SECRET_OLD);
+	}
 };
 
-export const verifyToken = (jwt: string) =>
-	jwtVerify<Payload>(jwt, SECRET_NEW).catch((e) =>
-		e instanceof JWSSignatureVerificationFailed && SECRET_OLD
-			? jwtVerify<Payload>(jwt, SECRET_OLD).catch(onJwtError)
-			: onJwtError(e),
-	);
+export const verifyToken = async (jwt: string) => {
+	try {
+		return await verifyWithSecretFallback(jwt);
+	} catch (e) {
+		if (e instanceof JWTExpired) return undefined;
+		if (e instanceof JOSEError) logger.warn('Invalid JWT', { 'error.type': e.code });
+		else captureException(e);
+		return undefined;
+	}
+};

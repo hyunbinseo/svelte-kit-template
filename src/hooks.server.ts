@@ -1,11 +1,12 @@
-import { captureMessage, handleErrorWithSentry, sentryHandle } from '@sentry/sveltekit';
+import { handleErrorWithSentry, logger, sentryHandle } from '@sentry/sveltekit';
+import { getDotPath } from '@standard-schema/utils';
 import type { HandleValidationError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import * as valibot from 'valibot';
+import { setGlobalConfig } from 'valibot';
 import '@valibot/i18n/ko';
 import { handleJWT } from '#lib/server/auth/handle.ts';
 
-valibot.setGlobalConfig({ lang: 'ko' });
+setGlobalConfig({ lang: 'ko' });
 
 export const handle = sequence(
 	sentryHandle(), //
@@ -20,6 +21,11 @@ export const handle = sequence(
 export const handleError = handleErrorWithSentry();
 
 export const handleValidationError: HandleValidationError = ({ event, issues }) => {
-	captureMessage('Validation Error', { extra: { event, issues } });
+	logger.warn('Validation Error', {
+		'event.request.url.pathname': new URL(event.request.url).pathname,
+		'event.route.id': event.route.id,
+		'event.url.pathname': event.url.pathname,
+		'validation.issues.paths': issues.map((issue) => getDotPath(issue) ?? '(root)').join(', '),
+	});
 	return { message: 'Bad Request' };
 };

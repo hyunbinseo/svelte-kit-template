@@ -3,7 +3,14 @@
 		"chrome-devtools": {
 			"type": "stdio",
 			"command": "pnpm",
-			"args": ["dlx", "chrome-devtools-mcp@latest", "--no-usage-statistics"]
+			"args": [
+				"dlx",
+				"chrome-devtools-mcp",
+				"--isolated",
+				"--no-performance-crux",
+				"--no-usage-statistics",
+				"--redact-network-headers"
+			]
 		},
 		"svelte": {
 			"type": "stdio",

@@ -52,13 +52,8 @@ pnpm dev
 
 ## Production Setup
 
-- See the [guide](./docs/setup.md) for VPS deployment with HTTPS.
-- For other platforms, update the setup accordingly:
-
-```diff
-- @sveltejs/adapter-node
-- pm2-ecosystem
-```
+- [VPS guide](./docs/setup.md) — deployment with HTTPS
+- [Sentry guide](./docs/setup-sentry.md) — error monitoring and alerts
 
 ## Migration
 

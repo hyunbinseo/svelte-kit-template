@@ -9,26 +9,28 @@
 </div>
 
 <style lang="postcss">
-	div :global label {
-		:user-invalid,
-		[aria-invalid='true'] {
-			border-color: var(--color-red-800);
-		}
-		&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
-			display: flex;
-			width: fit-content;
-			flex-direction: row;
-			align-items: center;
-			column-gap: calc(var(--spacing) * 2);
-		}
-		> span:first-child {
-			+ select,
-				+ textarea,
-				/* See https://tailwindcss-forms.vercel.app/kitchen-sink.html */
-				+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
-				margin-top: var(--spacing);
-				display: block;
-				width: 100%;
+	@layer components {
+		div :global label {
+			:user-invalid,
+			[aria-invalid='true'] {
+				border-color: var(--color-red-800);
+			}
+			&:has(> input:is([type='checkbox'], [type='radio']):first-child + span:last-child) {
+				display: flex;
+				width: fit-content;
+				flex-direction: row;
+				align-items: center;
+				column-gap: calc(var(--spacing) * 2);
+			}
+			> span:first-child {
+				+ select,
+					+ textarea,
+					/* See https://tailwindcss-forms.vercel.app/kitchen-sink.html */
+					+ input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']) {
+					margin-top: var(--spacing);
+					display: block;
+					width: 100%;
+				}
 			}
 		}
 	}

@@ -45,7 +45,7 @@
 	}
 }
 
-/* Component utilities support autocomplete unlike `@layer` CSS at-rules. */
+/* Custom utilities support autocomplete unlike `@layer` CSS at-rules. */
 /* See https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
 
 /* Utility declaration order does not ensure priority, since they are sorted by property count. */

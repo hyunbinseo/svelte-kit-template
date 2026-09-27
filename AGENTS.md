@@ -498,8 +498,10 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 ## Tailwind CSS
 
-- Create utility components for shared styles in `src/routes/+layout.css`.
-- Don't style individual form controls — use `StyledLabels.svelte` instead:
+- Define shared styles as custom utilities (`@utility`) in `src/routes/+layout.css`.
+- Wrap forms with `StyledLabels.svelte` instead of styling individual controls.
+
+Tailwind classes override both.
 
 ```svelte
 <script lang="ts">
@@ -508,15 +510,13 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 <StyledLabels>
 	<form>
+		<!-- `mt-2` overrides the StyledLabels margin -->
 		<label>
 			<span>이메일</span>
-			<input {...remoteForm.fields.contact.as('email')} />
+			<input {...remoteForm.fields.contact.as('email')} class="mt-2" />
 		</label>
-		<button
-			// Utility components
-			class="btn btn-primary disabled:btn-busy"
-			disabled={!!remoteForm.pending}
-		>
+		<!-- `py-4` overrides the `btn` padding -->
+		<button class="btn btn-primary py-4 disabled:btn-busy" disabled={!!remoteForm.pending}>
 			인증번호 전송
 		</button>
 	</form>

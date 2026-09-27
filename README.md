@@ -36,7 +36,7 @@ pnpm shim add node # once
 pnpm self-update
 ```
 
-3. Run these `package.json` scripts (`node --run`, `npm run`, etc. also work).
+3. Run these `package.json` scripts.
 
 ```shell
 pnpm db:app:generate

@@ -92,7 +92,7 @@ export const issueToken = async (input: TokenInput) => {
 	event.cookies.set(AUTH_COOKIE_NAME, jwt, {
 		path: '/',
 		expires: token.expiresAt,
-		// See https://github.com/sveltejs/kit/issues/10438
+		// TODO v3. See https://github.com/sveltejs/kit/issues/10438
 		secure: !dev || event.url.protocol === 'https:',
 	});
 

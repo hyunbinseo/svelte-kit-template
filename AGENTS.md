@@ -142,6 +142,12 @@ uniqueIndex('active_user_role_user_id_role_idx')
 
 Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one.
 
+### Relations
+
+- Add relations only when needed; remove them when unused.
+- Soft-deleted tables can use filtered relations (`where`) to drop inactive rows.
+- Name filtered relations after their filter (e.g. `activeUser`, `successfulAttempts`).
+
 ### Triggers
 
 Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles).

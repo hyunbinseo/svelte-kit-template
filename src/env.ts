@@ -8,8 +8,10 @@ const NonEmptyStringSchema = pipe(string(), nonEmpty());
 export const variables = defineEnvVars({
 	DATABASE_URL: { schema: DatabaseURLSchema },
 	DATABASE_AUDIT_URL: { schema: !dev ? DatabaseURLSchema : undefined_() },
-	SENTRY_DSN: { public: true, schema: optional(NonEmptyStringSchema) },
-	SITE_NAME: { public: true, schema: NonEmptyStringSchema },
+
+	// TODO v3. See https://github.com/sveltejs/kit/pull/16303
+	SENTRY_DSN: { public: true, static: true, schema: optional(NonEmptyStringSchema) },
+	SITE_NAME: { public: true, static: true, schema: NonEmptyStringSchema },
 
 	// In production, dynamic values can be updated without rebuilding.
 	JWT_SECRET_NEW: { static: false, schema: NonEmptyStringSchema },

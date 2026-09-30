@@ -278,7 +278,7 @@ export const CreatePostSchema = object({
 // src/lib/remotes/create-post.remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from '#lib/server/database.ts';
+import { db } from '#lib/server/database/client.ts';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
@@ -321,7 +321,7 @@ The client names query instances to refresh with `.updates(...)`; the server acc
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
-import { db } from '#lib/server/database.ts';
+import { db } from '#lib/server/database/client.ts';
 import { CreatePostSchema } from './create-post.ts';
 import { getPost, getPosts } from './posts.remote.ts';
 

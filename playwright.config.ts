@@ -2,11 +2,11 @@
 
 import { env } from 'node:process';
 import { defineConfig } from '@playwright/test';
-import { DATABASE_URL, JWT_SECRET_NEW, SITE_NAME } from './tests/e2e/env.ts';
+import { DATABASE_URL, JWT_SECRET_NEW, JWT_SECRET_OLD, SITE_NAME } from './tests/e2e/env.ts';
 
 const PORT = 6526;
 
-Object.assign(env, { DATABASE_URL, JWT_SECRET_NEW, SITE_NAME });
+Object.assign(env, { DATABASE_URL, JWT_SECRET_NEW, JWT_SECRET_OLD, SITE_NAME });
 
 export default defineConfig({
 	testMatch: '**/*.e2e.{ts,js}',

@@ -3,7 +3,12 @@ import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { captureException, logger } from '@sentry/sveltekit';
 import { jwtVerify, type JWTVerifyOptions, SignJWT } from 'jose';
-import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
+import {
+	JOSEError,
+	JWSSignatureVerificationFailed,
+	JWTClaimValidationFailed,
+	JWTExpired,
+} from 'jose/errors';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
 import type { TokenRefreshReason } from '#lib/enums/token.ts';
@@ -155,17 +160,36 @@ export const rotateToken = async (
 	});
 };
 
+const reservedClaims: Record<keyof ReservedClaims, true> = {
+	jti: true,
+	sub: true,
+	exp: true,
+	iat: true,
+};
+
 const verifyOptions = {
 	algorithms: [AUTH_TOKEN_ALGORITHM],
-	requiredClaims: ['jti', 'sub', 'exp', 'iat'] satisfies (keyof ReservedClaims)[],
+	requiredClaims: Object.keys(reservedClaims),
 } satisfies JWTVerifyOptions;
+
+// jose checks the presence of `jti` and `sub`, not their types.
+const verifyWithSecret = async (jwt: string, secret: Uint8Array) => {
+	const verified = await jwtVerify<Payload>(jwt, secret, verifyOptions);
+	for (const claim of ['jti', 'sub'] as const) {
+		if (typeof verified.payload[claim] !== 'string') {
+			const message = `"${claim}" claim must be a string`;
+			throw new JWTClaimValidationFailed(message, verified.payload, claim, 'invalid');
+		}
+	}
+	return verified;
+};
 
 const verifyWithSecretFallback = async (jwt: string) => {
 	try {
-		return await jwtVerify<Payload>(jwt, SECRET_NEW, verifyOptions);
+		return await verifyWithSecret(jwt, SECRET_NEW);
 	} catch (e) {
 		if (!SECRET_OLD || !(e instanceof JWSSignatureVerificationFailed)) throw e;
-		return await jwtVerify<Payload>(jwt, SECRET_OLD, verifyOptions);
+		return await verifyWithSecret(jwt, SECRET_OLD);
 	}
 };
 

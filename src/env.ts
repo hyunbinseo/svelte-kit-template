@@ -4,7 +4,7 @@ import { endsWith, minBytes, nonEmpty, optional, pipe, string, undefined_ } from
 
 const DatabaseURLSchema = pipe(string(), endsWith('.db'));
 const NonEmptyStringSchema = pipe(string(), nonEmpty());
-const JWTSecretSchema = pipe(string(), minBytes(32)); // HS256 key size
+const JWTSecretSchema = pipe(string(), minBytes(32));
 
 export const variables = defineEnvVars({
 	DATABASE_URL: { schema: DatabaseURLSchema },
@@ -16,5 +16,5 @@ export const variables = defineEnvVars({
 
 	// In production, dynamic values can be updated without rebuilding.
 	JWT_SECRET_NEW: { static: false, schema: JWTSecretSchema },
-	JWT_SECRET_OLD: { static: false, schema: optional(JWTSecretSchema) },
+	JWT_SECRET_OLD: { static: false, schema: optional(NonEmptyStringSchema) },
 });

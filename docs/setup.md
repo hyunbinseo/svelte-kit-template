@@ -12,11 +12,11 @@
 
 https://console.vultr.com/firewall
 
-| Type | Action | Protocol    | Port      | Source    |
-| ---- | ------ | ----------- | --------- | --------- |
-| IPv4 | accept | TCP (HTTP)  | 80        | 0.0.0.0/0 |
-| IPv4 | accept | TCP (HTTPS) | 443       | 0.0.0.0/0 |
-| IPv4 | drop   | any         | 0 - 65535 | 0.0.0.0/0 |
+| Type | Action | Protocol    | Port    | Source    |
+| ---- | ------ | ----------- | ------- | --------- |
+| IPv4 | accept | TCP (HTTP)  | 80      | 0.0.0.0/0 |
+| IPv4 | accept | TCP (HTTPS) | 443     | 0.0.0.0/0 |
+| IPv4 | drop   | any         | 0–65535 | 0.0.0.0/0 |
 
 > [!NOTE]
 > Inbound SSH rule is not needed for Tailscale SSH.

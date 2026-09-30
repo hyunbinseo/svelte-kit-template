@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { hash } from 'node:crypto';
 import { env } from 'node:process';
 import { DatabaseSync } from 'node:sqlite';
@@ -7,7 +8,7 @@ import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
 import { databaseSyncOptions } from '#lib/server/database/options.ts';
 import { auditDb } from './audit.ts';
 
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+assert(env.DATABASE_URL);
 
 export const appDb = drizzle({
 	client: new DatabaseSync(env.DATABASE_URL, databaseSyncOptions),

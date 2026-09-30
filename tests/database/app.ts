@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -12,7 +13,7 @@ import { databaseSyncOptions } from '#lib/server/database/options.ts';
 
 export const createAppDb = (filename = ':memory:') => {
 	const migrationsFolder = resolve(root, 'drizzle/app');
-	if (!readMigrationFiles({ migrationsFolder }).length) throw new Error('No migrations found');
+	assert(readMigrationFiles({ migrationsFolder }).length > 0);
 
 	const db = drizzle({ client: new DatabaseSync(filename, databaseSyncOptions), relations });
 	migrate(db, { migrationsFolder });

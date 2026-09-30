@@ -20,7 +20,7 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 ## Testing
 
-Unit and E2E tests exist. In E2E tests, import the custom `test` to get a worker-scoped `db`.
+Unit and E2E tests exist. In E2E tests, import the custom `test` fixture to get a worker-scoped `db`.
 
 ## TypeScript
 

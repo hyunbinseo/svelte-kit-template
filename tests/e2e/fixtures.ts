@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { test as base } from '@playwright/test';
 import { createAppDb } from '#tests/database/app.ts';
 import { DATABASE_URL } from './env.ts';

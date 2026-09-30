@@ -17,7 +17,16 @@ export default defineConfig(
 		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
 			'no-undef': 'off',
-			'no-restricted-imports': ['error', 'assert', 'node:assert'],
+			'no-restricted-imports': [
+				'error',
+				'assert',
+				'node:assert',
+				{
+					name: '@playwright/test',
+					importNames: ['test'],
+					message: 'Import the custom `test` fixture instead.',
+				},
+			],
 		},
 	},
 	{

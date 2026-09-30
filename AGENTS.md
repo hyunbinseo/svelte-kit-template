@@ -36,7 +36,18 @@ These options are enabled:
 - Use `type` over `interface`.
 - Use arrow syntax over function expressions and declarations.
 - Blank `//` comments can be used to force multiline formatting.
-- Don't use `!` non-null assertions, except:
+
+Use the import path with the fewest segments — on a tie, prefer the `#` subpath import:
+
+```ts
+// Not `#lib/server/database/client.ts` — more segments
+import { silentDb } from '../database/client.ts';
+
+// Not `../database/app.ts` — tie
+import { createAppDb } from '#tests/database/app.ts';
+```
+
+Don't use `!` non-null assertions, except:
 
 ```ts
 // Assert only if insertion is guaranteed.

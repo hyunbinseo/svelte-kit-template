@@ -33,12 +33,12 @@
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 
-		// Use Node.js subpath imports in package.json instead
+		// Do not set. Use Node.js subpath imports in package.json instead.
 		// See https://nodejs.org/api/packages.html#subpath-imports
-		// "paths": {},
+		// - "paths": {}
 	}
-	// Set these in `config.kit.typescript.config` instead
+	// Do not set. Use `typescript.config` in `sveltekit()` instead.
 	// See https://svelte.dev/docs/kit/configuration#typescript
-	// "include": []
-	// "exclude": []
+	// - "include": []
+	// - "exclude": []
 }

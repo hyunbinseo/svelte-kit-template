@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { eq } from 'drizzle-orm';
-import { banFor, createDb, seedRole, seedToken, seedUser } from '#tests/database/app.ts';
+import { banFor, createAppDb, seedRole, seedToken, seedUser } from '#tests/database/app.ts';
 import { tokenBanTable, userRoleTable, userTable } from '../schema.ts';
 
 describe('user.deactivated_at set', () => {
 	describe('direct effect', () => {
 		test('revokes active user_role (reason: deactivate)', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			db.insert(userRoleTable).values({ userId: user, role: 'admin', assignedBy: admin }).run();
@@ -24,7 +24,7 @@ describe('user.deactivated_at set', () => {
 		});
 
 		test('bans live token immediately (reason: deactivate)', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 999_999_000);
@@ -42,7 +42,7 @@ describe('user.deactivated_at set', () => {
 
 	describe('guards', () => {
 		test('does not overwrite already revoked user_role', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const role = db
@@ -66,7 +66,7 @@ describe('user.deactivated_at set', () => {
 		});
 
 		test('does not ban already expired token', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 50_000);
@@ -80,7 +80,7 @@ describe('user.deactivated_at set', () => {
 		});
 
 		test('does not double-ban already banned token', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 999_999_000);
@@ -105,7 +105,7 @@ describe('user.deactivated_at set', () => {
 
 	describe('transition guard', () => {
 		test('does not re-fire cascade on repeat deactivated_at update', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 

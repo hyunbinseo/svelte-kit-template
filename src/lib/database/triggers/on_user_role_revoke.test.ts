@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { eq } from 'drizzle-orm';
-import { banFor, createDb, seedRole, seedToken, seedUser } from '#tests/database/app.ts';
+import { banFor, createAppDb, seedRole, seedToken, seedUser } from '#tests/database/app.ts';
 import { tokenBanTable, userRoleTable } from '../schema.ts';
 
 describe('user_role.revoked_at set', () => {
 	describe('direct effect', () => {
 		test('defers token ban until expiry (reason: stale)', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 999_999_000);
@@ -26,7 +26,7 @@ describe('user_role.revoked_at set', () => {
 
 	describe('guards', () => {
 		test('does not ban already expired token', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 50_000);
@@ -41,7 +41,7 @@ describe('user_role.revoked_at set', () => {
 		});
 
 		test('does not double-ban already banned token', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 999_999_000);
@@ -67,7 +67,7 @@ describe('user_role.revoked_at set', () => {
 
 	describe('transition guard', () => {
 		test('does not re-fire cascade on repeat revoked_at update', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const role = seedRole(db, user, admin);
@@ -91,7 +91,7 @@ describe('user_role.revoked_at set', () => {
 
 	describe('cross-trigger state', () => {
 		test('does not ban when revoke_reason is set to deactivate directly', () => {
-			const db = createDb();
+			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
 			const token = seedToken(db, user, 999_999_000);

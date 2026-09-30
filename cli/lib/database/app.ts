@@ -9,7 +9,7 @@ import { auditDb } from './audit.ts';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 
-export const db = drizzle({
+export const appDb = drizzle({
 	client: new DatabaseSync(env.DATABASE_URL, databaseSyncOptions),
 	relations,
 	logger: {

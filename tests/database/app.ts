@@ -10,7 +10,7 @@ import { relations } from '#lib/database/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#lib/database/schema.ts';
 import { databaseSyncOptions } from '#lib/server/database/options.ts';
 
-export const createDb = (filename = ':memory:') => {
+export const createAppDb = (filename = ':memory:') => {
 	const migrationsFolder = resolve(root, 'drizzle/app');
 	if (!readMigrationFiles({ migrationsFolder }).length) throw new Error('No migrations found');
 
@@ -19,18 +19,18 @@ export const createDb = (filename = ':memory:') => {
 	return db;
 };
 
-export const seedUser = (db: ReturnType<typeof createDb>) =>
+export const seedUser = (db: ReturnType<typeof createAppDb>) =>
 	db.insert(userTable).values({ contact: randomUUID() }).returning().all()[0]!.id;
 
-export const seedToken = (db: ReturnType<typeof createDb>, userId: string, expiresAt: number) =>
+export const seedToken = (db: ReturnType<typeof createAppDb>, userId: string, expiresAt: number) =>
 	db
 		.insert(tokenTable)
 		.values({ userId, expiresAt: new Date(expiresAt), ip: '' })
 		.returning()
 		.all()[0]!.id;
 
-export const seedRole = (db: ReturnType<typeof createDb>, userId: string, assignedBy: string) =>
+export const seedRole = (db: ReturnType<typeof createAppDb>, userId: string, assignedBy: string) =>
 	db.insert(userRoleTable).values({ userId, role: 'admin', assignedBy }).returning().all()[0]!;
 
-export const banFor = (db: ReturnType<typeof createDb>, tokenId: string) =>
+export const banFor = (db: ReturnType<typeof createAppDb>, tokenId: string) =>
 	db.select().from(tokenBanTable).where(eq(tokenBanTable.tokenId, tokenId)).get();

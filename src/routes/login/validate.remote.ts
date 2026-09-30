@@ -24,7 +24,8 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 					where: { id: data.id },
 					columns: { code: true, expiresAt: true, ip: true },
 					with: {
-						attempts: { columns: { isSuccessful: true } },
+						attempts: { columns: { id: true } },
+						successfulAttempts: { columns: { id: true } },
 						activeUser: {
 							where: { contact: data.contact },
 							columns: { id: true },
@@ -47,10 +48,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				return { success: false, code: 'CODE_EXPIRED' } as const;
 			}
 
-			if (
-				login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS ||
-				login.attempts.some((attempt) => attempt.isSuccessful)
-			) {
+			if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS || login.successfulAttempts.length) {
 				return { success: false, code: 'CODE_BLOCKED' } as const;
 			}
 

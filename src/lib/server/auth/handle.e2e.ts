@@ -8,13 +8,11 @@ import {
 	AUTH_TOKEN_ROTATE_THRESHOLD,
 } from '#lib/config.ts';
 import { userProfileTable } from '#lib/database/schema.ts';
-import { seedToken, seedUser } from '#tests/database/app.ts';
+import { type createAppDb, seedToken, seedUser } from '#tests/database/app.ts';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '#tests/e2e/env.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
-type Db = Parameters<typeof seedUser>[0];
-
-const seedSession = (db: Db, expiresAt: number) => {
+const seedSession = (db: ReturnType<typeof createAppDb>, expiresAt: number) => {
 	const userId = seedUser(db);
 	db.insert(userProfileTable).values({ id: userId, birth: '2000-01-01' }).run();
 

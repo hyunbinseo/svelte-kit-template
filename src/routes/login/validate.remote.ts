@@ -14,8 +14,7 @@ import { ValidateCodeSchema } from './validate.ts';
 export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
-	const event = getRequestEvent();
-	const ip = event.getClientAddress();
+	const ip = getRequestEvent().getClientAddress();
 
 	const result = db.transaction(
 		(tx) => {
@@ -24,8 +23,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 					where: { id: data.id },
 					columns: { code: true, expiresAt: true, ip: true },
 					with: {
-						attempts: { columns: { id: true } },
-						successfulAttempts: { columns: { id: true } },
+						attempts: { columns: { isSuccessful: true } },
 						activeUser: {
 							where: { contact: data.contact },
 							columns: { id: true },
@@ -48,7 +46,10 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				return { success: false, code: 'CODE_EXPIRED' } as const;
 			}
 
-			if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS || login.successfulAttempts.length) {
+			if (
+				login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS ||
+				login.attempts.some((attempt) => attempt.isSuccessful)
+			) {
 				return { success: false, code: 'CODE_BLOCKED' } as const;
 			}
 

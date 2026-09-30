@@ -58,3 +58,41 @@ test('rotates a near-expiry JWT cookie and keeps the session', async ({ page, co
 	assert(reloaded);
 	expect(reloaded.value).toBe(rotated.value);
 });
+
+const invalidJWTs: [name: string, alg: string, withJti: boolean][] = [
+	['a disallowed algorithm', 'HS512', true],
+	['a missing claim', AUTH_TOKEN_ALGORITHM, false],
+];
+
+for (const [name, alg, withJti] of invalidJWTs) {
+	test(`rejects a JWT cookie with ${name}`, async ({ page, context, db }) => {
+		const userId = seedUser(db);
+		db.insert(userProfileTable).values({ id: userId, birth: '2000-01-01' }).run();
+
+		const expiresAt = Date.now() + AUTH_TOKEN_EXPIRES_IN;
+		const jti = seedToken(db, userId, expiresAt);
+
+		const jwt = new SignJWT({})
+			.setProtectedHeader({ alg })
+			.setSubject(userId)
+			.setExpirationTime(Math.floor(expiresAt / 1000))
+			.setIssuedAt();
+
+		if (withJti) jwt.setJti(jti);
+
+		await context.addCookies([
+			{
+				name: AUTH_COOKIE_NAME,
+				value: await jwt.sign(new TextEncoder().encode(JWT_SECRET_NEW)),
+				domain: 'localhost',
+				path: '/',
+			},
+		]);
+
+		await page.goto('/');
+		await expect(page.getByRole('link', { name: '로그인' })).toBeVisible();
+
+		const cookies = await context.cookies();
+		expect(cookies.find((cookie) => cookie.name === AUTH_COOKIE_NAME)).toBeUndefined();
+	});
+}

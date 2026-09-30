@@ -2,7 +2,7 @@ import { dev } from '$app/env';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { captureException, logger } from '@sentry/sveltekit';
-import { jwtVerify, SignJWT } from 'jose';
+import { jwtVerify, type JWTVerifyOptions, SignJWT } from 'jose';
 import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
 import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
@@ -155,12 +155,17 @@ export const rotateToken = async (
 	});
 };
 
+const verifyOptions = {
+	algorithms: [AUTH_TOKEN_ALGORITHM],
+	requiredClaims: ['jti', 'sub', 'exp', 'iat'] satisfies (keyof ReservedClaims)[],
+} satisfies JWTVerifyOptions;
+
 const verifyWithSecretFallback = async (jwt: string) => {
 	try {
-		return await jwtVerify<Payload>(jwt, SECRET_NEW);
+		return await jwtVerify<Payload>(jwt, SECRET_NEW, verifyOptions);
 	} catch (e) {
 		if (!SECRET_OLD || !(e instanceof JWSSignatureVerificationFailed)) throw e;
-		return await jwtVerify<Payload>(jwt, SECRET_OLD);
+		return await jwtVerify<Payload>(jwt, SECRET_OLD, verifyOptions);
 	}
 };
 

@@ -58,7 +58,7 @@ Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/en
 
 ## SQLite
 
-If a `PRAGMA` matters, verify it against runtime in `test/db-pragmas/<pragma>.ts` and document it.
+If a `PRAGMA` matters, verify it against runtime in `src/lib/server/database/pragmas/<pragma>.test.ts` and document it.
 
 ```ts
 import { DatabaseSync } from 'node:sqlite';
@@ -167,7 +167,7 @@ Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guar
 --> statement-breakpoint
 ```
 
-Add a test case in `test/db-app-triggers/<trigger_name>.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
+Add a test case in `src/lib/database/triggers/<trigger_name>.test.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
 
 - Direct effect: the cascade fires under the trigger's condition.
 - Guards: each condition that blocks the effect (e.g. already revoked, already banned, already expired).
@@ -193,7 +193,7 @@ If the transaction can't be made sync, leave a comment instead:
 // BLOCKED Use transaction for <a> + <b>
 ```
 
-Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing — see `test/db-pragmas/busy_timeout.ts`.
+Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing — see `src/lib/server/database/pragmas/busy_timeout.test.ts`.
 
 ```ts
 db.transaction(

@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
 import { SignJWT } from 'jose';
-import { JWT_SECRET_NEW } from '#cli/e2e/env.ts';
-import { test } from '#cli/e2e/fixtures.ts';
-import { seedToken, seedUser } from '#cli/lib/database/app.testing.ts';
 import {
 	AUTH_COOKIE_NAME,
 	AUTH_TOKEN_ALGORITHM,
@@ -11,6 +8,9 @@ import {
 	AUTH_TOKEN_ROTATE_THRESHOLD,
 } from '#lib/config.ts';
 import { userProfileTable } from '#lib/database/schema.ts';
+import { seedToken, seedUser } from '#tests/database/app.ts';
+import { JWT_SECRET_NEW } from '#tests/e2e/env.ts';
+import { test } from '#tests/e2e/fixtures.ts';
 
 test('rotates a near-expiry JWT cookie and keeps the session', async ({ page, context, db }) => {
 	const userId = seedUser(db);

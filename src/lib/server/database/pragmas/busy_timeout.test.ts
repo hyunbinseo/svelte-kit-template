@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { after, describe, test } from 'node:test';
 import { Worker } from 'node:worker_threads';
-import { databaseSyncOptions } from '#lib/server/database/options.ts';
+import { databaseSyncOptions } from '../options.ts';
 
 const HOLD_MS = 1000;
 

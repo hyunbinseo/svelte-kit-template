@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { test } from 'node:test';
-import { databaseSyncOptions } from '#lib/server/database/options.ts';
+import { databaseSyncOptions } from '../options.ts';
 
 const createDb = () => {
 	const db = new DatabaseSync(':memory:', databaseSyncOptions);

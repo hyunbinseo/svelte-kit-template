@@ -3,7 +3,8 @@
 	"type": "module",
 	"imports": {
 		"#cli/*": "./cli/*",
-		"#lib/*": "./src/lib/*"
+		"#lib/*": "./src/lib/*",
+		"#tests/*": "./tests/*"
 	},
 	"scripts": {
 		"dev": "vite dev",

@@ -143,6 +143,17 @@ Tables are grouped by owner in FK order in `schema.ts`:
 - Subject's own attribute tables (e.g. `userProfileTable`, `userRoleTable`)
 - Join table (e.g. `postToTagTable`) — even if it forward-references a table declared later (e.g. `tagTable`)
 
+Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one.
+
+#### Indexes
+
+Index foreign key columns used in lookups or triggers.
+
+Index names follow 2 conventions:
+
+- `<table>_<columns>_idx` (e.g. `token_user_id_idx`)
+- `active_<table>_<columns>_idx` — filtered on soft-delete (e.g. `active_user_contact_idx`)
+
 Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique):
 
 ```ts
@@ -150,8 +161,6 @@ uniqueIndex('active_user_role_user_id_role_idx')
 	.on(table.userId, table.role)
 	.where(isNull(table.revokedAt));
 ```
-
-Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one.
 
 ### Relations
 

@@ -126,6 +126,7 @@ export const tokenTable = snakeCase.table(
 		ip: text().notNull(),
 	},
 	(table) => [
+		index('token_user_id_idx').on(table.userId),
 		check('token_refresh_info_pair', eq(isNull(table.refreshedFrom), isNull(table.refreshReason))),
 	],
 );

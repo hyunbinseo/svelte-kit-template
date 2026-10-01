@@ -29,6 +29,9 @@ On the server, create an `.env.production.local` file (see `.env.[mode].local.ex
 > [!WARNING]
 > Always sync to the latest commit first — this discards any local changes on the server.
 
+> [!IMPORTANT]
+> Install all dependencies, including `devDependencies` — they are required on the server.
+
 ```shell
 git fetch origin main
 git reset --hard origin/main

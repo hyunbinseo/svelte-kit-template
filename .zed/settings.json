@@ -1,6 +1,9 @@
 {
 	"format_on_save": "on",
-	"formatter": [{ "language_server": { "name": "oxfmt" } }],
+	"formatter": [
+		{ "code_action": "source.fixAll.eslint" },
+		{ "language_server": { "name": "oxfmt" } }
+	],
 	"languages": { "Svelte": { "language_servers": ["!oxlint", "..."] } },
 	"lsp": {
 		"oxfmt": {

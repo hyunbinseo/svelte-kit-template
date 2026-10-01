@@ -11,7 +11,7 @@
 		"build": "node cli/scripts/build.ts",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc --project ./cli/tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli && tsc -p .claude",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",

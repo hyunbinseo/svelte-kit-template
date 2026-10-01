@@ -5,7 +5,7 @@ An opinionated SvelteKit template for agent-assisted development.
 ## Features
 
 - Best practices documented in `AGENTS.md` and demonstrated in the code
-- Claude Code support — `CLAUDE.md`, `.mcp.json`, format-on-edit hook
+- Claude Code support — `CLAUDE.md`, `.mcp.json`, hook (lint, format)
 - Custom auth — JWT revocation, ban tracking, onboarding flows
 - Unit, E2E tests — database trigger cascades, auth cookie rotation
 
@@ -14,7 +14,7 @@ An opinionated SvelteKit template for agent-assisted development.
 - Svelte 5 — runes, `createContext`, `await` in markup
 - SvelteKit — remote functions (`query`, `form`, `prerender`)
 - Drizzle ORM — Relational Queries v2, trigger-based cascades
-- Tailwind CSS, Sentry, oxfmt, and more
+- Tailwind CSS, Sentry, ESLint, oxfmt, and more
 
 ## Development Setup
 

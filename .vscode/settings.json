@@ -1,5 +1,8 @@
 {
-	"editor.codeActionsOnSave": { "source.organizeImports": "never" },
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "always",
+		"source.organizeImports": "never"
+	},
 	"editor.defaultFormatter": "oxc.oxc-vscode",
 	"editor.formatOnSave": true,
 	"files.associations": { "*.css": "tailwindcss" },

@@ -2,11 +2,13 @@
 	import { SITE_NAME } from '$app/env/public';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
+	import { AUTH_CODE_LENGTH } from '#lib/config.ts';
+	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
 	import { sendCode as _sendCode } from './send.remote.ts';
-	import { SendCodeSchema, sendCodeAttributes } from './send.ts';
+	import { SendCodeSchema } from './send.ts';
 	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared.ts';
 	import { validateCode as _validateCode } from './validate.remote.ts';
-	import { ValidateCodeSchema, validateCodeAttributes } from './validate.ts';
+	import { ValidateCodeSchema } from './validate.ts';
 
 	let { data } = $props();
 	const uid = $props.id();
@@ -56,7 +58,8 @@
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...sendCode.fields.contact.as('email')}
-								{...sendCodeAttributes.contact}
+								autocomplete="email"
+								placeholder={PLACEHOLDER_EMAIL}
 								autofocus
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
@@ -73,14 +76,8 @@
 					class="mt-6 flex flex-col gap-y-4"
 				>
 					<fieldset disabled={false} class="contents">
-						<input
-							{...validateCode.fields.id.as('hidden', sendCode.result.id)}
-							{...validateCodeAttributes.id}
-						/>
-						<input
-							{...validateCode.fields.contact.as('hidden', sendCode.result.contact)}
-							{...validateCodeAttributes.contact}
-						/>
+						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
+						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />
 						<label>
 							<span>이메일</span>
 							<input disabled type="email" value={sendCode.result.contact} class="bg-gray-200" />
@@ -90,7 +87,9 @@
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...validateCode.fields.code.as('text')}
-								{...validateCodeAttributes.code}
+								autocomplete="one-time-code"
+								placeholder={'0'.repeat(AUTH_CODE_LENGTH)}
+								inputmode="numeric"
 								autofocus
 								class="tabular-nums"
 							/>

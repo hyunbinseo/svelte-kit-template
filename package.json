@@ -11,18 +11,19 @@
 		"build": "node cli/scripts/build.ts",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli && tsc -p .claude",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"check": "node --run fmt:check && node --run lint && node --run check:types",
+		"check:types": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli && tsc -p .claude",
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
-		"lint": "oxfmt --check . && eslint .",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
 		"test": "node --test && node --run test:e2e",
 		"test:e2e": "playwright test",
 		"db:app:generate": "drizzle-kit generate",
 		"db:app:migrate:dev": "drizzle-kit migrate",
 		"db:app:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",
 		"db:audit:generate": "drizzle-kit generate --config=drizzle-audit.config.ts",
-		"db:audit:migrate": "drizzle-kit migrate --config=drizzle-audit.config.ts"
+		"db:audit:migrate:prod": "drizzle-kit migrate --config=drizzle-audit.config.ts"
 	},
 	"dependencies": {
 		"@sentry/sveltekit": "^11.0.0"

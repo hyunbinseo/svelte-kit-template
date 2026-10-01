@@ -38,7 +38,7 @@ git reset --hard origin/main
 
 pnpm i
 pnpm db:app:migrate:prod
-pnpm db:audit:migrate
+pnpm db:audit:migrate:prod
 
 pnpm build
 nano .env.production.local # set/update BUILD_ID

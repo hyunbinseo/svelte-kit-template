@@ -20,8 +20,8 @@
 		<StyledLabels>
 			<form
 				{...setupProfile.preflight(SetupProfileSchema)}
-				onchange={() => setupProfile.validate({ preflightOnly: true })}
 				class="mt-6 flex flex-col gap-y-4"
+				onchange={() => setupProfile.validate({ preflightOnly: true })}
 			>
 				<fieldset class="contents">
 					<label>
@@ -30,7 +30,7 @@
 						<input {...setupProfile.fields.birth.as('date')} autofocus />
 						{@render formIssues(setupProfile.fields.birth.issues())}
 					</label>
-					<button disabled={!!setupProfile.pending} class="btn btn-primary disabled:btn-busy">
+					<button class="btn btn-primary disabled:btn-busy" disabled={!!setupProfile.pending}>
 						제출
 					</button>
 				</fieldset>

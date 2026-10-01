@@ -46,12 +46,12 @@
 				{/if}
 				<form
 					{...sendCode.preflight(SendCodeSchema)}
-					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
+					onchange={() => sendCode.validate({ preflightOnly: true })}
 				>
 					<!-- BLOCKED Use top-level fieldset to disable form during submission. -->
 					<!-- See https://github.com/sveltejs/kit/issues/15104 -->
-					<fieldset disabled={false} class="contents">
+					<fieldset class="contents" disabled={false}>
 						<label>
 							<span>이메일</span>
 							<!-- Virtual keyboard might not open despite autofocus (e.g. no prior user interaction). -->
@@ -59,12 +59,12 @@
 							<input
 								{...sendCode.fields.contact.as('email')}
 								autocomplete="email"
-								placeholder={PLACEHOLDER_EMAIL}
 								autofocus
+								placeholder={PLACEHOLDER_EMAIL}
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>
-						<button disabled={!!sendCode.pending} class="btn btn-primary disabled:btn-busy">
+						<button class="btn btn-primary disabled:btn-busy" disabled={!!sendCode.pending}>
 							인증번호 전송
 						</button>
 					</fieldset>
@@ -72,30 +72,30 @@
 			{:else}
 				<form
 					{...validateCode.preflight(ValidateCodeSchema)}
-					onchange={() => validateCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
+					onchange={() => validateCode.validate({ preflightOnly: true })}
 				>
-					<fieldset disabled={false} class="contents">
+					<fieldset class="contents" disabled={false}>
 						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
 						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />
 						<label>
 							<span>이메일</span>
-							<input disabled type="email" value={sendCode.result.contact} class="bg-gray-200" />
+							<input class="bg-gray-200" disabled type="email" value={sendCode.result.contact} />
 						</label>
 						<label>
 							<span>인증번호</span>
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...validateCode.fields.code.as('text')}
-								autocomplete="one-time-code"
-								placeholder={'0'.repeat(AUTH_CODE_LENGTH)}
-								inputmode="numeric"
-								autofocus
 								class="tabular-nums"
+								autocomplete="one-time-code"
+								autofocus
+								inputmode="numeric"
+								placeholder={'0'.repeat(AUTH_CODE_LENGTH)}
 							/>
 							{@render formIssues(validateCode.fields.code.issues())}
 						</label>
-						<button disabled={!!validateCode.pending} class="btn btn-primary disabled:btn-busy">
+						<button class="btn btn-primary disabled:btn-busy" disabled={!!validateCode.pending}>
 							로그인
 						</button>
 					</fieldset>

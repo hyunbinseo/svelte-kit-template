@@ -25,9 +25,9 @@
 		<a class="btn btn-primary" data-sveltekit-reload href={resolve('/')}>처음으로</a>
 		{#if page.status >= 500}
 			<form class="contents" method="POST">
-				<button class="btn btn-primary" formaction={resolve('/api/clear-site-data')}>
-					초기화 후 처음으로
-				</button>
+				<button class="btn btn-primary" formaction={resolve('api/clear-site-data')}
+					>초기화 후 처음으로</button
+				>
 			</form>
 		{/if}
 	</nav>

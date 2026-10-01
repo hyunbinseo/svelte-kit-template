@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import type { RemoteFormIssue } from '@sveltejs/kit';
+	import type { RemoteFormIssue } from '$app/server';
 	import { slide } from 'svelte/transition';
 </script>
 

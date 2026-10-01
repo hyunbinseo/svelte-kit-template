@@ -9,7 +9,7 @@ import type { TokenRevokeReason } from '#lib/enums/token.ts';
 import { db } from '../database/client.ts';
 import { createRedirectUrl } from './redirect.ts';
 
-const onboardPath = resolve('/onboard');
+const onboardPath = resolve('onboard');
 
 export const requireSession = () => {
 	const event = getRequestEvent();

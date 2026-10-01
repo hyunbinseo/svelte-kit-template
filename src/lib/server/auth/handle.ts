@@ -48,11 +48,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	}
 
 	const userId = event.locals.session?.sub;
-
-	if (userId) {
-		setUser({ id: userId });
-		event.tracing.root.setAttribute('userId', userId);
-	}
+	if (userId) setUser({ id: userId });
 
 	return resolve(event);
 };

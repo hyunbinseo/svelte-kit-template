@@ -2,11 +2,13 @@
 	import { SITE_NAME } from '$app/env/public';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
+	import { AUTH_CODE_LENGTH } from '#lib/config.ts';
+	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
 	import { sendCode as _sendCode } from './send.remote.ts';
-	import { SendCodeSchema, sendCodeAttributes } from './send.ts';
+	import { SendCodeSchema } from './send.ts';
 	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared.ts';
 	import { validateCode as _validateCode } from './validate.remote.ts';
-	import { ValidateCodeSchema, validateCodeAttributes } from './validate.ts';
+	import { ValidateCodeSchema } from './validate.ts';
 
 	let { data } = $props();
 	const uid = $props.id();
@@ -44,24 +46,25 @@
 				{/if}
 				<form
 					{...sendCode.preflight(SendCodeSchema)}
-					onchange={() => sendCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
+					onchange={() => sendCode.validate({ preflightOnly: true })}
 				>
 					<!-- BLOCKED Use top-level fieldset to disable form during submission. -->
 					<!-- See https://github.com/sveltejs/kit/issues/15104 -->
-					<fieldset disabled={false} class="contents">
+					<fieldset class="contents" disabled={false}>
 						<label>
 							<span>이메일</span>
 							<!-- Virtual keyboard might not open despite autofocus (e.g. no prior user interaction). -->
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...sendCode.fields.contact.as('email')}
-								{...sendCodeAttributes.contact}
+								autocomplete="email"
 								autofocus
+								placeholder={PLACEHOLDER_EMAIL}
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>
-						<button disabled={!!sendCode.pending} class="btn btn-primary disabled:btn-busy">
+						<button class="btn btn-primary disabled:btn-busy" disabled={!!sendCode.pending}>
 							인증번호 전송
 						</button>
 					</fieldset>
@@ -69,34 +72,30 @@
 			{:else}
 				<form
 					{...validateCode.preflight(ValidateCodeSchema)}
-					onchange={() => validateCode.validate({ preflightOnly: true })}
 					class="mt-6 flex flex-col gap-y-4"
+					onchange={() => validateCode.validate({ preflightOnly: true })}
 				>
-					<fieldset disabled={false} class="contents">
-						<input
-							{...validateCode.fields.id.as('hidden', sendCode.result.id)}
-							{...validateCodeAttributes.id}
-						/>
-						<input
-							{...validateCode.fields.contact.as('hidden', sendCode.result.contact)}
-							{...validateCodeAttributes.contact}
-						/>
+					<fieldset class="contents" disabled={false}>
+						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
+						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />
 						<label>
 							<span>이메일</span>
-							<input disabled type="email" value={sendCode.result.contact} class="bg-gray-200" />
+							<input class="bg-gray-200" disabled type="email" value={sendCode.result.contact} />
 						</label>
 						<label>
 							<span>인증번호</span>
 							<!-- svelte-ignore a11y_autofocus -->
 							<input
 								{...validateCode.fields.code.as('text')}
-								{...validateCodeAttributes.code}
-								autofocus
 								class="tabular-nums"
+								autocomplete="one-time-code"
+								autofocus
+								inputmode="numeric"
+								placeholder={'0'.repeat(AUTH_CODE_LENGTH)}
 							/>
 							{@render formIssues(validateCode.fields.code.issues())}
 						</label>
-						<button disabled={!!validateCode.pending} class="btn btn-primary disabled:btn-busy">
+						<button class="btn btn-primary disabled:btn-busy" disabled={!!validateCode.pending}>
 							로그인
 						</button>
 					</fieldset>

@@ -38,5 +38,8 @@ export default defineConfig(
 				parser: ts.parser,
 			},
 		},
+		rules: {
+			'svelte/sort-attributes': 'error',
+		},
 	},
 );

@@ -23,7 +23,7 @@
 			</dd>
 		</dl>
 		<form {...logout} class="contents">
-			<button disabled={!!logout.pending} class="mt-8 btn btn-primary disabled:btn-busy">
+			<button class="mt-8 btn btn-primary disabled:btn-busy" disabled={!!logout.pending}>
 				로그아웃
 			</button>
 		</form>

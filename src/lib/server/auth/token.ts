@@ -88,10 +88,7 @@ export const issueToken = async (input: TokenInput) => {
 		.setIssuedAt(token.issuedAt)
 		.sign(SECRET_NEW);
 
-	event.cookies.set(AUTH_COOKIE_NAME, jwt, {
-		path: '/',
-		expires: token.expiresAt,
-	});
+	event.cookies.set(AUTH_COOKIE_NAME, jwt, { expires: token.expiresAt });
 
 	event.locals.session = {
 		jti: token.id,
@@ -138,7 +135,7 @@ export const rotateToken = async (
 		.sync();
 
 	if (!user) {
-		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+		event.cookies.delete(AUTH_COOKIE_NAME);
 		delete event.locals.session;
 		return;
 	}

@@ -22,7 +22,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 			.sync();
 
 	if (!verified || (ban && ban.effectiveAt <= new Date())) {
-		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+		event.cookies.delete(AUTH_COOKIE_NAME);
 		return resolve(event);
 	}
 

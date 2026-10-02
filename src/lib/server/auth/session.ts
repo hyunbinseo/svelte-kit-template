@@ -62,6 +62,6 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 		})
 		.run();
 
-	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+	event.cookies.delete(AUTH_COOKIE_NAME);
 	delete event.locals.session;
 };

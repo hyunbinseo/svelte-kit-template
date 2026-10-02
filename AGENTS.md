@@ -1,5 +1,7 @@
 Before finalizing changes, update any `*.md` files that reference changed code or config to avoid stale content (e.g. this file).
 
+Route-specific code stays colocated; shared code goes in `src/lib/`.
+
 ## Debugging
 
 Consider whether a bug may originate from a library or framework, not just application code. If so, ask before checking issues, writing an MRE, or inspecting the source.
@@ -274,7 +276,7 @@ Don't use for user-triggered actions (e.g. a button click) — use `form` instea
 See `src/routes/login/` for conventions.
 
 ```ts
-// src/lib/remotes/create-post.ts
+// src/routes/posts/new/create-post.ts
 import { nonEmpty, object, pipe, string } from 'valibot';
 
 export const CreatePostSchema = object({
@@ -284,7 +286,7 @@ export const CreatePostSchema = object({
 ```
 
 ```ts
-// src/lib/remotes/create-post.remote.ts
+// src/routes/posts/new/create-post.remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
 import { db } from '#lib/server/database/client.ts';
@@ -326,13 +328,13 @@ The client names query instances to refresh with `.updates(...)`; the server acc
 > `query().set()` doesn't narrow to the return type — pass a projection, not a raw row. See https://github.com/sveltejs/kit/issues/14612
 
 ```ts
-// src/lib/remotes/create-post.remote.ts
+// src/routes/posts/new/create-post.remote.ts
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
+import { getPost, getPosts } from '#lib/remotes/posts.remote.ts';
 import { db } from '#lib/server/database/client.ts';
 import { CreatePostSchema } from './create-post.ts';
-import { getPost, getPosts } from './posts.remote.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
 	const post = db.insert(postTable).values(data).returning().all()[0]!;

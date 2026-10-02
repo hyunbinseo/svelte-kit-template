@@ -1,22 +1,29 @@
 {
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
-		"sourceMap": true,
 		"strict": true,
+
+		// Environment Settings
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
-		"lib": ["ES2023", "DOM"],
+		"lib": ["ES2023", "DOM"], // sync with app.html browser check
 		"types": ["node", "$app/types"],
+
+		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true,
 		"exactOptionalPropertyTypes": true,
+
+		// Style Options
 		"noImplicitReturns": true,
 		"noImplicitOverride": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"noPropertyAccessFromIndexSignature": false,
+
+		// Added
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 	},
-	"include": ["src"]
+	"include": ["src", "tests", "*.ts", "*.js", "node_modules/$app/types/env.d.ts"]
 }

@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import { env } from 'node:process';
 import { defineConfig } from '@playwright/test';
 import { DATABASE_URL, JWT_SECRET_NEW, SITE_NAME } from './tests/e2e/env.ts';

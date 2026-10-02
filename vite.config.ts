@@ -20,7 +20,6 @@ export default defineConfig({
 				experimental: { async: true },
 			},
 			experimental: {
-				explicitEnvironmentVariables: true,
 				remoteFunctions: true,
 			},
 			version: {

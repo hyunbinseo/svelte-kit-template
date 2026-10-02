@@ -4,9 +4,9 @@
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
 	import { AUTH_CODE_LENGTH } from '#lib/config.ts';
 	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
+	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './errors.ts';
 	import { sendCode as _sendCode } from './send.remote.ts';
 	import { SendCodeSchema } from './send.ts';
-	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './shared.ts';
 	import { validateCode as _validateCode } from './validate.remote.ts';
 	import { ValidateCodeSchema } from './validate.ts';
 
@@ -20,10 +20,10 @@
 
 	// BLOCKED Programmatically reset remote form state.
 	// See https://github.com/sveltejs/kit/pull/14779
-	let validateResult = $derived(validateCode.result);
+	let validateFailure = $derived(validateCode.result);
 
 	$effect(() => {
-		if (sendCode.result) validateResult = undefined;
+		if (sendCode.result) validateFailure = undefined;
 	});
 </script>
 
@@ -34,14 +34,14 @@
 			<h1 class="text-2xl font-bold">{data.title}</h1>
 		</header>
 		<StyledLabels>
-			{#if !sendCode.result || validateResult?.success === false}
-				{#if validateResult}
+			{#if !sendCode.result || validateFailure}
+				{#if validateFailure}
 					<p class="mt-1 text-red-600">
 						{{
 							CODE_BLOCKED,
 							CODE_EXPIRED,
 							IP_MISMATCH,
-						}[validateResult.code]}
+						}[validateFailure.errorCode]}
 					</p>
 				{/if}
 				<form

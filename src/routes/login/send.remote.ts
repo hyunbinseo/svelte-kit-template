@@ -7,8 +7,8 @@ import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { db } from '#lib/server/database/client.ts';
+import { RATE_LIMITED, UNREGISTERED } from './errors.ts';
 import { SendCodeSchema } from './send.ts';
-import { RATE_LIMITED, UNREGISTERED } from './shared.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();

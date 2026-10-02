@@ -8,7 +8,7 @@ import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { issueToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database/client.ts';
-import { CODE_INVALID } from './shared.ts';
+import { CODE_INVALID, type ErrorCode } from './errors.ts';
 import { ValidateCodeSchema } from './validate.ts';
 
 export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
@@ -38,19 +38,14 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!login || !login.activeUser) error(400);
 
-			if (login.ip !== ip) {
-				return { success: false, code: 'IP_MISMATCH' } as const;
-			}
-
-			if (login.expiresAt < new Date()) {
-				return { success: false, code: 'CODE_EXPIRED' } as const;
-			}
+			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
+			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
 
 			if (
 				login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS ||
 				login.attempts.some((attempt) => attempt.isSuccessful)
 			) {
-				return { success: false, code: 'CODE_BLOCKED' } as const;
+				return { errorCode: 'CODE_BLOCKED' };
 			}
 
 			const isCorrect = timingSafeEqual(
@@ -66,17 +61,15 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.run();
 
-			if (!isCorrect) return { success: false, code: 'CODE_INVALID' } as const;
+			if (!isCorrect) return { errorCode: 'CODE_INVALID' };
 
-			return { success: true, user: login.activeUser } as const;
+			return { user: login.activeUser };
 		},
 		{ behavior: 'immediate' },
-	);
+	) satisfies { user: unknown } | { errorCode: ErrorCode };
 
-	if (!result.success) {
-		if (result.code === 'CODE_INVALID') invalid(issue.code(CODE_INVALID));
-		return result;
-	}
+	if (result.errorCode === 'CODE_INVALID') invalid(issue.code(CODE_INVALID));
+	if (result.errorCode) return result;
 
 	await issueToken({
 		sub: result.user.id,

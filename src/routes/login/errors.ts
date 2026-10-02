@@ -1,3 +1,5 @@
+export type ErrorCode = keyof typeof import('./errors.ts');
+
 export const CODE_BLOCKED = '새로운 인증번호로 재시도해주세요.';
 export const CODE_EXPIRED = '만료된 인증번호입니다.';
 export const CODE_INVALID = '잘못된 인증번호입니다.';

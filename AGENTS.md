@@ -39,14 +39,14 @@ These options are enabled:
 - Use arrow syntax over function expressions and declarations.
 - Blank `//` comments can be used to force multiline formatting.
 
-Use the import path with the fewest segments — on a tie, prefer the `#` subpath import:
+Pick import paths like TypeScript's `shortest` auto-import (fewer `/` wins), e.g. in `src/lib/a/x.ts`:
 
-```ts
-// Not `#lib/server/database/client.ts` — more segments
-import { silentDb } from '../database/client.ts';
+```diff
+- '#lib/a/b.ts' // 2
++ './b.ts' // 0, `./` doesn't count
 
-// Not `../database/app.ts` — tie
-import { createAppDb } from '#tests/database/app.ts';
+- '../b/c.ts' // 2
++ '#lib/b/c.ts' // 2, `#` wins ties
 ```
 
 Don't use `!` non-null assertions, except:

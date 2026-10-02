@@ -21,8 +21,7 @@
 		{/if}
 	</h1>
 	<nav class="mt-4 flex gap-x-4">
-		<!-- TODO v3. See https://github.com/sveltejs/kit/issues/15694 -->
-		<a class="btn btn-primary" data-sveltekit-reload href={resolve('/')}>처음으로</a>
+		<a class="btn btn-primary" href={resolve('/')}>처음으로</a>
 		{#if page.status >= 500}
 			<form class="contents" method="POST">
 				<button class="btn btn-primary" formaction={resolve('api/clear-site-data')}

@@ -1,4 +1,3 @@
-import { dev } from '$app/env';
 import { JWT_SECRET_NEW, JWT_SECRET_OLD } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { captureException, logger } from '@sentry/sveltekit';
@@ -92,8 +91,6 @@ export const issueToken = async (input: TokenInput) => {
 	event.cookies.set(AUTH_COOKIE_NAME, jwt, {
 		path: '/',
 		expires: token.expiresAt,
-		// TODO v3. See https://github.com/sveltejs/kit/issues/10438
-		secure: !dev || event.url.protocol === 'https:',
 	});
 
 	event.locals.session = {

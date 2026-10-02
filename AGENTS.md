@@ -227,18 +227,10 @@ db.transaction(
 
 ## SvelteKit
 
+Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
+
 - Call `getRequestEvent()` in utility functions instead of passing `event`.
 - Use `form` remote functions instead of `actions` in `+page.server.ts`.
-
-### Environment Variables
-
-Define them in `src/env.ts` and import from `$app/env`:
-
-```ts
-import { browser } from '$app/env'; // SvelteKit provided
-import { DATABASE_URL } from '$app/env/private';
-import { SENTRY_DSN } from '$app/env/public';
-```
 
 ### Remote Functions (RPC)
 
@@ -303,9 +295,9 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 
 ##### Refreshing Queries on Mutation
 
-By default, a successful `form` submission calls `invalidateAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
+By default, a successful `form` submission calls `refreshAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
 
-The client names query instances to refresh with `.updates(...)`; the server accepts them with `requested(...)`.
+The client names query instances to refresh with `.updates(...)`; the server accepts them with `requested(...)`. A requested query the server doesn't refresh or set fails with a 400 — `submit()` still resolves.
 
 ```svelte
 <form
@@ -391,7 +383,7 @@ Internal navigation must use `resolve()`:
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
-	// Applies to `pushState` and `replaceState` navigation as well.
+	// Applies to shallow routing (`goto(url, { state, shallow: true })`) as well.
 	goto(resolve('/blog/tags?svelte')); // append search string or hash
 </script>
 

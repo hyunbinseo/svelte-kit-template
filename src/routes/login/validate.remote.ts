@@ -2,17 +2,14 @@ import { timingSafeEqual } from 'node:crypto';
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
 import { error, invalid, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { check, fallback, parse, pipe } from 'valibot';
 import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
-import {
-	AUTH_ALLOW_UNREGISTERED,
-	AUTH_CODE_MAX_ATTEMPTS,
-	AUTH_REDIRECT_PARAM,
-} from '#auth/config.ts';
+import { AUTH_CODE_MAX_ATTEMPTS, AUTH_REDIRECT_PARAM } from '#auth/config.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { issueToken } from '#auth/server/token.ts';
 import { db } from '#database/client.ts';
-import { loginAttemptTable, userTable } from '#database/schema.ts';
+import { loginAttemptTable, loginTable, userTable } from '#database/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import { type ValidateErrorCode, validateErrors, ValidateCodeSchema } from './validate.ts';
 
@@ -27,7 +24,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			const login = tx.query.loginTable
 				.findFirst({
 					where: { id: data.id, contact: data.contact },
-					columns: { code: true, expiresAt: true, ip: true },
+					columns: { sendId: true, userId: true, code: true, expiresAt: true, ip: true },
 					with: {
 						attempts: { columns: { isSuccessful: true } },
 						activeUser: {
@@ -41,7 +38,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.sync();
 
-			if (!login) error(400);
+			if (!login || (login.userId && !login.activeUser)) error(400);
 
 			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
@@ -54,11 +51,11 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			}
 
 			const isCorrect =
+				!!login.sendId &&
 				timingSafeEqual(
 					Buffer.from(login.code), //
 					Buffer.from(data.code),
-				) &&
-				(!!login.activeUser || AUTH_ALLOW_UNREGISTERED);
+				);
 
 			tx.insert(loginAttemptTable)
 				.values({
@@ -70,17 +67,20 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!isCorrect) return { errorCode: 'CODE_INVALID' };
 
-			const user = login.activeUser ?? {
-				id: tx
-					.insert(userTable)
-					.values({ contact: data.contact })
-					.returning({ id: userTable.id })
-					.all()[0]!.id,
-				profile: null,
-				activeRoles: [],
-			};
+			if (login.activeUser) return { user: login.activeUser };
 
-			return { user };
+			const newUser = tx
+				.insert(userTable)
+				.values({ contact: data.contact })
+				.onConflictDoNothing()
+				.returning({ id: userTable.id })
+				.all()[0];
+
+			if (!newUser) error(400);
+
+			tx.update(loginTable).set({ userId: newUser.id }).where(eq(loginTable.id, data.id)).run();
+
+			return { user: { id: newUser.id, profile: null, activeRoles: [] } };
 		},
 		{ behavior: 'immediate' },
 	) satisfies { user: unknown } | { errorCode: ValidateErrorCode };

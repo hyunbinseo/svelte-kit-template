@@ -77,15 +77,19 @@ export const loginTable = snakeCase.table(
 	'login',
 	{
 		id: text().primaryKey().$default(randomUUIDv7),
-		sendId: text().notNull().unique(),
+		sendId: text().unique(),
 		contact: text().notNull(),
+		userId: text().references(() => userTable.id),
 		code: text().notNull(),
 		expiresAt: integer({ mode: 'timestamp' })
 			.notNull()
 			.$default(() => new Date(Date.now() + AUTH_CODE_EXPIRES_IN)),
 		ip: text().notNull(),
 	},
-	(table) => [index('login_contact_idx').on(table.contact)],
+	(table) => [
+		index('login_contact_idx').on(table.contact),
+		index('login_user_id_idx').on(table.userId),
+	],
 );
 
 export const loginAttemptTable = snakeCase.table(

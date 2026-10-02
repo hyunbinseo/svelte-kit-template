@@ -46,7 +46,7 @@ export const db = drizzle({
 						.values({
 							sub: event.locals.session?.sub,
 							ip: event.getClientAddress(),
-							pathname: event.url.pathname,
+							pathname: new URL(event.request.url).pathname,
 							queryHash,
 							params: JSON.stringify(params),
 						})

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { env } from 'node:process';
 import { expect } from '@playwright/test';
 import { SignJWT } from 'jose';
 import {
@@ -9,7 +10,6 @@ import {
 } from '#lib/config.ts';
 import { userProfileTable } from '#lib/database/schema.ts';
 import { seedToken, seedUser } from '#tests/database/app.ts';
-import { JWT_SECRET_NEW } from '#tests/e2e/env.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
 test('rotates a near-expiry JWT cookie and keeps the session', async ({ page, context, db }) => {
@@ -19,13 +19,14 @@ test('rotates a near-expiry JWT cookie and keeps the session', async ({ page, co
 	const expiresAt = Date.now() + AUTH_TOKEN_ROTATE_THRESHOLD / 2;
 	const jti = seedToken(db, userId, expiresAt);
 
+	assert(env.JWT_SECRET_NEW);
 	const jwt = await new SignJWT({})
 		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })
 		.setJti(jti)
 		.setSubject(userId)
 		.setExpirationTime(Math.floor(expiresAt / 1000))
 		.setIssuedAt()
-		.sign(new TextEncoder().encode(JWT_SECRET_NEW));
+		.sign(new TextEncoder().encode(env.JWT_SECRET_NEW));
 
 	await context.addCookies([
 		{

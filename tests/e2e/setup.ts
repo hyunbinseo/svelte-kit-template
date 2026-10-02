@@ -1,6 +1,8 @@
+import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
+import { env } from 'node:process';
 import { createAppDb } from '#tests/database/app.ts';
-import { DATABASE_URL } from './env.ts';
 
-rmSync(DATABASE_URL, { force: true });
-createAppDb(DATABASE_URL);
+assert(env.DATABASE_URL);
+rmSync(env.DATABASE_URL, { force: true });
+createAppDb(env.DATABASE_URL);

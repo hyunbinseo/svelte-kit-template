@@ -1,4 +1,8 @@
+import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
-import { DATABASE_URL } from './env.ts';
+import { env } from 'node:process';
 
-export default () => rmSync(DATABASE_URL, { force: true });
+export default () => {
+	assert(env.DATABASE_URL);
+	rmSync(env.DATABASE_URL, { force: true });
+};

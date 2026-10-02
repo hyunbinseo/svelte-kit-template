@@ -10,7 +10,7 @@ describe('user.deactivated_at set', () => {
 			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
-			db.insert(userRoleTable).values({ userId: user, role: 'admin', assignedBy: admin }).run();
+			seedRole(db, user, admin);
 
 			db.update(userTable)
 				.set({ deactivatedAt: new Date(100_000), deactivatedBy: admin })
@@ -45,11 +45,7 @@ describe('user.deactivated_at set', () => {
 			const db = createAppDb();
 			const admin = seedUser(db);
 			const user = seedUser(db);
-			const role = db
-				.insert(userRoleTable)
-				.values({ userId: user, role: 'admin', assignedBy: admin })
-				.returning()
-				.all()[0]!;
+			const role = seedRole(db, user, admin);
 			db.update(userRoleTable)
 				.set({ revokedAt: new Date(50_000), revokedBy: admin, revokeReason: 'manual' })
 				.where(eq(userRoleTable.id, role.id))

@@ -9,7 +9,6 @@ import { Worker } from 'node:worker_threads';
 import { databaseSyncOptions } from '../options.ts';
 
 const HOLD_MS = 1000;
-
 assert.ok(HOLD_MS < databaseSyncOptions.timeout);
 
 const SQLITE_BUSY = { code: 'ERR_SQLITE_ERROR', errcode: 5 } as const;
@@ -57,6 +56,7 @@ test('0 by default, overridden', () => {
 	const read = (db: DatabaseSync) => db.prepare('PRAGMA busy_timeout').get()?.['timeout'];
 	using defaultDb = new DatabaseSync(':memory:');
 	using db = new DatabaseSync(':memory:', databaseSyncOptions);
+
 	assert.equal(read(defaultDb), 0);
 	assert.equal(read(db), databaseSyncOptions.timeout);
 });
@@ -104,6 +104,7 @@ for (const journalMode of ['DELETE', 'WAL'] as const) {
 
 			db.exec('BEGIN');
 			db.exec('SELECT * FROM t');
+
 			const ms = elapsed(() =>
 				assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), SQLITE_BUSY),
 			);
@@ -121,6 +122,7 @@ test('deferred read → write, stale snapshot (WAL), throws immediately', () => 
 	db.exec('BEGIN');
 	db.exec('SELECT * FROM t');
 	other.exec('INSERT INTO t (v) VALUES (0)');
+
 	const ms = elapsed(() =>
 		assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), SQLITE_BUSY_SNAPSHOT),
 	);

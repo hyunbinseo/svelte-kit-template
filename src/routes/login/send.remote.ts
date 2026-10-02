@@ -2,80 +2,74 @@ import { randomInt, randomUUID } from 'node:crypto';
 import { dev } from '$app/env';
 import { form, getRequestEvent } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
-import { loginTable, userTable } from '#lib/database/schema.ts';
+import { loginTable } from '#lib/database/schema.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { db } from '#lib/server/database/client.ts';
-import { RATE_LIMITED, UNREGISTERED } from './errors.ts';
+import { RATE_LIMITED } from './errors.ts';
 import { SendCodeSchema } from './send.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
-	let user = db.query.userTable
-		.findFirst({
-			where: {
-				contact: data.contact,
-				deactivatedAt: { isNull: true },
-			},
-			columns: { id: true },
-		})
-		.sync();
-
-	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
-
-	user =
-		user ??
-		db
-			.insert(userTable)
-			.values(data)
-			.onConflictDoUpdate({
-				target: userTable.contact,
-				targetWhere: isNull(userTable.deactivatedAt),
-				set: { contact: userTable.contact },
-			})
-			.returning({ id: userTable.id })
-			.all()[0]!;
-
-	const existingLogin = db.query.loginTable
-		.findFirst({
-			orderBy: { id: 'desc' },
-			where: {
-				userId: user.id,
-				expiresAt: { gte: new Date() },
-			},
-			columns: {},
-			with: {
-				successfulAttempts: {
-					columns: { id: true },
-				},
-			},
-		})
-		.sync();
-
-	if (existingLogin && !existingLogin.successfulAttempts.length) {
-		invalid(issue.contact(RATE_LIMITED));
-	}
-
 	const code = randomInt(0, Math.pow(10, AUTH_CODE_LENGTH))
 		.toString()
 		.padStart(AUTH_CODE_LENGTH, '0');
 
-	const sendId = randomUUID(); // TODO implement actual send logic
+	const login = db.transaction(
+		(tx) => {
+			const existingLogin = tx.query.loginTable
+				.findFirst({
+					orderBy: { id: 'desc' },
+					where: {
+						contact: data.contact,
+						expiresAt: { gte: new Date() },
+					},
+					columns: {},
+					with: {
+						successfulAttempts: {
+							columns: { id: true },
+						},
+					},
+				})
+				.sync();
 
-	if (dev) console.table({ contact: data.contact, code });
+			if (existingLogin && !existingLogin.successfulAttempts.length) return;
 
-	const login = db
-		.insert(loginTable)
-		.values({
-			sendId,
-			userId: user.id,
-			code,
-			ip: getRequestEvent().getClientAddress(),
-		})
-		.returning({ id: loginTable.id })
-		.all()[0]!;
+			const user = tx.query.userTable
+				.findFirst({
+					where: {
+						contact: data.contact,
+						deactivatedAt: { isNull: true },
+					},
+					columns: { id: true },
+				})
+				.sync();
+
+			return tx
+				.insert(loginTable)
+				.values({
+					contact: data.contact,
+					userId: user?.id ?? null,
+					code,
+					ip: getRequestEvent().getClientAddress(),
+				})
+				.returning({ id: loginTable.id, userId: loginTable.userId })
+				.all()[0]!;
+		},
+		{ behavior: 'immediate' },
+	);
+
+	if (!login) invalid(issue.contact(RATE_LIMITED));
+
+	if (login.userId || ALLOW_UNREGISTERED) {
+		const sendId = randomUUID(); // TODO implement actual send logic
+
+		if (dev) console.table({ contact: data.contact, code });
+
+		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
+	}
 
 	return {
 		id: login.id,

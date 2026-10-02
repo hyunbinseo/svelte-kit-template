@@ -1,9 +1,10 @@
 import { timingSafeEqual } from 'node:crypto';
 import { form, getRequestEvent } from '$app/server';
 import { error, invalid, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
 import { AUTH_CODE_MAX_ATTEMPTS } from '#lib/config.ts';
-import { loginAttemptTable } from '#lib/database/schema.ts';
+import { loginAttemptTable, loginTable, userTable } from '#lib/database/schema.ts';
 import { getRedirectUrl } from '#lib/server/auth/redirect.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { issueToken } from '#lib/server/auth/token.ts';
@@ -20,12 +21,11 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 		(tx) => {
 			const login = tx.query.loginTable
 				.findFirst({
-					where: { id: data.id },
-					columns: { code: true, expiresAt: true, ip: true },
+					where: { id: data.id, contact: data.contact },
+					columns: { sendId: true, userId: true, code: true, expiresAt: true, ip: true },
 					with: {
 						attempts: { columns: { isSuccessful: true } },
 						activeUser: {
-							where: { contact: data.contact },
 							columns: { id: true },
 							with: {
 								profile: { columns: { id: true } },
@@ -36,7 +36,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.sync();
 
-			if (!login || !login.activeUser) error(400);
+			if (!login || (login.userId && !login.activeUser)) error(400);
 
 			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
@@ -48,10 +48,12 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				return { errorCode: 'CODE_BLOCKED' };
 			}
 
-			const isCorrect = timingSafeEqual(
-				Buffer.from(login.code), //
-				Buffer.from(data.code),
-			);
+			const isCorrect =
+				!!login.sendId &&
+				timingSafeEqual(
+					Buffer.from(login.code), //
+					Buffer.from(data.code),
+				);
 
 			tx.insert(loginAttemptTable)
 				.values({
@@ -63,7 +65,20 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!isCorrect) return { errorCode: 'CODE_INVALID' };
 
-			return { user: login.activeUser };
+			if (login.activeUser) return { user: login.activeUser };
+
+			const newUser = tx
+				.insert(userTable)
+				.values({ contact: data.contact })
+				.onConflictDoNothing()
+				.returning({ id: userTable.id })
+				.all()[0];
+
+			if (!newUser) error(400);
+
+			tx.update(loginTable).set({ userId: newUser.id }).where(eq(loginTable.id, data.id)).run();
+
+			return { user: { id: newUser.id, profile: null, activeRoles: [] } };
 		},
 		{ behavior: 'immediate' },
 	) satisfies { user: unknown } | { errorCode: ErrorCode };

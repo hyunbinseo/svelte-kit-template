@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { SITE_NAME } from '$app/env/public';
-	import { page } from '$app/state';
+	import { beforeNavigate } from '$app/navigation';
+	import { page, updated } from '$app/state';
 	import { slide } from 'svelte/transition';
 	import { setClientContext, type Client } from '#lib/context.ts';
 	import './+layout.css';
@@ -9,6 +10,10 @@
 
 	const client = $state<Client>({});
 	setClientContext(client);
+
+	beforeNavigate(({ willUnload, to }) => {
+		if (updated.current && !willUnload && to?.url) location.href = to.url.href;
+	});
 </script>
 
 <svelte:head>
@@ -22,21 +27,29 @@
 
 <svelte:window bind:online={client.online} />
 
-<noscript>자바스크립트를 사용할 수 없습니다.</noscript>
-
-{#if client.online === false}
-	<p transition:slide>인터넷에 연결되어 있지 않습니다.</p>
-{/if}
+<noscript class="block bg-yellow-300 p-2.5 text-center font-semibold">
+	자바스크립트를 사용할 수 없습니다.
+</noscript>
 
 {@render children()}
 
-<style>
-	noscript,
-	p {
-		display: block;
-		background-color: var(--color-yellow-300);
-		padding: calc(var(--spacing) * 2.5);
-		font-weight: var(--font-weight-semibold);
-		text-align: center;
-	}
-</style>
+<div
+	class="pointer-events-none fixed inset-x-4 bottom-4 z-50 mx-auto flex w-fit flex-col items-center *:pointer-events-auto *:mt-2"
+	role="status"
+>
+	{#if client.online === false}
+		<p class="toast" transition:slide>인터넷에 연결되어 있지 않습니다.</p>
+	{/if}
+	{#if updated.current}
+		<p class="flex items-center gap-x-4 toast pr-2" transition:slide>
+			새 버전이 있습니다.
+			<button
+				class="btn btn-primary"
+				disabled={client.online === false}
+				onclick={() => location.reload()}
+			>
+				새로고침
+			</button>
+		</p>
+	{/if}
+</div>

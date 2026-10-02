@@ -17,57 +17,7 @@ AI agents can work through the migration tasks below one at a time:
 
 Also search the project for `@migration-task` comments. They may describe additional manual migration work that must be resolved.
 
-## Migration tasks
-
-### Migrate `handleValidationError`
-
-`handleValidationError` is removed in SvelteKit 3.
-
-#### What to do
-
-Move validation-error handling into `handleError` and branch on `kind === "validation"`. Merge it carefully with any existing `handleError` logic.
-
-#### References
-
-- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Error-handling-handleValidationError-is-removed)
-
-#### Files to review
-
-- [ ] `src/hooks.server.ts`
-
-### Review `handleError` behavior
-
-SvelteKit 3 sends expected, validation, and rendering errors through `handleError`.
-
-#### What to do
-
-Review filtering, logging, reporting, returned error properties, and status handling for the broader set of errors. If `hooks.client` has an async hook, enable `compilerOptions.experimental.async` in `sveltekit(...)`.
-
-#### References
-
-- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Error-handling-handleError-receives-all-errors)
-
-#### Files to review
-
-- [ ] `src/hooks.client.ts`
-- [ ] `src/hooks.server.ts`
-
-### CORS for static assets in development is handled by Vite
-
-SvelteKit no longer sets `access-control-allow-origin: *` on every static asset request in development. CORS is now delegated to Vite's built-in middleware.
-
-#### What to do
-
-If you rely on cross-origin access to static assets in dev, configure it in your Vite config by adding server.cors.origin = "*" to your config.
-
-#### References
-
-- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
-
 ## Final verification
 
-- [ ] Review every migration task and ignore any irrelevant findings.
-- [ ] Resolve remaining `@migration-task` comments.
 - [ ] Run the project's type checker and tests.
-- [ ] Build the project successfully.
 - [ ] Delete this file when all migration work is complete.

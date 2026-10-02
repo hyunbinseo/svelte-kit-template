@@ -21,8 +21,6 @@ export default defineConfig({
 			},
 			experimental: {
 				explicitEnvironmentVariables: true,
-				handleRenderingErrors: true,
-				instrumentation: { server: true },
 				remoteFunctions: true,
 			},
 			version: {

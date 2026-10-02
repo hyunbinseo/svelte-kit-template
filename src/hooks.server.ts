@@ -1,6 +1,6 @@
 import { handleErrorWithSentry, logger, sentryHandle } from '@sentry/sveltekit';
 import { getDotPath } from '@standard-schema/utils';
-import type { HandleValidationError } from '@sveltejs/kit';
+import type { HandleServerError } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
 import { setGlobalConfig } from 'valibot';
 import '@valibot/i18n/ko';
@@ -18,14 +18,15 @@ export const handle = sequence(
 	},
 );
 
-export const handleError = handleErrorWithSentry();
+const handleErrorWithSentryDefaults = handleErrorWithSentry<HandleServerError>();
 
-export const handleValidationError: HandleValidationError = ({ event, issues }) => {
+export const handleError: HandleServerError = (input) => {
+	if (input.kind !== 'validation') return handleErrorWithSentryDefaults(input);
+	const { event, issues } = input;
 	logger.warn('Validation Error', {
 		'event.request.url.pathname': new URL(event.request.url).pathname,
 		'event.route.id': event.route.id,
 		'event.url.pathname': event.url.pathname,
 		'validation.issues.paths': issues.map((issue) => getDotPath(issue) ?? '(root)').join(', '),
 	});
-	return { message: 'Bad Request' };
 };

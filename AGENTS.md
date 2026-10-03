@@ -22,6 +22,8 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 Unit and E2E tests exist. In E2E tests, import the custom `test` fixture to get a worker-scoped `db`.
 
+`paths.base` is not set, so E2E tests can hardcode root-relative paths (e.g. `/login`).
+
 ## TypeScript
 
 These options are enabled:
@@ -238,7 +240,6 @@ Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 - There are 4 types: `command`, `form`, `query`, `prerender`.
 - Requests must be public, or guarded via `session.ts` helpers.
 - `event.request.url` is the endpoint (`/_app/remote/<id>`).
-- `event.url`, `event.route`, and `event.params` reflect the calling page.
 
 ```ts
 import { form, query } from '$app/server';
@@ -264,6 +265,8 @@ Don't use for user-triggered actions (e.g. a button click) — use `form` instea
 #### `form`
 
 See `src/routes/login/` for conventions.
+
+`event.url`, `event.route`, and `event.params` are the calling page (also in `command`) — client-sent, so never use them for authorization.
 
 ```ts
 // src/lib/remotes/create-post.ts

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { AUTH_REDIRECT_PARAM } from '#lib/config.ts';
 </script>
 
 <main class="p-8">
@@ -8,7 +9,7 @@
 	<h1 class="text-xl font-bold">
 		{#if page.status === 401}
 			인증 정보가 없습니다.<br />
-			재접속해 주시기 바랍니다.
+			로그인해 주시기 바랍니다.
 		{:else if page.status === 403}
 			접근 권한이 없습니다.<br />
 			재접속해 주시기 바랍니다.
@@ -22,11 +23,20 @@
 	</h1>
 	<nav class="mt-4 flex gap-x-4">
 		<a class="btn btn-primary" href={resolve('/')}>처음으로</a>
-		{#if page.status >= 500}
+		{#if page.status === 401}
+			<form class="contents" action={resolve('login')}>
+				<input
+					name={AUTH_REDIRECT_PARAM}
+					type="hidden"
+					value={page.url.pathname + page.url.search}
+				/>
+				<button class="btn btn-primary">로그인</button>
+			</form>
+		{:else if page.status >= 500}
 			<form class="contents" method="POST">
-				<button class="btn btn-primary" formaction={resolve('api/clear-site-data')}
-					>초기화 후 처음으로</button
-				>
+				<button class="btn btn-primary" formaction={resolve('api/clear-site-data')}>
+					초기화 후 처음으로
+				</button>
 			</form>
 		{/if}
 	</nav>

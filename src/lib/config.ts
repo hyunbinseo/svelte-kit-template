@@ -12,6 +12,7 @@ export const AUTH_CODE_LENGTH = 6;
 export const AUTH_CODE_MAX_ATTEMPTS = 2;
 
 export const AUTH_COOKIE_NAME = 'auth_token';
+export const AUTH_REDIRECT_PARAM = 'returnTo';
 
 export const AUTH_TOKEN_ALGORITHM = 'HS256';
 export const AUTH_TOKEN_EXPIRES_IN = 3 * WEEK;

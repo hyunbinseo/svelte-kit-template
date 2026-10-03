@@ -381,18 +381,22 @@ Use the `await` keyword directly in components:
 
 Internal navigation must use `resolve()`:
 
+- Pathnames have no leading `/` (e.g. `login`)
+- Route IDs have a leading `/` (e.g. `/posts/[slug]`)
+
+Example:
+
 ```svelte
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
-	// Applies to shallow routing (`goto(url, { state, shallow: true })`) as well.
-	goto(resolve('/blog/tags?svelte')); // append search string or hash
+	goto(resolve('blog/tags?svelte')); // append search string or hash
 </script>
 
 <a href={externalURL} rel="external">Click me!</a>
 
-<a href={resolve('/blog/posts')}>All Posts</a>
+<a href={resolve('blog/posts')}>All Posts</a>
 
 <!-- with params: -->
 <a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>

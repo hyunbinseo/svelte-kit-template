@@ -53,7 +53,7 @@ pnpm dev
 ## Production Setup
 
 - [VPS guide](./docs/setup.md) — deployment with HTTPS
-- [Sentry guide](./docs/setup-sentry.md) — error monitoring and alerts
+- [Sentry guide](./docs/setup-sentry.md) — error monitoring, tracing, and alerts
 
 ## Migration
 

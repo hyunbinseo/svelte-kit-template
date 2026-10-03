@@ -1,5 +1,6 @@
 export const ALLOW_UNREGISTERED = true;
 export const LOG_SELECT_QUERIES = false;
+export const SENTRY_TRACES_SAMPLE_RATE = 0.2;
 
 const SECOND = 1_000;
 const MINUTE = 60 * SECOND;

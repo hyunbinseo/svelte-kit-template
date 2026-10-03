@@ -5,7 +5,7 @@ const config = {
 	printWidth: 100,
 	quoteProps: 'consistent',
 	singleQuote: true,
-	tailwindStylesheet: './src/routes/+layout.css',
+	tailwindStylesheet: './src/routes/layout.css',
 	trailingComma: 'all',
 	useTabs: true,
 };

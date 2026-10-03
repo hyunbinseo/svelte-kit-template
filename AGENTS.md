@@ -524,7 +524,7 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 
 ## Tailwind CSS
 
-- Define shared styles as custom utilities (`@utility`) in `src/routes/+layout.css`.
+- Define shared styles as custom utilities (`@utility`) in `src/routes/layout.css`.
 - Wrap forms with `StyledLabels.svelte` instead of styling individual controls.
 
 Tailwind classes override both.

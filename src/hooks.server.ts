@@ -18,15 +18,19 @@ export const handle = sequence(
 	},
 );
 
-const handleErrorWithSentryDefaults = handleErrorWithSentry<HandleServerError>();
+const sentryHandleError = handleErrorWithSentry<HandleServerError>();
 
 export const handleError: HandleServerError = (input) => {
-	if (input.kind !== 'validation') return handleErrorWithSentryDefaults(input);
-	const { event, issues } = input;
-	logger.warn('Validation Error', {
-		'event.request.url.pathname': new URL(event.request.url).pathname,
-		'event.route.id': event.route.id,
-		'event.url.pathname': event.url.pathname,
-		'validation.issues.paths': issues.map((issue) => getDotPath(issue) ?? '(root)').join(', '),
-	});
+	if (input.kind === 'validation') {
+		const { event, issues } = input;
+		logger.warn('Validation Error', {
+			'event.request.url.pathname': new URL(event.request.url).pathname,
+			'event.route.id': event.route.id,
+			'event.url.pathname': event.url.pathname,
+			'validation.issues.paths': issues.map((issue) => getDotPath(issue) ?? '(root)').join(', '),
+		});
+		return;
+	}
+
+	return sentryHandleError(input);
 };

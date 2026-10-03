@@ -11,20 +11,13 @@ export default defineConfig({
 		tailwindcss(),
 		sentrySvelteKit({ telemetry: false }),
 		sveltekit({
-			// Use Node.js subpath imports in package.json instead.
-			// See https://nodejs.org/api/packages.html#subpath-imports
-			// alias: {},
 			compilerOptions: {
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
 				experimental: { async: true },
 			},
-			experimental: {
-				explicitEnvironmentVariables: true,
-				handleRenderingErrors: true,
-				instrumentation: { server: true },
-				remoteFunctions: true,
-			},
+			experimental: { remoteFunctions: true },
+			tracing: { server: true },
 			version: {
 				...(env.SVELTE_KIT_BUILD_TIMESTAMP && { name: env.SVELTE_KIT_BUILD_TIMESTAMP }),
 			},

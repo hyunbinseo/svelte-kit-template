@@ -18,9 +18,15 @@ In each alert:
 - Notify a member or team directly — monitor issues have no owners.
 - Trigger on new and regressed issues — a new spike reopens a resolved issue.
 
+## Tracing
+
+Enabled by default:
+
+- Server — OpenTelemetry spans emitted by SvelteKit
+- Client — Sentry's own spans (page loads, navigations)
+
 ## Additional Features
 
 Not configured by default; follow the Sentry docs:
 
-- Performance monitoring (tracing)
 - Readable stack traces (source maps)

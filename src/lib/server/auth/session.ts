@@ -7,24 +7,17 @@ import { AUTH_COOKIE_NAME } from '#lib/config.ts';
 import { tokenBanTable } from '#lib/database/schema.ts';
 import type { TokenRevokeReason } from '#lib/enums/token.ts';
 import { db } from '../database/client.ts';
-import { createRedirectUrl } from './redirect.ts';
-
-const onboardPath = resolve('/onboard');
 
 export const requireSession = () => {
 	const event = getRequestEvent();
-	if (!event.locals.session) redirect(303, createRedirectUrl('/login'));
+	if (!event.locals.session) error(401);
 	return event.locals.session;
 };
 
 export const requireOnboarded = () => {
 	const session = requireSession();
 
-	if (!session.profile) {
-		const event = getRequestEvent();
-		if (event.url.pathname === onboardPath) error(500);
-		redirect(303, createRedirectUrl(onboardPath));
-	}
+	if (!session.profile) redirect(303, resolve('onboard'));
 
 	return session as typeof session & { profile: true };
 };
@@ -62,6 +55,6 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 		})
 		.run();
 
-	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+	event.cookies.delete(AUTH_COOKIE_NAME);
 	delete event.locals.session;
 };

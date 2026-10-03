@@ -1,5 +1,5 @@
 import { captureException, setUser } from '@sentry/sveltekit';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#lib/config.ts';
 import { silentDb } from '../database/client.ts';
 import { rotateToken, verifyToken } from './token.ts';
@@ -22,7 +22,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 			.sync();
 
 	if (!verified || (ban && ban.effectiveAt <= new Date())) {
-		event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+		event.cookies.delete(AUTH_COOKIE_NAME);
 		return resolve(event);
 	}
 
@@ -48,7 +48,10 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	}
 
 	const userId = event.locals.session?.sub;
-	if (userId) setUser({ id: userId });
+	if (userId) {
+		setUser({ id: userId });
+		event.tracing.root.setAttribute('userId', userId);
+	}
 
 	return resolve(event);
 };

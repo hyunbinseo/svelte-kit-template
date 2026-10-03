@@ -1,5 +1,6 @@
 export const ALLOW_UNREGISTERED = true;
 export const LOG_SELECT_QUERIES = false;
+export const SENTRY_TRACES_SAMPLE_RATE = 0.2;
 
 const SECOND = 1_000;
 const MINUTE = 60 * SECOND;
@@ -12,6 +13,7 @@ export const AUTH_CODE_LENGTH = 6;
 export const AUTH_CODE_MAX_ATTEMPTS = 2;
 
 export const AUTH_COOKIE_NAME = 'auth_token';
+export const AUTH_REDIRECT_PARAM = 'returnTo';
 
 export const AUTH_TOKEN_ALGORITHM = 'HS256';
 export const AUTH_TOKEN_EXPIRES_IN = 3 * WEEK;

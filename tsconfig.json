@@ -1,21 +1,13 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
-		"allowImportingTsExtensions": true,
-		"allowJs": true,
-		"checkJs": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"sourceMap": true,
 		"strict": true,
 
 		// Environment Settings
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
 		"lib": ["ES2023", "DOM"], // sync with app.html browser check
-		"types": ["node"],
+		"types": ["node", "$app/types"],
 
 		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true,
@@ -32,13 +24,6 @@
 		// Added
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
-
-		// Do not set. Use Node.js subpath imports in package.json instead.
-		// See https://nodejs.org/api/packages.html#subpath-imports
-		// - "paths": {}
-	}
-	// Do not set. Use `typescript.config` in `sveltekit()` instead.
-	// See https://svelte.dev/docs/kit/configuration#typescript
-	// - "include": []
-	// - "exclude": []
+	},
+	"include": ["src", "tests", "*.ts", "*.js", "node_modules/$app/types/env.d.ts"]
 }

@@ -22,7 +22,10 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 ## Testing
 
-Unit and E2E tests exist. In E2E tests, import the custom `test` fixture to get a worker-scoped `db`.
+### E2E
+
+- Use the custom `test` fixture for a worker-scoped `db`.
+- Hardcode root-relative paths (e.g. `/login`) — `paths.base` is unset.
 
 ## TypeScript
 
@@ -229,26 +232,15 @@ db.transaction(
 
 ## SvelteKit
 
+Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
+
 - Call `getRequestEvent()` in utility functions instead of passing `event`.
 - Use `form` remote functions instead of `actions` in `+page.server.ts`.
 
-### Environment Variables
-
-Define them in `src/env.ts` and import from `$app/env`:
-
-```ts
-import { browser } from '$app/env'; // SvelteKit provided
-import { DATABASE_URL } from '$app/env/private';
-import { SENTRY_DSN } from '$app/env/public';
-```
-
 ### Remote Functions (RPC)
 
-- Remote functions must be exported from `*.remote.ts` files.
-- There are 4 types: `command`, `form`, `query`, `prerender`.
 - Requests must be public, or guarded via `session.ts` helpers.
 - `event.request.url` is the endpoint (`/_app/remote/<id>`).
-- `event.url`, `event.route`, and `event.params` reflect the calling page.
 
 ```ts
 import { form, query } from '$app/server';
@@ -274,6 +266,8 @@ Don't use for user-triggered actions (e.g. a button click) — use `form` instea
 #### `form`
 
 See `src/routes/login/` for conventions.
+
+`event.url`, `event.route`, and `event.params` are the calling page (also in `command`) — client-sent, so never use them for authorization.
 
 ```ts
 // src/routes/posts/new/create-post.ts
@@ -305,9 +299,9 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 
 ##### Refreshing Queries on Mutation
 
-By default, a successful `form` submission calls `invalidateAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
+By default, a successful `form` submission calls `refreshAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
 
-The client names query instances to refresh with `.updates(...)`; the server accepts them with `requested(...)`.
+The client names query instances to refresh with `.updates(...)`; the server must accept them with `requested(...)` — or explicitly skip them with `.ignoreAll()`.
 
 ```svelte
 <form
@@ -388,18 +382,22 @@ Use the `await` keyword directly in components:
 
 Internal navigation must use `resolve()`:
 
+- Pathnames have no leading `/` (e.g. `login`)
+- Route IDs have a leading `/` (e.g. `/posts/[slug]`)
+
+Example:
+
 ```svelte
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
-	// Applies to `pushState` and `replaceState` navigation as well.
-	goto(resolve('/blog/tags?svelte')); // append search string or hash
+	goto(resolve('blog/tags?svelte')); // append search string or hash
 </script>
 
 <a href={externalURL} rel="external">Click me!</a>
 
-<a href={resolve('/blog/posts')}>All Posts</a>
+<a href={resolve('blog/posts')}>All Posts</a>
 
 <!-- with params: -->
 <a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>

@@ -8,7 +8,7 @@
 
 <main class="p-8">
 	{#if !user}
-		<a class="btn btn-primary" href={resolve('/login')}>로그인</a>
+		<a class="btn btn-primary" href={resolve('login')}>로그인</a>
 	{:else}
 		<dl
 			class="grid w-fit grid-cols-[max-content_auto] gap-x-4 gap-y-2 [&_dt]:text-right [&_dt]:font-bold"

@@ -20,9 +20,10 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 ## Testing
 
-Unit and E2E tests exist. In E2E tests, import the custom `test` fixture to get a worker-scoped `db`.
+### E2E
 
-`paths.base` is not set, so E2E tests can hardcode root-relative paths (e.g. `/login`).
+- Use the custom `test` fixture for a worker-scoped `db`.
+- Hardcode root-relative paths (e.g. `/login`) — `paths.base` is unset.
 
 ## TypeScript
 
@@ -236,8 +237,6 @@ Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 
 ### Remote Functions (RPC)
 
-- Remote functions must be exported from `*.remote.ts` files.
-- There are 4 types: `command`, `form`, `query`, `prerender`.
 - Requests must be public, or guarded via `session.ts` helpers.
 - `event.request.url` is the endpoint (`/_app/remote/<id>`).
 
@@ -300,7 +299,7 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 
 By default, a successful `form` submission calls `refreshAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
 
-The client names query instances to refresh with `.updates(...)`; the server accepts them with `requested(...)`. A requested query the server doesn't refresh or set fails with a 400 — `submit()` still resolves.
+The client names query instances to refresh with `.updates(...)`; the server must accept them with `requested(...)` — or explicitly skip them with `.ignoreAll()`.
 
 ```svelte
 <form

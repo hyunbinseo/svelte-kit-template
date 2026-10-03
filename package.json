@@ -8,7 +8,7 @@
 	},
 	"scripts": {
 		"dev": "vite dev",
-		"build": "node cli/scripts/build.ts",
+		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "node --run fmt:check && node --run lint && node --run check:types",

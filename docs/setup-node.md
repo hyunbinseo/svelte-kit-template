@@ -19,10 +19,13 @@ On your dev machine:
 - Review environment variables in `.env.production`.
 - Commit and push both files.
 
-On the server, create an `.env.production.local` file (see `.env.[mode].local.example`).
+On the server, create `.env.production.local` based on `.env.[mode].local.example`.
 
 > [!NOTE]
 > For zero-downtime [`pm2 reload`](https://pm2.keymetrics.io/docs/usage/cluster-mode/#reload), the cluster instance count must resolve to 2 or above.
+
+> [!WARNING]
+> All PM2 apps run on PM2's Node.js, while builds use each project's `devEngines.runtime`. A per-app `interpreter` can't change this — cluster mode ignores it.
 
 ## Startup
 
@@ -36,7 +39,7 @@ On the server, create an `.env.production.local` file (see `.env.[mode].local.ex
 git fetch origin main
 git reset --hard origin/main
 
-pnpm i
+pnpm install --frozen-lockfile
 pnpm db:app:migrate:prod
 pnpm db:audit:migrate:prod
 
@@ -75,34 +78,33 @@ Check `src/env.ts` to see if the variables are static.
 - Dynamic: reload pm2 applications
 - Static: rebuild and switch
 
-### Update PM2
+### Update Node.js and PM2
+
+The `update-runtime` shell function installs the latest PM2 on the latest Node.js LTS, updates the PM2 daemon, and reloads the apps.
 
 > [!WARNING]
-> Running `pm2 update` stops all processes and will result in brief downtime.
+> `update-runtime` stops all processes and will result in brief downtime.
+
+> [!CAUTION]
+> Don't run `vp update -g` or `vp install -g pm2` directly — they delete the PM2 install the daemon runs from, so app restarts fail. See https://github.com/voidzero-dev/vite-plus/issues/2878
+
+> [!CAUTION]
+> The LTS can move to a new major (e.g. 24 → 26) — bump and test projects' `devEngines.runtime` first.
 
 ```shell
-pnpm i -g pm2@latest
-pm2 update
+pm2 info <name> # node.js version │ <old-version>
+
+update-runtime
+
+pm2 info <name> # node.js version │ <new-version>
 ```
 
 `pm2-ecosystem`'s version is pinned to match the installed `pm2` version, so it doubles as a version log.
 
 ```shell
-pnpm i -D pm2-ecosystem@latest # verify version matches `pm2 --version`, then commit
-```
-
-### Update Node.js
-
-> [!WARNING]
-> PM2 runs whatever Node its daemon started with, so the running server can drift from `package.json`'s `devEngines.runtime`.
-
-```shell
-pm2 info <name> # node.js version │ <old-version>
-
-pnpm runtime set node lts -g
-pm2 update
-
-pm2 info <name> # node.js version │ <new-version>
+pm2 --version
+pnpm update --latest pm2-ecosystem
+# verify version matches, then commit
 ```
 
 ### System Resource Usage

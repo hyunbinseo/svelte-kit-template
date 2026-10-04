@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
 import { eq } from 'drizzle-orm';
+import { describe, test } from 'vite-plus/test';
 import { banFor, createAppDb, seedRole, seedToken, seedUser } from '#tests/database/app.ts';
 import { tokenBanTable, userRoleTable, userTable } from '../schema.ts';
 

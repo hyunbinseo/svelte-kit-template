@@ -38,7 +38,7 @@ packages:
   - caddy
   - dnf-automatic
   - dnf-plugins-core
-  - libatomic # pnpm
+  - libatomic # Node.js 25+
   - nano
   - sysstat
   - tailscale
@@ -50,17 +50,27 @@ write_files:
         source ~/.bashrc
       fi
 
+  - path: /home/nodejs/.bashrc
+    append: true
+    content: |
+      update-runtime() {
+        vp install -g --node lts pm2 &&
+          pm2 update &&
+          pm2 reload all --update-env &&
+          pm2 save &&
+          vp list -g pm2
+      }
+
   - path: /home/nodejs/init.sh
     permissions: '0755'
     content: |
       #!/bin/bash
       set -e
 
-      curl -fsSL https://get.pnpm.io/install.sh | sh
+      curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes VP_PM_MANAGER=yes bash
+      source ~/.config/vite-plus/env
 
-      source ~/.bashrc
-      pnpm runtime set node lts -g
-      pnpm add npm pm2 --global
+      vp install -g --node lts pm2
 
       pm2 install pm2-logrotate
 
@@ -83,9 +93,9 @@ write_files:
       LimitCORE=infinity
       Environment=PM2_HOME=/home/nodejs/.pm2
 
-      ExecStart=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 resurrect'
-      ExecReload=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 reload all'
-      ExecStop=/bin/bash -c 'source /home/nodejs/.bashrc && pm2 kill'
+      ExecStart=/bin/bash -c 'source /home/nodejs/.config/vite-plus/env && pm2 resurrect'
+      ExecReload=/bin/bash -c 'source /home/nodejs/.config/vite-plus/env && pm2 reload all'
+      ExecStop=/bin/bash -c 'source /home/nodejs/.config/vite-plus/env && pm2 kill'
 
       [Install]
       WantedBy=multi-user.target

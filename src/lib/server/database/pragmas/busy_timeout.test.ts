@@ -4,8 +4,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { after, describe, test } from 'node:test';
 import { Worker } from 'node:worker_threads';
+import { afterAll, describe, test } from 'vite-plus/test';
 import { databaseSyncOptions } from '../options.ts';
 
 const HOLD_MS = 1000;
@@ -15,7 +15,7 @@ const SQLITE_BUSY = { code: 'ERR_SQLITE_ERROR', errcode: 5 } as const;
 const SQLITE_BUSY_SNAPSHOT = { code: 'ERR_SQLITE_ERROR', errcode: 517 } as const;
 
 const dir = mkdtempSync(join(tmpdir(), 'busy-timeout-'));
-after(() => rmSync(dir, { recursive: true, force: true }));
+afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
 let count = 0;
 const createFile = (journalMode: 'DELETE' | 'WAL') => {

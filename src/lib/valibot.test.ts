@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
 import { safeParse } from 'valibot';
+import { test } from 'vite-plus/test';
 import { InternalAbsolutePathSchema } from './valibot.ts';
 
 test('InternalAbsolutePathSchema allows same-origin paths', () => {

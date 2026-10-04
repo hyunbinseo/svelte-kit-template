@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { test } from 'node:test';
+import { test } from 'vite-plus/test';
 import { databaseSyncOptions } from '../options.ts';
 
 const createDb = () => {

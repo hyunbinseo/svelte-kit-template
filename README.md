@@ -13,29 +13,35 @@ An opinionated SvelteKit template for agent-assisted development — best practi
 - Svelte 5 — runes, `createContext`, `await` in markup
 - SvelteKit — remote functions (`query`, `form`, `prerender`)
 - Drizzle ORM — Relational Queries v2, trigger-based cascades
-- Tailwind CSS, Sentry, ESLint, oxfmt, and more
+- Vite+ — version manager (Node.js, pnpm), Oxfmt, Vitest
+- Tailwind CSS, Sentry, ESLint, Playwright (E2E), and more
 
 ## Development Setup
 
+> [!IMPORTANT]
+> This project uses `vp` commands — install [Vite+](https://viteplus.dev/) globally.
+
 > [!NOTE]
-> [pnpm] is the recommended package manager, and the [standalone script] is the advised installation method.
+> This project assumes pnpm. Run scripts with `pnpm <script>`, not `vp` built-ins that may differ (e.g. `vp lint`).
 
-[pnpm]: https://github.com/pnpm/pnpm
-[standalone script]: https://pnpm.io/installation#using-a-standalone-script
+Update the toolchain and dependencies. Rerun these periodically.
 
-1. Create a `.env.development.local` file (see `.env.[mode].local.example`).
-2. Run these periodically to keep dependencies and `devEngines` versions up to date.
+> [!WARNING]
+> The server runs every app on PM2's Node.js, which may differ in major version from the one pinned. Rerun `vp env pin node@lts` and test before running `update-runtime` — see [Update Node.js and PM2](./docs/setup-node.md#update-nodejs-and-pm2).
 
 ```shell
-pnpm update
-pnpm approve-builds # once, select none
+vp upgrade # update global
 
-pnpm runtime set node lts
-pnpm shim add node # once
-pnpm self-update
+vp env pin node@lts
+vp env pin pnpm@latest
+
+vp migrate # update local
+pnpm update
 ```
 
-3. Run these `package.json` scripts.
+Create `.env.development.local` based on `.env.[mode].local.example`.
+
+Generate and apply the database migrations.
 
 ```shell
 pnpm db:app:generate

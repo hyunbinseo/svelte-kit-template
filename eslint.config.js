@@ -21,6 +21,8 @@ export default defineConfig(
 				'error',
 				'assert',
 				'node:assert',
+				'node:test',
+				'vitest',
 				{
 					name: '@playwright/test',
 					importNames: ['test'],

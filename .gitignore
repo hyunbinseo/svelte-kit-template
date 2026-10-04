@@ -1,24 +1,20 @@
 node_modules
 
-# Output
-.output
-.vercel
-.netlify
-.wrangler
-/.svelte-kit
-/build
+# Env
+*.local
+.env.sentry-build-plugin
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Env
-*.local
-.env.sentry-build-plugin
-
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+# Output
+.netlify
+.output
+.vercel
+.wrangler
+/.svelte-kit
+/build
 
 # Playwright
 test-results
@@ -27,3 +23,10 @@ test-results
 *.db
 *.db-shm
 *.db-wal
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Vitest
+.vitest

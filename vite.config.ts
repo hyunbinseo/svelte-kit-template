@@ -1,46 +1,52 @@
-import { sentrySvelteKit } from '@sentry/sveltekit/vite';
-import adapter from '@sveltejs/adapter-node';
-import { sveltekit } from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, lazyPlugins } from 'vite-plus';
 
 const buildId = Math.floor(Date.now() / 1000).toString();
 
 export default defineConfig({
-	build: { target: 'es2023' },
-	plugins: [
-		tailwindcss(),
-		{
-			name: 'log-build-id',
-			buildApp: {
-				order: 'post',
-				handler: async () => void console.table({ BUILD_ID: buildId }),
-			},
-		},
-		sentrySvelteKit({ telemetry: false }),
-		sveltekit({
-			compilerOptions: {
-				runes: ({ filename }) =>
-					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
-				experimental: { async: true },
-			},
-			experimental: { remoteFunctions: true },
-			tracing: { server: true },
-			version: { name: buildId },
-			adapter: adapter({ out: `build/${buildId}` }),
-		}),
-	],
 	server: { port: 5526 },
+	build: { target: 'es2023' }, // sync with app.html browser check
 	preview: { port: 4526 },
-});
+	fmt: {
+		ignorePatterns: ['/drizzle/', '/static/'],
+		printWidth: 100,
+		quoteProps: 'consistent',
+		singleQuote: true,
+		sortImports: { newlinesBetween: false },
+		sortPackageJson: true,
+		sortTailwindcss: { stylesheet: './src/routes/layout.css' },
+		svelte: true,
+		trailingComma: 'all',
+		useTabs: true,
+	},
+	test: {},
+	plugins:
+		lazyPlugins(async () => {
+			const { default: tailwindcss } = await import('@tailwindcss/vite');
+			const { sentrySvelteKit } = await import('@sentry/sveltekit/vite');
+			const { sveltekit } = await import('@sveltejs/kit/vite');
+			const { default: adapter } = await import('@sveltejs/adapter-node');
 
-// vite@8 roughly requires ES2023:
-//
-// | Browser | vite@8 | ES2023 |
-// | ------- | ------ | ------ |
-// | Chrome  | 111    | 110    |
-// | Safari  | 16.4   | 16.4   |
-// | Firefox | 114    | 115\*  |
-//
-// See https://caniuse.com/sr-es14
-// See https://vite.dev/guide/build.html#browser-compatibility
+			return [
+				tailwindcss(),
+				{
+					name: 'log-build-id',
+					buildApp: {
+						order: 'post',
+						handler: async () => void console.table({ BUILD_ID: buildId }),
+					},
+				},
+				sentrySvelteKit({ telemetry: false }),
+				sveltekit({
+					compilerOptions: {
+						runes: ({ filename }) =>
+							filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
+						experimental: { async: true },
+					},
+					experimental: { remoteFunctions: true },
+					tracing: { server: true },
+					version: { name: buildId },
+					adapter: adapter({ out: `build/${buildId}` }),
+				}),
+			];
+		}) ?? [],
+});

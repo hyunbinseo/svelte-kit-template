@@ -5,7 +5,7 @@ Before finalizing changes:
 
 ```shell
 pnpm exec eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern <files>
-pnpm exec oxfmt --write --no-error-on-unmatched-pattern <files>
+pnpm exec vp fmt --write --no-error-on-unmatched-pattern <files>
 ```
 
 Route-specific code stays colocated; shared code goes in `src/lib/`.
@@ -29,6 +29,10 @@ Consider whether a bug may originate from a library or framework, not just appli
 - Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag (e.g. `TODO lowercase fragment`).
 
 ## Testing
+
+### Unit
+
+Run with `vp test`. Import test APIs from `vite-plus/test`, and assertions from `node:assert/strict`.
 
 ### E2E
 

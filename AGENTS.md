@@ -1,4 +1,12 @@
-Before finalizing changes, update any `*.md` files that reference changed code or config to avoid stale content (e.g. this file).
+Before finalizing changes:
+
+- Update `*.md` files (including this one) affected by the changes.
+- Lint and format edited files (skip files outside this project).
+
+```shell
+pnpm exec eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern <files>
+pnpm exec oxfmt --write --no-error-on-unmatched-pattern <files>
+```
 
 Route-specific code stays colocated; shared code goes in `src/lib/`.
 
@@ -218,7 +226,7 @@ If the transaction can't be made sync, leave a comment instead:
 // BLOCKED Use transaction for <a> + <b>
 ```
 
-Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing — see `src/lib/server/database/pragmas/busy_timeout.test.ts`.
+Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing (see `src/lib/server/database/pragmas/busy_timeout.test.ts`):
 
 ```ts
 db.transaction(
@@ -301,7 +309,7 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 
 By default, a successful `form` submission calls `refreshAll()`, re-running every load function and query in a second round-trip. Calling `refresh()`, `set()`, or `reconnect()` anywhere in the handler disables that default for the whole submission and folds the update into the mutation response instead — a single-flight mutation.
 
-The client names query instances to refresh with `.updates(...)`; the server must accept them with `requested(...)` — or explicitly skip them with `.ignoreAll()`.
+The client names query instances to refresh with `.updates(...)`; the server must accept them with `requested(...)` — or explicitly skip them with `.ignoreAll()`:
 
 ```svelte
 <form
@@ -384,8 +392,6 @@ Internal navigation must use `resolve()`:
 
 - Pathnames have no leading `/` (e.g. `login`)
 - Route IDs have a leading `/` (e.g. `/posts/[slug]`)
-
-Example:
 
 ```svelte
 <script lang="ts">

@@ -12,7 +12,7 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "node --run fmt:check && node --run lint && node --run check:types",
-		"check:types": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli && tsc -p .claude",
+		"check:types": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli",
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
 		"lint": "eslint .",

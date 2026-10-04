@@ -7,6 +7,7 @@ module.exports = {
 	apps: [
 		{
 			name: '<name>', // e.g. server, example.com
+			cwd: __dirname,
 			script: './cli/scripts/start.ts',
 			interpreter: 'node',
 			exec_mode: 'cluster',
@@ -20,6 +21,7 @@ module.exports = {
 		},
 		{
 			name: '<name>:backup',
+			cwd: __dirname,
 			script: './cli/scripts/backup.ts',
 			interpreter: 'node',
 			interpreter_args: '--env-file=.env.production --import ./cli/preload/sentry.ts',

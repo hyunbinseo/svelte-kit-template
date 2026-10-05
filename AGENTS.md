@@ -45,8 +45,13 @@ Consider whether a bug may originate from a library or framework, not just appli
 - Trailing comments are lowercase fragments — move full sentences into a standalone comment.
 - Trailing comments follow a single space — when aligning consecutive ones, measure from the longest line.
 - Standalone comments are capitalized — sentences end with a period, fragments don't.
-- Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag (e.g. `TODO lowercase fragment`).
 - Don't add a trailing period after a bare URL, even at the end of a sentence.
+- Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag.
+
+```ts
+// TODO Handle retries
+fetch(url); // TODO handle retries
+```
 
 ## Testing
 
@@ -76,7 +81,7 @@ These options are enabled:
 }
 ```
 
-- Use `type` over `interface`.
+- Prefer `type` over `interface`.
 - Use arrow syntax over function expressions and declarations.
 - Blank `//` comments can be used to force multiline formatting.
 
@@ -94,7 +99,7 @@ Don't use `!` non-null assertions, except:
 
 ```ts
 // Assert only if insertion is guaranteed.
-// e.g. No `onConflictDoNothing()` inserts all or throws
+// Without `onConflictDoNothing()`, all rows insert or it throws.
 db.insert(userTable).values(users).returning().all()[0]!;
 ```
 
@@ -227,8 +232,9 @@ vp exec drizzle-kit generate --custom --name=triggers
 
 Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table.
 
+Separate trigger statements with a breakpoint comment:
+
 ```sql
--- Add this comment in-between trigger statements.
 --> statement-breakpoint
 ```
 
@@ -285,6 +291,7 @@ Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 ```ts
 import { form, query } from '$app/server';
 import { requireLoggedOut, requireSession } from '#auth/server/session.ts';
+import { PublicSendCodeSchema } from './send.ts'; // only remote functions can be exported
 
 export const getPublicPosts = query(async () => {
 	// Use prerender if static or cacheable.
@@ -305,9 +312,9 @@ Don't use for user-triggered actions (e.g. a button click) — use `form` instea
 
 #### `form`
 
-See `src/routes/login/` for conventions.
-
 `event.url`, `event.route`, and `event.params` are the calling page (also in `command`) — client-sent, so never use them for authorization.
+
+See `src/routes/login/` for conventions. For example:
 
 ```ts
 // src/routes/posts/new/create-post.ts
@@ -422,8 +429,8 @@ Use the `await` keyword directly in components:
 
 Internal navigation must use `resolve()`:
 
-- Pathnames have no leading `/` (e.g. `login`)
-- Route IDs have a leading `/` (e.g. `/posts/[slug]`)
+- Pathnames have no leading `/` (e.g. `login`).
+- Route IDs have a leading `/` (e.g. `/posts/[slug]`).
 
 ```svelte
 <script lang="ts">
@@ -437,7 +444,7 @@ Internal navigation must use `resolve()`:
 
 <a href={resolve('blog/posts')}>All Posts</a>
 
-<!-- with params: -->
+<!-- With params -->
 <a href={resolve('/blog/[slug]', { slug: 'hello' })}>Hello</a>
 ```
 
@@ -452,7 +459,7 @@ Check for browser API support on the client:
 
 <!-- Does not trigger a hydration mismatch. -->
 {#if browser && !CSS.supports('<selector>')}
-	<!-- warning message -->
+	<!-- Warning message -->
 {:else}
 	{@render children()}
 {/if}
@@ -462,10 +469,11 @@ Check for browser API support on the client:
 
 Use the Svelte 5 API (e.g. runes, `createContext`).
 
+Use the array syntax for class names:
+
 ```svelte
 <div
-	// Comments are valid in attribute list.
-	// Use the array syntax for class names.
+	// Comments are valid in attribute lists.
 	class={[faded && 'opacity-50 saturate-0', large && 'scale-200']}
 >
 	...
@@ -488,7 +496,7 @@ Derived values can be reassigned (e.g. optimistic UI); they revert when dependen
 
 	let likes = $derived(post.likes);
 
-	// For non-inline event handler, import the appropriate type.
+	// For non-inline event handlers, import the appropriate type.
 	const onclick: HTMLButtonAttributes['onclick'] = async () => {
 		likes += 1;
 		await like().catch(() => (likes -= 1));
@@ -574,12 +582,12 @@ Tailwind classes override both:
 
 <StyledLabels>
 	<form>
-		<!-- `mt-2` overrides the StyledLabels margin -->
+		<!-- `mt-2` overrides the StyledLabels margin. -->
 		<label>
 			<span>이메일</span>
 			<input {...remoteForm.fields.contact.as('email')} class="mt-2" />
 		</label>
-		<!-- `py-4` overrides the `btn` padding -->
+		<!-- `py-4` overrides the `btn` padding. -->
 		<button class="btn btn-primary py-4 disabled:btn-busy" disabled={!!remoteForm.pending}>
 			인증번호 전송
 		</button>

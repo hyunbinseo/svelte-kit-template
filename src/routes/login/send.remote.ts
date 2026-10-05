@@ -63,9 +63,13 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	if (!login) invalid(issue.contact(sendErrors.RATE_LIMITED));
 
 	if (login.userId || AUTH_ALLOW_UNREGISTERED) {
-		const sendId = randomUUID(); // TODO implement actual send logic
-
 		if (dev) console.table({ contact: data.contact, code });
+
+		// TODO implement actual send logic
+		const sendId = await Promise.resolve(randomUUID()).catch((e: unknown) => {
+			db.delete(loginTable).where(eq(loginTable.id, login.id)).run();
+			throw e;
+		});
 
 		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
 	}

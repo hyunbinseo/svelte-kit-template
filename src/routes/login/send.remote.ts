@@ -1,6 +1,7 @@
 import { randomInt, randomUUID } from 'node:crypto';
 import { dev } from '$app/env';
 import { form, getRequestEvent } from '$app/server';
+import { captureException } from '@sentry/sveltekit';
 import { invalid } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
@@ -71,8 +72,9 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		const sendId = await Promise.resolve(randomUUID());
 		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
 	} catch (e) {
+		captureException(e);
 		db.delete(loginTable).where(eq(loginTable.id, login.id)).run();
-		throw e;
+		invalid(issue.contact(sendErrors.SEND_FAILED));
 	}
 
 	return {

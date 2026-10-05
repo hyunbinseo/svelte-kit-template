@@ -99,7 +99,7 @@ update-runtime
 pm2 info <name> # node.js version │ <new-version>
 ```
 
-`pm2-ecosystem`'s version is pinned to match the installed `pm2` version, so it doubles as a version log.
+`pm2-ecosystem`'s version is pinned to match the installed `pm2` version, so it doubles as a version log. Bump it after updating PM2:
 
 ```shell
 pm2 --version

@@ -20,7 +20,7 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 ## Documentation
 
-- Prose sentences are capitalized and end with a period.
+- Prose sentences are capitalized and end with a period, or a colon if the next block is code illustrating them.
 - List items are capitalized and uniform per list: all sentence-style (period) or fragment-style (no period).
 - Acronyms and proper nouns keep their casing (e.g. `JWT ID`, not `jwt id`).
 
@@ -102,7 +102,7 @@ Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/en
 
 ## SQLite
 
-If a `PRAGMA` matters, verify it against runtime in `src/db/server/pragmas/<pragma>.test.ts` and document it.
+If a `PRAGMA` matters, verify it against runtime in `src/db/server/pragmas/<pragma>.test.ts` and document it:
 
 ```ts
 import { DatabaseSync } from 'node:sqlite';
@@ -142,7 +142,7 @@ db.delete(userTable).where(eq(userTable.id, id)).run();
 db.insert(userTable).values(data).returning().all(); // User[]
 ```
 
-Don't use insert `.get()`. See [drizzle-team/drizzle-orm#6107](https://github.com/drizzle-team/drizzle-orm/issues/6107).
+See [drizzle-team/drizzle-orm#6107](https://github.com/drizzle-team/drizzle-orm/issues/6107). Don't use insert `.get()`:
 
 ```diff
 - db.insert(userTable).values(data).returning().get();
@@ -233,7 +233,7 @@ Run these tests only after `*-triggers.staged.sql` is flushed into a migration.
 
 ### Transactions
 
-Don't pass async callbacks to `db.transaction()`. See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275).
+See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275). Don't pass async callbacks to `db.transaction()`:
 
 ```ts
 db.transaction((tx) => {
@@ -555,7 +555,7 @@ Svelte MCP provides Svelte 5 and SvelteKit docs:
 - Define shared styles as custom utilities (`@utility`) in `src/routes/layout.css`.
 - Wrap forms with `StyledLabels.svelte` instead of styling individual controls.
 
-Tailwind classes override both.
+Tailwind classes override both:
 
 ```svelte
 <script lang="ts">

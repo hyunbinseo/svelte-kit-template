@@ -41,7 +41,7 @@ pnpm update
 
 Create `.env.development.local` based on `.env.[mode].local.example`.
 
-Generate and apply the database migrations.
+Generate and apply the database migrations:
 
 ```shell
 pnpm db:app:generate

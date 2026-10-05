@@ -20,10 +20,6 @@
 	// BLOCKED Programmatically reset remote form state.
 	// See https://github.com/sveltejs/kit/pull/14779
 	let validateFailure = $derived(validateCode.result);
-
-	$effect(() => {
-		if (sendCode.result) validateFailure = undefined;
-	});
 </script>
 
 <div class="page-container">
@@ -40,7 +36,9 @@
 					</p>
 				{/if}
 				<form
-					{...sendCode.preflight(SendCodeSchema)}
+					{...sendCode.preflight(SendCodeSchema).enhance(async (form) => {
+						if (await form.submit()) validateFailure = undefined;
+					})}
 					class="mt-6 flex flex-col gap-y-4"
 					onchange={() => sendCode.validate({ preflightOnly: true })}
 				>

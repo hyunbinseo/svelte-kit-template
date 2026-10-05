@@ -31,6 +31,7 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
+	const ip = event.getClientAddress();
 	const bannedAt = new Date();
 
 	db.insert(tokenBanTable)
@@ -40,7 +41,7 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 			effectiveAt: bannedAt,
 			bannedAt,
 			bannedBy: event.locals.session.sub,
-			ip: event.getClientAddress(),
+			ip,
 		})
 		.onConflictDoUpdate({
 			target: tokenBanTable.tokenId,
@@ -49,7 +50,7 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 				effectiveAt: bannedAt,
 				bannedAt,
 				bannedBy: event.locals.session.sub,
-				ip: event.getClientAddress(),
+				ip,
 			},
 			setWhere: gt(tokenBanTable.effectiveAt, bannedAt),
 		})

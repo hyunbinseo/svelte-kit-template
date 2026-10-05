@@ -39,11 +39,11 @@ On the server, create `.env.production.local` based on `.env.[mode].local.exampl
 git fetch origin main
 git reset --hard origin/main
 
-pnpm install --frozen-lockfile
-pnpm db:app:migrate:prod
-pnpm db:audit:migrate:prod
+vp install --frozen-lockfile
+vpr db:app:migrate:prod
+vpr db:audit:migrate:prod
 
-pnpm build
+vpr build
 nano .env.production.local # set/update BUILD_ID
 ```
 
@@ -103,7 +103,7 @@ pm2 info <name> # node.js version │ <new-version>
 
 ```shell
 pm2 --version
-pnpm update --latest pm2-ecosystem
+vp update --latest pm2-ecosystem
 # verify version matches, then commit
 ```
 

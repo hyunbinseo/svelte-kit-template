@@ -22,7 +22,7 @@ An opinionated SvelteKit template for agent-assisted development — best practi
 > This project uses `vp` commands — install [Vite+](https://viteplus.dev/) globally.
 
 > [!NOTE]
-> This project assumes pnpm. Run scripts with `pnpm <script>`, not `vp` built-ins that may differ (e.g. `vp lint`).
+> Run scripts with `vpr <script>` (alias for `vp run`) — `vp lint` runs built-in Oxlint, not ESLint.
 
 Update the toolchain and dependencies. Rerun these periodically.
 
@@ -36,7 +36,7 @@ vp env pin node@lts
 vp env pin pnpm@latest
 
 vp migrate # update local
-pnpm update
+vp update
 ```
 
 Create `.env.development.local` based on `.env.[mode].local.example`.
@@ -44,15 +44,15 @@ Create `.env.development.local` based on `.env.[mode].local.example`.
 Generate and apply the database migrations:
 
 ```shell
-pnpm db:app:generate
-pnpm drizzle-kit generate --custom --name=triggers
+vpr db:app:generate
+vp exec drizzle-kit generate --custom --name=triggers
 # Flush `drizzle/app-triggers.staged.sql` into the generated `migration.sql`.
 
 # Purge `drizzle/app` to reset the schema.
 # Commit the migrations once you're ready to deploy.
 
-pnpm db:app:migrate:dev
-pnpm dev
+vpr db:app:migrate:dev
+vpr dev
 ```
 
 ## Production Setup

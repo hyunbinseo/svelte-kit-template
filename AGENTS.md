@@ -1,11 +1,20 @@
+Use [Vite+](https://viteplus.dev/) commands instead of package-manager-specific ones:
+
+```shell
+vpr <script>  # package.json scripts
+vp exec <bin> # project binaries
+vpx <package> # local, else downloaded
+vp <command>  # built-ins (e.g. fmt, test)
+```
+
 Before finalizing changes:
 
 - Update `*.md` files (including this one) affected by the changes.
 - Lint and format edited files (skip files outside this project).
 
 ```shell
-pnpm exec eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern <files>
-pnpm exec vp fmt --write --no-error-on-unmatched-pattern <files>
+vp exec eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern <files>
+vp fmt --write --no-error-on-unmatched-pattern <files>
 ```
 
 ## Structure
@@ -212,7 +221,7 @@ Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active r
 
 ```shell
 # Trigger API unsupported; write migration in raw SQL.
-pnpm drizzle-kit generate --custom --name=triggers
+vp exec drizzle-kit generate --custom --name=triggers
 ```
 
 Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table.

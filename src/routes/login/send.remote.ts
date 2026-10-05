@@ -66,13 +66,14 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	if (dev) console.table({ contact: data.contact, code });
 
-	// TODO implement actual send logic
-	const sendId = await Promise.resolve(randomUUID()).catch((e: unknown) => {
+	try {
+		// TODO implement actual send logic
+		const sendId = await Promise.resolve(randomUUID());
+		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
+	} catch (e) {
 		db.delete(loginTable).where(eq(loginTable.id, login.id)).run();
 		throw e;
-	});
-
-	db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
+	}
 
 	return {
 		id: login.id,

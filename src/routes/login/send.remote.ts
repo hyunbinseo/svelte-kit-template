@@ -7,8 +7,7 @@ import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
 import { loginTable, userTable } from '#lib/database/schema.ts';
 import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { db } from '#lib/server/database/client.ts';
-import { RATE_LIMITED, UNREGISTERED } from './errors.ts';
-import { SendCodeSchema } from './send.ts';
+import { SendCodeSchema, sendErrors } from './send.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();
@@ -23,7 +22,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		})
 		.sync();
 
-	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(UNREGISTERED));
+	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
 
 	user =
 		user ??
@@ -55,7 +54,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		.sync();
 
 	if (existingLogin && !existingLogin.successfulAttempts.length) {
-		invalid(issue.contact(RATE_LIMITED));
+		invalid(issue.contact(sendErrors.RATE_LIMITED));
 	}
 
 	const code = randomInt(0, Math.pow(10, AUTH_CODE_LENGTH))

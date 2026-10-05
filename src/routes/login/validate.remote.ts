@@ -10,8 +10,7 @@ import { requireLoggedOut } from '#lib/server/auth/session.ts';
 import { issueToken } from '#lib/server/auth/token.ts';
 import { db } from '#lib/server/database/client.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
-import { CODE_INVALID, type ErrorCode } from './errors.ts';
-import { ValidateCodeSchema } from './validate.ts';
+import { type ValidateErrorCode, validateErrors, ValidateCodeSchema } from './validate.ts';
 
 export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireLoggedOut();
@@ -69,9 +68,12 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			return { user: login.activeUser };
 		},
 		{ behavior: 'immediate' },
-	) satisfies { user: unknown } | { errorCode: ErrorCode };
+	) satisfies { user: unknown } | { errorCode: ValidateErrorCode };
 
-	if (result.errorCode === 'CODE_INVALID') invalid(issue.code(CODE_INVALID));
+	if (result.errorCode === 'CODE_INVALID') {
+		invalid(issue.code(validateErrors[result.errorCode]));
+	}
+
 	if (result.errorCode) return result;
 
 	await issueToken({

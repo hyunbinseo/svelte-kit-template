@@ -4,11 +4,10 @@
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
 	import { AUTH_CODE_LENGTH } from '#lib/config.ts';
 	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
-	import { CODE_BLOCKED, CODE_EXPIRED, IP_MISMATCH } from './errors.ts';
 	import { sendCode as _sendCode } from './send.remote.ts';
 	import { SendCodeSchema } from './send.ts';
 	import { validateCode as _validateCode } from './validate.remote.ts';
-	import { ValidateCodeSchema } from './validate.ts';
+	import { validateErrors, ValidateCodeSchema } from './validate.ts';
 
 	let { data } = $props();
 	const uid = $props.id();
@@ -37,11 +36,7 @@
 			{#if !sendCode.result || validateFailure}
 				{#if validateFailure}
 					<p class="mt-1 text-red-600">
-						{{
-							CODE_BLOCKED,
-							CODE_EXPIRED,
-							IP_MISMATCH,
-						}[validateFailure.errorCode]}
+						{validateErrors[validateFailure.errorCode]}
 					</p>
 				{/if}
 				<form

@@ -2,13 +2,18 @@ import { timingSafeEqual } from 'node:crypto';
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
 import { error, invalid, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { check, fallback, parse, pipe } from 'valibot';
 import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
-import { AUTH_CODE_MAX_ATTEMPTS, AUTH_REDIRECT_PARAM } from '#auth/config.ts';
+import {
+	AUTH_ALLOW_UNREGISTERED,
+	AUTH_CODE_MAX_ATTEMPTS,
+	AUTH_REDIRECT_PARAM,
+} from '#auth/config.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { issueToken } from '#auth/server/token.ts';
 import { db } from '#database/client.ts';
-import { loginAttemptTable } from '#database/schema.ts';
+import { loginAttemptTable, loginTable, userTable } from '#database/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import { type ValidateErrorCode, validateErrors, ValidateCodeSchema } from './validate.ts';
 
@@ -22,12 +27,11 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 		(tx) => {
 			const login = tx.query.loginTable
 				.findFirst({
-					where: { id: data.id },
-					columns: { code: true, expiresAt: true, ip: true },
+					where: { id: data.id, contact: data.contact },
+					columns: { userId: true, code: true, expiresAt: true, ip: true },
 					with: {
 						attempts: { columns: { isSuccessful: true } },
-						activeUser: {
-							where: { contact: data.contact },
+						activeUserByContact: {
 							columns: { id: true },
 							with: {
 								profile: { columns: { id: true } },
@@ -38,7 +42,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.sync();
 
-			if (!login || !login.activeUser) error(400);
+			if (!login) error(400);
 
 			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
@@ -65,7 +69,39 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!isCorrect) return { errorCode: 'CODE_INVALID' };
 
-			return { user: login.activeUser };
+			let user = login.activeUserByContact;
+
+			if (login.userId && login.userId !== user?.id) return { errorCode: 'USER_DEACTIVATED' };
+
+			if (!user) {
+				if (!AUTH_ALLOW_UNREGISTERED) error(403);
+
+				const newUser = tx
+					.insert(userTable)
+					.values({ contact: data.contact })
+					.returning({ id: userTable.id })
+					.all()[0]!;
+
+				user =
+					tx.query.userTable
+						.findFirst({
+							where: { id: newUser.id },
+							columns: { id: true },
+							with: {
+								profile: { columns: { id: true } },
+								activeRoles: { columns: { role: true } },
+							},
+						})
+						.sync() ?? null;
+
+				if (!user) error(500);
+			}
+
+			if (!login.userId) {
+				tx.update(loginTable).set({ userId: user.id }).where(eq(loginTable.id, data.id)).run();
+			}
+
+			return { user };
 		},
 		{ behavior: 'immediate' },
 	) satisfies { user: unknown } | { errorCode: ValidateErrorCode };

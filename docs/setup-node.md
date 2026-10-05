@@ -112,7 +112,7 @@ vp update --latest pm2-ecosystem
 View historical CPU, memory, and I/O usage collected by `sysstat`:
 
 ```shell
-sar -h -u  # CPU
-sar -h -r  # memory
-sar -h -b  # I/O
+sar -h -u # CPU
+sar -h -r # memory
+sar -h -b # I/O
 ```

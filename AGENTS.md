@@ -43,6 +43,7 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 - Don't add comments unless requested.
 - Trailing comments are lowercase fragments — move full sentences into a standalone comment.
+- Trailing comments follow a single space — when aligning consecutive ones, measure from the longest line.
 - Standalone comments are capitalized — sentences end with a period, fragments don't.
 - Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag (e.g. `TODO lowercase fragment`).
 - Don't add a trailing period after a bare URL, even at the end of a sentence.

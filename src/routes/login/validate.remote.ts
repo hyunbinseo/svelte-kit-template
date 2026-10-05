@@ -71,7 +71,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			let user = login.activeUserByContact;
 
-			if (login.userId && user?.id !== login.userId) error(403);
+			if (login.userId && login.userId !== user?.id) return { errorCode: 'USER_DEACTIVATED' };
 
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);

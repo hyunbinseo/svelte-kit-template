@@ -13,6 +13,7 @@ export const validateErrors = {
 	CODE_EXPIRED: '만료된 인증번호입니다.',
 	CODE_INVALID: '잘못된 인증번호입니다.',
 	IP_MISMATCH: '접속 환경이 바뀌었습니다.',
+	USER_DEACTIVATED: '비활성화된 계정입니다.',
 } as const;
 
 export type ValidateErrorCode = keyof typeof validateErrors;

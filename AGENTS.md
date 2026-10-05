@@ -48,6 +48,12 @@ Run with `vp test`. Import test APIs from `vite-plus/test`, and assertions from 
 
 - Use the custom `test` fixture for a worker-scoped `db`.
 - Hardcode root-relative paths (e.g. `/login`) — `paths.base` is unset.
+- Don't select elements by UI text — use roles, attributes, or actual values.
+
+```ts
+page.locator('form[action="/login"]').getByRole('button');
+page.getByText(userId); // value the test inserted (e.g. `seedUser(db)`)
+```
 
 ## TypeScript
 

@@ -18,6 +18,18 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	const login = db.transaction(
 		(tx) => {
+			const user = tx.query.userTable
+				.findFirst({
+					where: {
+						contact: data.contact,
+						deactivatedAt: { isNull: true },
+					},
+					columns: { id: true },
+				})
+				.sync();
+
+			if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
+
 			const existingLogin = tx.query.loginTable
 				.findFirst({
 					orderBy: { id: 'desc' },
@@ -36,16 +48,6 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 			if (existingLogin && !existingLogin.successfulAttempts.length) return;
 
-			const user = tx.query.userTable
-				.findFirst({
-					where: {
-						contact: data.contact,
-						deactivatedAt: { isNull: true },
-					},
-					columns: { id: true },
-				})
-				.sync();
-
 			return tx
 				.insert(loginTable)
 				.values({
@@ -54,7 +56,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 					code,
 					ip: getRequestEvent().getClientAddress(),
 				})
-				.returning({ id: loginTable.id, userId: loginTable.userId })
+				.returning({ id: loginTable.id })
 				.all()[0]!;
 		},
 		{ behavior: 'immediate' },
@@ -62,17 +64,15 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	if (!login) invalid(issue.contact(sendErrors.RATE_LIMITED));
 
-	if (login.userId || AUTH_ALLOW_UNREGISTERED) {
-		if (dev) console.table({ contact: data.contact, code });
+	if (dev) console.table({ contact: data.contact, code });
 
-		// TODO implement actual send logic
-		const sendId = await Promise.resolve(randomUUID()).catch((e: unknown) => {
-			db.delete(loginTable).where(eq(loginTable.id, login.id)).run();
-			throw e;
-		});
+	// TODO implement actual send logic
+	const sendId = await Promise.resolve(randomUUID()).catch((e: unknown) => {
+		db.delete(loginTable).where(eq(loginTable.id, login.id)).run();
+		throw e;
+	});
 
-		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
-	}
+	db.update(loginTable).set({ sendId }).where(eq(loginTable.id, login.id)).run();
 
 	return {
 		id: login.id,

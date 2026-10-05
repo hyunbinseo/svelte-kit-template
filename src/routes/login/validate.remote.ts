@@ -24,7 +24,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			const login = tx.query.loginTable
 				.findFirst({
 					where: { id: data.id, contact: data.contact },
-					columns: { sendId: true, userId: true, code: true, expiresAt: true, ip: true },
+					columns: { userId: true, code: true, expiresAt: true, ip: true },
 					with: {
 						attempts: { columns: { isSuccessful: true } },
 						activeUser: {
@@ -50,12 +50,10 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				return { errorCode: 'CODE_BLOCKED' };
 			}
 
-			const isCorrect =
-				!!login.sendId &&
-				timingSafeEqual(
-					Buffer.from(login.code), //
-					Buffer.from(data.code),
-				);
+			const isCorrect = timingSafeEqual(
+				Buffer.from(login.code), //
+				Buffer.from(data.code),
+			);
 
 			tx.insert(loginAttemptTable)
 				.values({

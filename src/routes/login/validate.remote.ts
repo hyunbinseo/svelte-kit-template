@@ -67,18 +67,24 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (login.activeUser) return { user: login.activeUser };
 
-			const newUser = tx
-				.insert(userTable)
-				.values({ contact: data.contact })
-				.onConflictDoNothing()
-				.returning({ id: userTable.id })
-				.all()[0];
+			tx.insert(userTable).values({ contact: data.contact }).onConflictDoNothing().run();
 
-			if (!newUser) error(400);
+			const user = tx.query.userTable
+				.findFirst({
+					where: { contact: data.contact, deactivatedAt: { isNull: true } },
+					columns: { id: true },
+					with: {
+						profile: { columns: { id: true } },
+						activeRoles: { columns: { role: true } },
+					},
+				})
+				.sync();
 
-			tx.update(loginTable).set({ userId: newUser.id }).where(eq(loginTable.id, data.id)).run();
+			if (!user) error(500);
 
-			return { user: { id: newUser.id, profile: null, activeRoles: [] } };
+			tx.update(loginTable).set({ userId: user.id }).where(eq(loginTable.id, data.id)).run();
+
+			return { user };
 		},
 		{ behavior: 'immediate' },
 	) satisfies { user: unknown } | { errorCode: ValidateErrorCode };

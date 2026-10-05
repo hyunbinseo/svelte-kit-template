@@ -1,6 +1,6 @@
 # Sentry
 
-Set `SENTRY_DSN` in `.env.production`. Sentry is disabled in development.
+Sentry initializes only in production builds with `SENTRY_DSN` set in `.env.production`.
 
 ## Log Alerts
 

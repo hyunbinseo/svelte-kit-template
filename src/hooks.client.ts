@@ -7,10 +7,11 @@ import { SENTRY_TRACES_SAMPLE_RATE } from '#lib/sentry.ts';
 
 valibot.setGlobalConfig({ lang: 'ko' });
 
-Sentry.init({
-	enabled: !dev,
-	dsn: SENTRY_DSN,
-	tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
-});
+if (!dev && SENTRY_DSN) {
+	Sentry.init({
+		dsn: SENTRY_DSN,
+		tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
+	});
+}
 
 export const handleError = Sentry.handleErrorWithSentry();

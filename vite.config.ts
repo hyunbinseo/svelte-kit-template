@@ -43,6 +43,7 @@ export default defineConfig({
 						experimental: { async: true },
 					},
 					experimental: { remoteFunctions: true },
+					paths: { relative: false }, // see https://github.com/sveltejs/kit/issues/17357
 					tracing: { server: true },
 					version: { name: buildId },
 					adapter: adapter({ out: `build/${buildId}` }),

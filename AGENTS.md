@@ -216,7 +216,7 @@ uniqueIndex('active_user_role_user_id_role_idx')
 
 - Add relations only when needed; remove them when unused.
 - Soft-deleted tables can use filtered relations (`where`) to drop inactive rows.
-- Name filtered relations after their filter (e.g. `activeUser`, `successfulAttempts`).
+- Name filtered relations after their filter (e.g. `activeUserByContact`, `successfulAttempts`).
 
 ### Triggers
 

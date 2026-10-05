@@ -31,7 +31,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 					columns: { userId: true, code: true, expiresAt: true, ip: true },
 					with: {
 						attempts: { columns: { isSuccessful: true } },
-						activeUser: {
+						activeUserByContact: {
 							columns: { id: true },
 							with: {
 								profile: { columns: { id: true } },
@@ -42,7 +42,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.sync();
 
-			if (!login || (login.userId && !login.activeUser)) error(400);
+			if (!login) error(400);
 
 			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
@@ -69,26 +69,37 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!isCorrect) return { errorCode: 'CODE_INVALID' };
 
-			if (login.activeUser) return { user: login.activeUser };
+			let user = login.activeUserByContact;
 
-			if (AUTH_ALLOW_UNREGISTERED) {
-				tx.insert(userTable).values({ contact: data.contact }).onConflictDoNothing().run();
+			if (login.userId && user?.id !== login.userId) error(403);
+
+			if (!user) {
+				if (!AUTH_ALLOW_UNREGISTERED) error(403);
+
+				const newUser = tx
+					.insert(userTable)
+					.values({ contact: data.contact })
+					.returning({ id: userTable.id })
+					.all()[0]!;
+
+				user =
+					tx.query.userTable
+						.findFirst({
+							where: { id: newUser.id },
+							columns: { id: true },
+							with: {
+								profile: { columns: { id: true } },
+								activeRoles: { columns: { role: true } },
+							},
+						})
+						.sync() ?? null;
+
+				if (!user) error(500);
 			}
 
-			const user = tx.query.userTable
-				.findFirst({
-					where: { contact: data.contact, deactivatedAt: { isNull: true } },
-					columns: { id: true },
-					with: {
-						profile: { columns: { id: true } },
-						activeRoles: { columns: { role: true } },
-					},
-				})
-				.sync();
-
-			if (!user) error(AUTH_ALLOW_UNREGISTERED ? 500 : 403);
-
-			tx.update(loginTable).set({ userId: user.id }).where(eq(loginTable.id, data.id)).run();
+			if (!login.userId) {
+				tx.update(loginTable).set({ userId: user.id }).where(eq(loginTable.id, data.id)).run();
+			}
 
 			return { user };
 		},

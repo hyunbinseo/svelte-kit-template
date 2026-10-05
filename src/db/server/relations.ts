@@ -18,9 +18,9 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.loginTable.id,
 			to: r.loginAttemptTable.loginId,
 		}),
-		activeUser: r.one.userTable({
-			from: r.loginTable.userId,
-			to: r.userTable.id,
+		activeUserByContact: r.one.userTable({
+			from: r.loginTable.contact,
+			to: r.userTable.contact,
 			where: { deactivatedAt: { isNull: true } },
 		}),
 		successfulAttempts: r.many.loginAttemptTable({

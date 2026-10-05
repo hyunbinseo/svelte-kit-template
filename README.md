@@ -30,12 +30,12 @@ Update the toolchain and dependencies. Rerun these periodically.
 > The server runs every app on PM2's Node.js, which may differ in major version from the one pinned. Rerun `vp env pin node@lts` and test before running `update-runtime` — see [Update Node.js and PM2](./docs/setup-node.md#update-nodejs-and-pm2).
 
 ```shell
-vp upgrade # update global
+vp upgrade                   # upgrades global to the latest version
+vp migrate --no-interactive  # upgrades the project to that global version
 
 vp env pin node@lts
 vp env pin pnpm@latest
 
-vp migrate # update local
 vp update
 ```
 

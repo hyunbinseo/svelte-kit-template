@@ -5,7 +5,11 @@ import { error, invalid, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { check, fallback, parse, pipe } from 'valibot';
 import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
-import { AUTH_CODE_MAX_ATTEMPTS, AUTH_REDIRECT_PARAM } from '#auth/config.ts';
+import {
+	AUTH_ALLOW_UNREGISTERED,
+	AUTH_CODE_MAX_ATTEMPTS,
+	AUTH_REDIRECT_PARAM,
+} from '#auth/config.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { issueToken } from '#auth/server/token.ts';
 import { db } from '#database/client.ts';
@@ -67,7 +71,9 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (login.activeUser) return { user: login.activeUser };
 
-			tx.insert(userTable).values({ contact: data.contact }).onConflictDoNothing().run();
+			if (AUTH_ALLOW_UNREGISTERED) {
+				tx.insert(userTable).values({ contact: data.contact }).onConflictDoNothing().run();
+			}
 
 			const user = tx.query.userTable
 				.findFirst({
@@ -80,7 +86,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.sync();
 
-			if (!user) error(500);
+			if (!user) error(AUTH_ALLOW_UNREGISTERED ? 500 : 403);
 
 			tx.update(loginTable).set({ userId: user.id }).where(eq(loginTable.id, data.id)).run();
 

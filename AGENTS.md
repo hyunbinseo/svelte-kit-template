@@ -19,7 +19,12 @@ Consider whether a bug may originate from a library or framework, not just appli
 - Prose sentences are capitalized and end with a period.
 - List items are capitalized and uniform per list: all sentence-style (period) or fragment-style (no period).
 - Acronyms and proper nouns keep their casing (e.g. `JWT ID`, not `jwt id`).
-- Don't add a trailing period after a bare URL, even at the end of a sentence.
+
+### Markdown
+
+- Don't use bare URLs outside code — link with descriptive text.
+- Link GitHub issues, PRs, and discussions as `[owner/repo#123](url)`.
+- Link GitHub commits as `[owner/repo@abc1234](url)`.
 
 ### Code Comments
 
@@ -27,6 +32,7 @@ Consider whether a bug may originate from a library or framework, not just appli
 - Trailing comments are lowercase fragments — move full sentences into a standalone comment.
 - Standalone comments are capitalized — sentences end with a period, fragments don't.
 - Comment tags (`TODO`, `FIXME`, `BLOCKED`) take no colon — apply the rules above to the text after the tag (e.g. `TODO lowercase fragment`).
+- Don't add a trailing period after a bare URL, even at the end of a sentence.
 
 ## Testing
 
@@ -124,7 +130,7 @@ db.delete(userTable).where(eq(userTable.id, id)).run();
 db.insert(userTable).values(data).returning().all(); // User[]
 ```
 
-Don't use insert `.get()`. See https://github.com/drizzle-team/drizzle-orm/issues/6107
+Don't use insert `.get()`. See [drizzle-team/drizzle-orm#6107](https://github.com/drizzle-team/drizzle-orm/issues/6107).
 
 ```diff
 - db.insert(userTable).values(data).returning().get();
@@ -215,7 +221,7 @@ Run these tests only after `*-triggers.staged.sql` is flushed into a migration.
 
 ### Transactions
 
-Don't pass async callbacks to `db.transaction()`. See https://github.com/drizzle-team/drizzle-orm/issues/2275
+Don't pass async callbacks to `db.transaction()`. See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275).
 
 ```ts
 db.transaction((tx) => {
@@ -273,7 +279,7 @@ export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
 
 #### `command`
 
-Don't use for user-triggered actions (e.g. a button click) — use `form` instead. See https://github.com/sveltejs/kit/issues/16275
+Don't use for user-triggered actions (e.g. a button click) — use `form` instead. See [sveltejs/kit#16275](https://github.com/sveltejs/kit/issues/16275).
 
 #### `form`
 
@@ -331,7 +337,7 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 ```
 
 > [!WARNING]
-> `query().set()` doesn't narrow to the return type — pass a projection, not a raw row. See https://github.com/sveltejs/kit/issues/14612
+> `query().set()` doesn't narrow to the return type — pass a projection, not a raw row. See [sveltejs/kit#14612](https://github.com/sveltejs/kit/issues/14612).
 
 ```ts
 // src/routes/posts/new/create-post.remote.ts

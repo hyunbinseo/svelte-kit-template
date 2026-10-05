@@ -86,7 +86,7 @@ The `update-runtime` shell function installs the latest PM2 on the latest Node.j
 > `update-runtime` stops all processes and will result in brief downtime.
 
 > [!CAUTION]
-> Don't run `vp update -g` or `vp install -g pm2` directly — they delete the PM2 install the daemon runs from, so app restarts fail. See https://github.com/voidzero-dev/vite-plus/issues/2878
+> Don't run `vp update -g` or `vp install -g pm2` directly — they delete the PM2 install the daemon runs from, so app restarts fail. See [voidzero-dev/vite-plus#2878](https://github.com/voidzero-dev/vite-plus/issues/2878).
 
 > [!CAUTION]
 > The LTS can move to a new major (e.g. 24 → 26) — bump and test projects' `devEngines.runtime` first.

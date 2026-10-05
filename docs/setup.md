@@ -10,7 +10,7 @@
 
 ### Create a firewall group
 
-https://console.vultr.com/firewall
+Open the [firewall page](https://console.vultr.com/firewall).
 
 | Type | Action | Protocol    | Port    | Source    |
 | ---- | ------ | ----------- | ------- | --------- |
@@ -23,7 +23,7 @@ https://console.vultr.com/firewall
 
 ### Deploy a server
 
-https://console.vultr.com/deploy
+Open the [deploy page](https://console.vultr.com/deploy).
 
 | Item             | Value                         |
 | ---------------- | ----------------------------- |
@@ -42,11 +42,11 @@ Additional Features:
 - Instance Connectivity / Instance(s) with Public IP / Public IPv4
 - [Cloud-Init User Data](./cloud-init.yml)
 
-### Setup SSH
+### Set up SSH
 
-[Open the web console](https://docs.vultr.com/vultr-web-console-faq) and set up [Tailscale SSH](https://tailscale.com/docs/features/tailscale-ssh):
+Open the instance's web console (see the [FAQ](https://docs.vultr.com/vultr-web-console-faq)).
 
-- Log in after the cloud-init is completed (takes several minutes).
+- Log in after cloud-init completes (takes several minutes).
 - If the setup hangs, restart the server and check `cloud-init status`.
 
 ```shell
@@ -54,7 +54,11 @@ root
 Password: # see instance page's overview section
 
 cloud-init status # status: done
+```
 
+Set up [Tailscale SSH](https://tailscale.com/docs/features/tailscale-ssh) for remote access:
+
+```shell
 # Connect VPS to Tailscale and run a Tailscale SSH server.
 # See https://tailscale.com/docs/reference/tailscale-cli/up
 

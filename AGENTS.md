@@ -8,7 +8,11 @@ pnpm exec eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern <files>
 pnpm exec vp fmt --write --no-error-on-unmatched-pattern <files>
 ```
 
-Route-specific code stays colocated; shared code goes in `src/lib/`.
+## Structure
+
+- Route-specific code lives next to its route.
+- Shared code lives in `src/lib/`, and shared test helpers in `src/tests/`.
+- `cli/` is Node-only (`lib: ["ESNext"]`). It may import from `src/`, but not the reverse.
 
 ## Debugging
 

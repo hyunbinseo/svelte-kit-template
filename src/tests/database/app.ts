@@ -6,11 +6,11 @@ import { eq } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
-import { root } from '#cli/lib/utilities.ts';
 import { relations } from '#lib/database/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#lib/database/schema.ts';
+import { app } from '#lib/server/database/config.ts';
 import { databaseSyncOptions } from '#lib/server/database/options.ts';
-import { app } from '../../db/config.ts';
+import { root } from '#tests/utilities.ts';
 
 export const createAppDb = (filename = ':memory:') => {
 	const migrationsFolder = resolve(root, app.out);

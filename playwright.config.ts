@@ -13,10 +13,10 @@ const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
 	testMatch: '**/*.e2e.{ts,js}',
-	globalTeardown: './tests/e2e/teardown.ts',
+	globalTeardown: './src/tests/e2e/teardown.ts',
 	use: { baseURL: BASE_URL },
 	webServer: {
-		command: `node tests/e2e/setup.ts && node --run dev -- --mode e2e --port ${PORT} --strictPort`,
+		command: `node src/tests/e2e/setup.ts && node --run dev -- --mode e2e --port ${PORT} --strictPort`,
 		url: BASE_URL,
 	},
 });

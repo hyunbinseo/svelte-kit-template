@@ -4,7 +4,7 @@
 	"imports": {
 		"#cli/*": "./cli/*",
 		"#lib/*": "./src/lib/*",
-		"#tests/*": "./tests/*"
+		"#tests/*": "./src/tests/*"
 	},
 	"scripts": {
 		"dev": "vp dev",

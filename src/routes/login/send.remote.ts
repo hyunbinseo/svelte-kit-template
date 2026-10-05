@@ -47,7 +47,9 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 				})
 				.sync();
 
-			if (existingLogin && !existingLogin.successfulAttempts.length) return;
+			if (existingLogin && !existingLogin.successfulAttempts.length) {
+				invalid(issue.contact(sendErrors.RATE_LIMITED));
+			}
 
 			return tx
 				.insert(loginTable)
@@ -62,8 +64,6 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		},
 		{ behavior: 'immediate' },
 	);
-
-	if (!login) invalid(issue.contact(sendErrors.RATE_LIMITED));
 
 	if (dev) console.table({ contact: data.contact, code });
 

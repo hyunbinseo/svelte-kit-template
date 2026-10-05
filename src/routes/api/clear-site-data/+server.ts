@@ -1,4 +1,4 @@
-import { revokeSession } from '#lib/server/auth/session.ts';
+import { revokeSession } from '#auth/server/session.ts';
 
 export const POST = ({ url }) => {
 	revokeSession('logout');

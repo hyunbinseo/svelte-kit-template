@@ -1,12 +1,6 @@
-export const ALLOW_UNREGISTERED = true;
-export const LOG_SELECT_QUERIES = false;
-export const SENTRY_TRACES_SAMPLE_RATE = 0.2;
+import { MINUTE, WEEK } from '#lib/time.ts';
 
-const SECOND = 1_000;
-const MINUTE = 60 * SECOND;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
-const WEEK = 7 * DAY;
+export const AUTH_ALLOW_UNREGISTERED = true;
 
 export const AUTH_CODE_EXPIRES_IN = 3 * MINUTE;
 export const AUTH_CODE_LENGTH = 6;

@@ -4,11 +4,11 @@ import { dev } from '$app/env';
 import { DATABASE_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { LOG_SELECT_QUERIES } from '#lib/config.ts';
-import { relations } from '#lib/database/relations.ts';
 import { auditDb } from './audit.client.ts';
 import { logTable, queryTable } from './audit.schema.ts';
+import { DB_AUDIT_LOG_SELECT_QUERIES } from './config.ts';
 import { databaseSyncOptions } from './options.ts';
+import { relations } from './relations.ts';
 
 const client = new DatabaseSync(DATABASE_URL, databaseSyncOptions);
 
@@ -30,7 +30,7 @@ export const db = drizzle({
 		: {
 				logQuery: (query, params) => {
 					if (!auditDb) return;
-					if (!LOG_SELECT_QUERIES && query.startsWith('select ')) return;
+					if (!DB_AUDIT_LOG_SELECT_QUERIES && query.startsWith('select ')) return;
 
 					const queryHash = hash('sha1', query, 'hex');
 					const event = getRequestEvent();

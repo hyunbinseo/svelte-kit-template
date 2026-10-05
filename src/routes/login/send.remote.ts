@@ -3,10 +3,10 @@ import { dev } from '$app/env';
 import { form, getRequestEvent } from '$app/server';
 import { invalid } from '@sveltejs/kit';
 import { isNull } from 'drizzle-orm';
-import { ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#lib/config.ts';
-import { loginTable, userTable } from '#lib/database/schema.ts';
-import { requireLoggedOut } from '#lib/server/auth/session.ts';
-import { db } from '#lib/server/database/client.ts';
+import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
+import { requireLoggedOut } from '#auth/server/session.ts';
+import { db } from '#database/client.ts';
+import { loginTable, userTable } from '#database/schema.ts';
 import { SendCodeSchema, sendErrors } from './send.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
@@ -22,7 +22,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		})
 		.sync();
 
-	if (!user && !ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
+	if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
 
 	user =
 		user ??

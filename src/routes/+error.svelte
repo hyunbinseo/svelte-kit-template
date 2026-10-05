@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { AUTH_REDIRECT_PARAM } from '#lib/config.ts';
+	import { AUTH_REDIRECT_PARAM } from '#auth/config.ts';
 </script>
 
 <main class="p-8">

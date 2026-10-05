@@ -3,9 +3,9 @@ import { hash } from 'node:crypto';
 import { env } from 'node:process';
 import { DatabaseSync } from 'node:sqlite';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { relations } from '#lib/database/relations.ts';
-import { logTable, queryTable } from '#lib/server/database/audit.schema.ts';
-import { databaseSyncOptions } from '#lib/server/database/options.ts';
+import { logTable, queryTable } from '#database/audit.schema.ts';
+import { databaseSyncOptions } from '#database/options.ts';
+import { relations } from '#database/relations.ts';
 import { auditDb } from './audit.ts';
 
 assert(env.DATABASE_URL);

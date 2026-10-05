@@ -1,5 +1,5 @@
 import { digits, length, object, pipe, string, uuid } from 'valibot';
-import { AUTH_CODE_LENGTH } from '#lib/config.ts';
+import { AUTH_CODE_LENGTH } from '#auth/config.ts';
 import { EmailSchema } from '#lib/valibot.ts';
 
 export const ValidateCodeSchema = object({

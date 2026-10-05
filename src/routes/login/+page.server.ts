@@ -1,4 +1,4 @@
-import { requireLoggedOut } from '#lib/server/auth/session.ts';
+import { requireLoggedOut } from '#auth/server/session.ts';
 import type { PageServerLoad } from './$types.ts';
 
 export const load = (() => {

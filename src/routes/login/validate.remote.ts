@@ -3,12 +3,12 @@ import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
 import { error, invalid, redirect } from '@sveltejs/kit';
 import { check, fallback, parse, pipe } from 'valibot';
-import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
-import { AUTH_CODE_MAX_ATTEMPTS, AUTH_REDIRECT_PARAM } from '#lib/config.ts';
-import { loginAttemptTable } from '#lib/database/schema.ts';
-import { requireLoggedOut } from '#lib/server/auth/session.ts';
-import { issueToken } from '#lib/server/auth/token.ts';
-import { db } from '#lib/server/database/client.ts';
+import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
+import { AUTH_CODE_MAX_ATTEMPTS, AUTH_REDIRECT_PARAM } from '#auth/config.ts';
+import { requireLoggedOut } from '#auth/server/session.ts';
+import { issueToken } from '#auth/server/token.ts';
+import { db } from '#database/client.ts';
+import { loginAttemptTable } from '#database/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import { type ValidateErrorCode, validateErrors, ValidateCodeSchema } from './validate.ts';
 

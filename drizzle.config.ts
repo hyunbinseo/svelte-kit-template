@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { env, loadEnvFile } from 'node:process';
 import { defineConfig } from 'drizzle-kit';
-import { app as config } from './src/lib/server/database/config.ts';
+import { DB_APP_DRIZZLE_CONFIG as config } from '#database/config.ts';
 
 loadEnvFile(resolve(import.meta.dirname, '.env.development'));
 

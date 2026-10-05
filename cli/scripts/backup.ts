@@ -9,7 +9,7 @@ import { DB_AUDIT_BACKUP_RETENTION, DB_BACKUP_RETENTION } from '#cli/lib/config.
 import { appDb } from '#cli/lib/database/app.ts';
 import { auditDb } from '#cli/lib/database/audit.ts';
 import { root } from '#cli/lib/utilities.ts';
-import { logTable } from '#lib/server/database/audit.schema.ts';
+import { logTable } from '#database/audit.schema.ts';
 
 let failed = false;
 

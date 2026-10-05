@@ -11,8 +11,8 @@ pnpm exec vp fmt --write --no-error-on-unmatched-pattern <files>
 ## Structure
 
 - Route-specific code lives next to its route.
-- Shared code lives in `src/lib/`, and shared test helpers in `src/tests/`.
-- `cli/` is Node-only (`lib: ["ESNext"]`). It may import from `src/`, but not the reverse.
+- Shared code lives in `src/*/` (e.g. test helpers in `src/tests/`).
+- `cli/` is Node-only and may import from `src/`, but not vice versa.
 
 ## Debugging
 
@@ -92,15 +92,15 @@ and(
 
 ### Enums
 
-Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/enums/` — see `example.ts` for the available patterns.
+Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/enums/` or individual `enums.ts` files — see `src/lib/enums/example.ts` for patterns.
 
 ## SQLite
 
-If a `PRAGMA` matters, verify it against runtime in `src/lib/server/database/pragmas/<pragma>.test.ts` and document it.
+If a `PRAGMA` matters, verify it against runtime in `src/db/server/pragmas/<pragma>.test.ts` and document it.
 
 ```ts
 import { DatabaseSync } from 'node:sqlite';
-import { databaseSyncOptions } from '#lib/server/database/options.ts';
+import { databaseSyncOptions } from '#database/options.ts';
 
 new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_triggers').get();
 ```
@@ -113,9 +113,11 @@ new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_trig
 
 ## Drizzle ORM
 
-- `src/lib/server/database/client.ts`
-- `src/lib/database/schema.ts`
-- `src/lib/database/relations.ts`
+Database code lives in `src/db/server/`, imported as `#database/*`.
+
+- `src/db/server/client.ts`
+- `src/db/server/schema.ts`
+- `src/db/server/relations.ts`
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
@@ -214,7 +216,7 @@ Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guar
 --> statement-breakpoint
 ```
 
-Add a test case in `src/lib/database/triggers/<trigger_name>.test.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
+Add a test case in `src/db/server/triggers/<trigger_name>.test.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
 
 - Direct effect: the cascade fires under the trigger's condition.
 - Guards: each condition that blocks the effect (e.g. already revoked, already banned, already expired).
@@ -240,7 +242,7 @@ If the transaction can't be made sync, leave a comment instead:
 // BLOCKED Use transaction for <a> + <b>
 ```
 
-Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing (see `src/lib/server/database/pragmas/busy_timeout.test.ts`):
+Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing (see `src/db/server/pragmas/busy_timeout.test.ts`):
 
 ```ts
 db.transaction(
@@ -266,7 +268,7 @@ Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 
 ```ts
 import { form, query } from '$app/server';
-import { requireLoggedOut, requireSession } from '#lib/server/auth/session.ts';
+import { requireLoggedOut, requireSession } from '#auth/server/session.ts';
 
 export const getPublicPosts = query(async () => {
 	// Use prerender if static or cacheable.
@@ -305,7 +307,7 @@ export const CreatePostSchema = object({
 // src/routes/posts/new/create-post.remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from '#lib/server/database/client.ts';
+import { db } from '#database/client.ts';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
@@ -348,8 +350,8 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
-import { getPost, getPosts } from '#lib/remotes/posts.remote.ts';
-import { db } from '#lib/server/database/client.ts';
+import { db } from '#database/client.ts';
+import { getPost, getPosts } from '#remotes/posts.remote.ts';
 import { CreatePostSchema } from './create-post.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
@@ -385,7 +387,7 @@ Use the `await` keyword directly in components:
 ```svelte
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { getPost, getPosts } from '#lib/remotes/posts.remote.ts';
+	import { getPost, getPosts } from '#remotes/posts.remote.ts';
 
 	let { params } = $props();
 

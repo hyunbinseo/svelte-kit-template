@@ -3,11 +3,11 @@ import { getRequestEvent } from '$app/server';
 import { captureException, logger } from '@sentry/sveltekit';
 import { jwtVerify, SignJWT } from 'jose';
 import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#lib/config.ts';
-import { tokenBanTable, tokenTable } from '#lib/database/schema.ts';
-import type { TokenRefreshReason } from '#lib/enums/token.ts';
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#auth/config.ts';
+import type { TokenRefreshReason } from '#auth/enums.ts';
+import { db } from '#database/client.ts';
+import { tokenBanTable, tokenTable } from '#database/schema.ts';
 import type { UserRole } from '#lib/enums/user.ts';
-import { db } from '../database/client.ts';
 
 const encoder = new TextEncoder();
 

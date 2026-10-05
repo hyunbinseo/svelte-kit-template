@@ -1,7 +1,7 @@
 import { getRequestEvent, query } from '$app/server';
 import { error } from '@sveltejs/kit';
-import { requireOnboarded } from '#lib/server/auth/session.ts';
-import { db } from '#lib/server/database/client.ts';
+import { requireOnboarded } from '#auth/server/session.ts';
+import { db } from '#database/client.ts';
 
 export const getSelf = query(async () => {
 	const event = getRequestEvent();

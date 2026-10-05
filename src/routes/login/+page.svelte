@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { SITE_NAME } from '$app/env/public';
+	import { AUTH_CODE_LENGTH } from '#auth/config.ts';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
-	import { AUTH_CODE_LENGTH } from '#lib/config.ts';
 	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
 	import { sendCode as _sendCode } from './send.remote.ts';
 	import { SendCodeSchema } from './send.ts';

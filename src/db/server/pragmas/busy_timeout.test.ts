@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { Worker } from 'node:worker_threads';
 import { afterAll, describe, test } from 'vite-plus/test';
-import { databaseSyncOptions } from '../options.ts';
+import { databaseSyncOptions } from '#database/options.ts';
 
 const HOLD_MS = 1000;
 assert.ok(HOLD_MS < databaseSyncOptions.timeout);

@@ -1,4 +1,4 @@
-import { requireOnboarded } from '#lib/server/auth/session.ts';
+import { requireOnboarded } from '#auth/server/session.ts';
 
 export const load = () => {
 	const session = requireOnboarded();

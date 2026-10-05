@@ -2,8 +2,11 @@
 	"private": true,
 	"type": "module",
 	"imports": {
+		"#auth/*": "./src/auth/*",
 		"#cli/*": "./cli/*",
+		"#database/*": "./src/db/server/*",
 		"#lib/*": "./src/lib/*",
+		"#remotes/*": "./src/remotes/*",
 		"#tests/*": "./src/tests/*"
 	},
 	"scripts": {

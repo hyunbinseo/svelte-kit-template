@@ -1,11 +1,13 @@
 import type { NodeOptions } from '@sentry/sveltekit';
 
+export const SENTRY_TRACES_SAMPLE_RATE = 0.2;
+
 // See https://blog.sentry.io/datacollection-control-panel/
 // See https://docs.sentry.io/platforms/javascript/migration/v10-to-v11/#data-collection
 
 const deny = ['forwarded', '-ip', 'remote-', 'via', '-user'];
 
-export const dataCollection = {
+export const SENTRY_DATA_COLLECTION = {
 	userInfo: false,
 	cookies: false,
 	httpHeaders: {

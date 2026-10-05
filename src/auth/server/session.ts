@@ -2,11 +2,11 @@ import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 import { gt } from 'drizzle-orm';
-import { LOGIN_REDIRECT } from '#lib/config.svelte.ts';
-import { AUTH_COOKIE_NAME } from '#lib/config.ts';
-import { tokenBanTable } from '#lib/database/schema.ts';
-import type { TokenRevokeReason } from '#lib/enums/token.ts';
-import { db } from '../database/client.ts';
+import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
+import { AUTH_COOKIE_NAME } from '#auth/config.ts';
+import type { TokenRevokeReason } from '#auth/enums.ts';
+import { db } from '#database/client.ts';
+import { tokenBanTable } from '#database/schema.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();

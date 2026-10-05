@@ -3,7 +3,7 @@ import { SENTRY_DSN } from '$app/env/public';
 import * as Sentry from '@sentry/sveltekit';
 import '@valibot/i18n/ko';
 import * as valibot from 'valibot';
-import { SENTRY_TRACES_SAMPLE_RATE } from '#lib/config.ts';
+import { SENTRY_TRACES_SAMPLE_RATE } from '#lib/sentry.ts';
 
 valibot.setGlobalConfig({ lang: 'ko' });
 

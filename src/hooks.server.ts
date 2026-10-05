@@ -4,7 +4,7 @@ import type { HandleServerError } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
 import { setGlobalConfig } from 'valibot';
 import '@valibot/i18n/ko';
-import { handleJWT } from '#lib/server/auth/handle.ts';
+import { handleJWT } from '#auth/server/handle.ts';
 
 setGlobalConfig({ lang: 'ko' });
 

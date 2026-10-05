@@ -6,14 +6,14 @@ import { eq } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
-import { relations } from '#lib/database/relations.ts';
-import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#lib/database/schema.ts';
-import { app } from '#lib/server/database/config.ts';
-import { databaseSyncOptions } from '#lib/server/database/options.ts';
+import { DB_APP_DRIZZLE_CONFIG } from '#database/config.ts';
+import { databaseSyncOptions } from '#database/options.ts';
+import { relations } from '#database/relations.ts';
+import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#database/schema.ts';
 import { root } from '#tests/utilities.ts';
 
 export const createAppDb = (filename = ':memory:') => {
-	const migrationsFolder = resolve(root, app.out);
+	const migrationsFolder = resolve(root, DB_APP_DRIZZLE_CONFIG.out);
 	assert(readMigrationFiles({ migrationsFolder }).length > 0);
 
 	const db = drizzle({ client: new DatabaseSync(filename, databaseSyncOptions), relations });

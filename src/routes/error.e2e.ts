@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { AUTH_REDIRECT_PARAM } from '#lib/config.ts';
+import { AUTH_REDIRECT_PARAM } from '#auth/config.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
 test('links to login with the current page on 401', async ({ page }) => {

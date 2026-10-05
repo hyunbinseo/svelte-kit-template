@@ -7,8 +7,8 @@ import {
 	AUTH_TOKEN_ALGORITHM,
 	AUTH_TOKEN_EXPIRES_IN,
 	AUTH_TOKEN_ROTATE_THRESHOLD,
-} from '#lib/config.ts';
-import { userProfileTable } from '#lib/database/schema.ts';
+} from '#auth/config.ts';
+import { userProfileTable } from '#database/schema.ts';
 import { seedToken, seedUser } from '#tests/database/app.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 

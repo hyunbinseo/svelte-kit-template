@@ -2,8 +2,8 @@
 	import { SITE_NAME } from '$app/env/public';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
-	import { setupProfile as _setupProfile } from './setup.remote.ts';
-	import { SetupProfileSchema } from './setup.ts';
+	import { setupProfile as _setupProfile } from './setup/remote.ts';
+	import { SetupProfileSchema } from './setup/shared.ts';
 
 	let { data } = $props();
 	const uid = $props.id();

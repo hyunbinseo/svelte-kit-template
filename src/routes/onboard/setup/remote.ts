@@ -5,7 +5,7 @@ import { requireSession } from '#auth/server/session.ts';
 import { rotateToken } from '#auth/server/token.ts';
 import { db } from '#database/client.ts';
 import { userProfileTable } from '#database/schema.ts';
-import { SetupProfileSchema } from './setup.ts';
+import { SetupProfileSchema } from './shared.ts';
 
 export const setupProfile = form(SetupProfileSchema, async (data) => {
 	const session = requireSession();

@@ -291,7 +291,7 @@ Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 ```ts
 import { form, query } from '$app/server';
 import { requireLoggedOut, requireSession } from '#auth/server/session.ts';
-import { PublicSendCodeSchema } from './send.ts'; // only remote functions can be exported
+import { SendCodeSchema } from './shared.ts';
 
 export const getPublicPosts = query(async () => {
 	// Use prerender if static or cacheable.
@@ -301,9 +301,18 @@ export const getPrivatePosts = query(async () => {
 	const session = requireSession();
 });
 
-export const sendLoginCode = form(PublicSendCodeSchema, async (data, issue) => {
+export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut(); // must be logged out
 });
+```
+
+Remote files export only remote functions. If other exports are needed, split into a folder:
+
+```text
+current-user.remote.ts
+login/send/
+├── remote.ts
+└── shared.ts # e.g. preflight schemas
 ```
 
 #### `command`
@@ -317,7 +326,7 @@ Don't use for user-triggered actions (e.g. a button click) — use `form` instea
 See `src/routes/login/` for conventions. For example:
 
 ```ts
-// src/routes/posts/new/create-post.ts
+// src/routes/posts/new/create-post/shared.ts
 import { nonEmpty, object, pipe, string } from 'valibot';
 
 export const CreatePostSchema = object({
@@ -327,11 +336,11 @@ export const CreatePostSchema = object({
 ```
 
 ```ts
-// src/routes/posts/new/create-post.remote.ts
+// src/routes/posts/new/create-post/remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
 import { db } from '#database/client.ts';
-import { CreatePostSchema } from './create-post.ts';
+import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
@@ -369,13 +378,13 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 > `query().set()` doesn't narrow to the return type — pass a projection, not a raw row. See [sveltejs/kit#14612](https://github.com/sveltejs/kit/issues/14612).
 
 ```ts
-// src/routes/posts/new/create-post.remote.ts
+// src/routes/posts/new/create-post/remote.ts
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import { db } from '#database/client.ts';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
-import { CreatePostSchema } from './create-post.ts';
+import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
 	const post = db.insert(postTable).values(data).returning().all()[0]!;

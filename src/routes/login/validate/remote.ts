@@ -15,7 +15,7 @@ import { issueToken } from '#auth/server/token.ts';
 import { db } from '#database/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
-import { type ValidateErrorCode, validateErrors, ValidateCodeSchema } from './validate.ts';
+import { type ValidateErrorCode, validateErrors, ValidateCodeSchema } from './shared.ts';
 
 export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireLoggedOut();

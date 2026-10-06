@@ -34,7 +34,8 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	};
 
 	if (ban?.reason === 'stale') {
-		await rotateToken(session, 'stale');
+		// Old token's claims are outdated; proceed logged out.
+		await rotateToken(session, 'stale').catch(captureException);
 	} else {
 		event.locals.session = session;
 	}
@@ -42,7 +43,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 	if (!ban) {
 		const expiresIn = verified.payload.exp * 1000 - Date.now();
 		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
-			// Error can be swallowed; session is valid for this request.
+			// Old token is still valid; proceed with the current session.
 			await rotateToken(session, 'threshold').catch(captureException);
 		}
 	}

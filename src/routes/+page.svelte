@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { logout } from '#remotes/logout.remote.ts';
-	import { getSelf } from './get-self.remote.ts';
+	import { getCurrentUser } from './current-user.remote.ts';
 
-	const user = $derived(await getSelf());
+	const user = $derived(await getCurrentUser());
 </script>
 
 <main class="p-8">

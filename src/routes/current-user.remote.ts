@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import { requireOnboarded } from '#auth/server/session.ts';
 import { db } from '#database/client.ts';
 
-export const getSelf = query(async () => {
+export const getCurrentUser = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return null;
 

@@ -7,7 +7,7 @@ import {
 	AUTH_TOKEN_ALGORITHM,
 	AUTH_TOKEN_EXPIRES_IN,
 	AUTH_TOKEN_ROTATE_THRESHOLD,
-} from '#auth/config.ts';
+} from '#lib/auth/config.ts';
 import { seedToken, seedUser } from '#tests/database/app.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 

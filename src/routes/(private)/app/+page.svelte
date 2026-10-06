@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { logout } from '#remotes/logout.remote.ts';
-	import { getCurrentUser } from './user.remote.ts';
+	import { getCurrentUser, logout } from '#lib/remote/auth.remote.ts';
 
 	const user = $derived(await getCurrentUser());
 </script>

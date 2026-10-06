@@ -1,4 +1,4 @@
-import { requireOnboarded } from '#auth/server/session.ts';
+import { requireOnboarded } from '#server/request.ts';
 import type { LayoutServerLoad } from './$types.ts';
 
 export const load = (() => {

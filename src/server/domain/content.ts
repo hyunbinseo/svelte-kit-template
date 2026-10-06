@@ -1,10 +1,14 @@
 import { Err, type Result } from 'neverthrow';
+import type { Logins } from '#server/domain/auth.ts';
 import type { CareCenters } from '#server/domain/care-center.ts';
 import type { Failure } from '#server/domain/failure.ts';
 import type { Students } from '#server/domain/student.ts';
+import type { Accounts } from '#server/domain/user.ts';
 import type { Database, Executor } from '#server/infrastructure/database.ts';
 
 export type Content = {
+	accounts: Accounts;
+	logins: Logins;
 	careCenters: CareCenters;
 	students: Students;
 };

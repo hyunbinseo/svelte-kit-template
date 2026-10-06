@@ -9,14 +9,14 @@ import {
 	uniqueIndex,
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
-import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#auth/config.ts';
-import type { TokenBanReason, TokenRefreshReason } from '#auth/enums.ts';
+import { AUTH_CODE_EXPIRES_IN, AUTH_TOKEN_EXPIRES_IN } from '#lib/auth/config.ts';
 import type {
 	CareCenterRole,
 	CareCenterRoleRevokeReason,
 	CareCenterType,
 } from '#lib/enums/care-center.ts';
 import type { ShortGrade, StudentToCareCenterRemovedReason } from '#lib/enums/student.ts';
+import type { TokenBanReason, TokenRefreshReason } from '#lib/enums/token.ts';
 import type { UserRole, UserRoleRevokeReason } from '#lib/enums/user.ts';
 import type { ISODateString } from '#lib/types.ts';
 

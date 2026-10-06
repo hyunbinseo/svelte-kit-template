@@ -1,5 +1,5 @@
-import type { Payload } from '#auth/server/token.ts';
 import type { UserRole } from '#lib/enums/user.ts';
+import type { Payload } from '#server/infrastructure/jwt.ts';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 declare global {

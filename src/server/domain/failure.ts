@@ -1,4 +1,5 @@
 export type Failure = {
-	status: 400 | 401 | 403 | 404 | 409;
+	status: 400 | 401 | 403 | 404 | 409 | 500;
+	code?: string;
 	message?: string;
 };

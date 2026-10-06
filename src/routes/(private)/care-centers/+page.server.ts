@@ -1,4 +1,4 @@
-import { requireOnboarded } from '#auth/server/session.ts';
+import { requireOnboarded } from '#server/request.ts';
 import type { PageServerLoad } from './$types.ts';
 
 export const load = (() => {

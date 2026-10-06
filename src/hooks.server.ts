@@ -1,12 +1,40 @@
-import { handleErrorWithSentry, logger, sentryHandle } from '@sentry/sveltekit';
+import {
+	captureException,
+	handleErrorWithSentry,
+	logger,
+	sentryHandle,
+	setUser,
+} from '@sentry/sveltekit';
 import { getDotPath } from '@standard-schema/utils';
-import type { HandleServerError } from '@sveltejs/kit/hooks';
+import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
-import { handleJWT } from '#auth/server/handle.ts';
+import { AUTH_COOKIE_NAME } from '#lib/auth/config.ts';
+import { getApp } from '#server/app.ts';
+import { applySessionChange } from '#server/request.ts';
+
+const handleSession: Handle = async ({ event, resolve }) => {
+	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
+	if (!jwt) return resolve(event);
+
+	const change = await getApp().sessions.authenticate(
+		jwt,
+		event.getClientAddress(),
+		captureException,
+	);
+	applySessionChange(change);
+
+	const userId = event.locals.session?.sub;
+	if (userId) {
+		setUser({ id: userId });
+		event.tracing.root.setAttribute('userId', userId);
+	}
+
+	return resolve(event);
+};
 
 export const handle = sequence(
 	sentryHandle(), //
-	handleJWT,
+	handleSession,
 	({ event, resolve }) => {
 		return resolve(event, {
 			preload: ({ type }) => type === 'js' || type === 'css' || type === 'font',

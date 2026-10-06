@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { SITE_NAME } from '$app/env/public';
-	import { AUTH_CODE_LENGTH } from '#auth/config.ts';
+	import { AUTH_CODE_LENGTH } from '#lib/auth/config.ts';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
 	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
-	import { sendCode as _sendCode } from './send/remote.ts';
-	import { SendCodeSchema } from './send/shared.ts';
-	import { validateCode as _validateCode } from './validate/remote.ts';
-	import { validateErrors, ValidateCodeSchema } from './validate/shared.ts';
+	import { sendCode as _sendCode, validateCode as _validateCode } from '#lib/remote/auth.remote.ts';
+	import { SendCodeSchema, validateErrors, ValidateCodeSchema } from '#lib/schemas/auth.ts';
 
 	let { data } = $props();
 	const uid = $props.id();

@@ -1,5 +1,5 @@
 import { resolve } from '$app/paths';
-import { revokeSession } from '#auth/server/session.ts';
+import { revokeSession } from '#server/request.ts';
 
 export const POST = () => {
 	revokeSession('logout');

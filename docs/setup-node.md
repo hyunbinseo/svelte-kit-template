@@ -21,12 +21,6 @@ On your dev machine:
 
 On the server, create `.env.production.local` based on `.env.[mode].local.example`.
 
-> [!NOTE]
-> For zero-downtime [`pm2 reload`](https://pm2.keymetrics.io/docs/usage/cluster-mode/#reload), the cluster instance count must resolve to 2 or above.
-
-> [!WARNING]
-> All PM2 apps run on PM2's Node.js, while builds use each project's `devEngines.runtime`. A per-app `interpreter` can't change this — cluster mode ignores it.
-
 ## Startup
 
 > [!WARNING]
@@ -60,11 +54,15 @@ For subsequent builds, reload the app:
 pm2 reload <name>
 ```
 
-If `pm2.config.cjs` changed, use `startOrReload`:
+If `pm2.config.cjs` changed, reload and save:
 
 ```shell
 pm2 startOrReload pm2.config.cjs # all apps
 pm2 startOrReload pm2.config.cjs --only <name>
+
+pm2 scale <name> <count> # if instances changed
+
+pm2 save
 ```
 
 [Continue Setup](./setup-caddy.md)

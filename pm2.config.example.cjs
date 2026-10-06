@@ -1,4 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { availableParallelism } = require('node:os');
 const { resolve } = require('node:path');
 
 module.exports = {
@@ -9,13 +10,12 @@ module.exports = {
 			name: '<name>', // e.g. server, example.com
 			cwd: __dirname,
 			script: './cli/scripts/start.ts',
-			interpreter: 'node',
-			exec_mode: 'cluster',
+			exec_mode: 'cluster', // uses the PM2 daemon's runtime (ignores `interpreter`, `devEngines.runtime`)
 			interpreter_args: [
 				`--env-file=${resolve(__dirname, '.env.production')}`,
 				`--env-file=${resolve(__dirname, '.env.production.local')}`,
 			],
-			instances: -1,
+			instances: Math.max(2, availableParallelism() - 1), // min 2 for zero-downtime `pm2 reload`
 			time: true,
 			autorestart: true,
 		},

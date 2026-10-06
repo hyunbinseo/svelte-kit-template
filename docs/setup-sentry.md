@@ -1,6 +1,9 @@
 # Sentry
 
-Sentry initializes only in production builds with `SENTRY_DSN` set in `.env.production`.
+Sentry initializes when `SENTRY_DSN` is set in `.env.production`:
+
+- SvelteKit (`src/hooks.client.ts`, `src/instrumentation.server.ts`) — production builds only
+- Node CLI (`cli/preload/sentry.ts`) — any environment, since it can't tell production from development
 
 ## Log Alerts
 

@@ -421,7 +421,7 @@ Use the `await` keyword directly in components:
 	import { resolve } from '$app/paths';
 	import { getPost, getPosts } from '#remotes/posts.remote.ts';
 
-	let { params } = $props();
+	let { params } = $props(); // let, not const
 
 	const post = $derived(await getPost(params.slug));
 </script>

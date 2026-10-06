@@ -23,7 +23,9 @@
 				class="mt-6 flex flex-col gap-y-4"
 				onchange={() => setupProfile.validate({ preflightOnly: true })}
 			>
-				<fieldset class="contents">
+				<!-- BLOCKED Use top-level fieldset to disable form during submission. -->
+				<!-- See https://github.com/sveltejs/kit/issues/15104 -->
+				<fieldset class="contents" disabled={false}>
 					<label>
 						<span>생년월일</span>
 						<!-- svelte-ignore a11y_autofocus -->

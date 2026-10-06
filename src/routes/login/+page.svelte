@@ -68,6 +68,8 @@
 					class="mt-6 flex flex-col gap-y-4"
 					onchange={() => validateCode.validate({ preflightOnly: true })}
 				>
+					<!-- BLOCKED Use top-level fieldset to disable form during submission. -->
+					<!-- See https://github.com/sveltejs/kit/issues/15104 -->
 					<fieldset class="contents" disabled={false}>
 						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
 						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />

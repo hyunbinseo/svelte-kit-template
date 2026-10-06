@@ -29,7 +29,7 @@ Consider whether a bug may originate from a library or framework, not just appli
 
 ## Documentation
 
-- Prose sentences are capitalized and end with a period, or a colon if the next block is code illustrating them.
+- Prose sentences end with a period, or a colon if the next block is code or a list illustrating them.
 - List items are capitalized and uniform per list: all sentence-style (period) or fragment-style (no period).
 - Acronyms and proper nouns keep their casing (e.g. `JWT ID`, not `jwt id`).
 
@@ -134,7 +134,7 @@ new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_trig
 
 ## Drizzle ORM
 
-Database code lives in `src/db/server/`, imported as `#database/*`.
+Database code lives in `src/db/server/`, imported as `#database/*`:
 
 - `src/db/server/client.ts`
 - `src/db/server/schema.ts`

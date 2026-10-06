@@ -71,7 +71,7 @@ pm2 save
 
 ### Update Environment Variables
 
-Check `src/env.ts` to see if the variables are static.
+Check `src/env.ts` to see if the variables are static:
 
 - Dynamic: reload pm2 applications
 - Static: rebuild and switch

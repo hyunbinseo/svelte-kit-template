@@ -1,12 +1,9 @@
-import { getRequestEvent, query } from '$app/server';
+import { query } from '$app/server';
 import { error } from '@sveltejs/kit';
 import { requireOnboarded } from '#auth/server/session.ts';
 import { db } from '#database/client.ts';
 
 export const getCurrentUser = query(async () => {
-	const event = getRequestEvent();
-	if (!event.locals.session) return null;
-
 	const session = requireOnboarded();
 	const user = db.query.userTable
 		.findFirst({

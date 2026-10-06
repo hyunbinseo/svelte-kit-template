@@ -310,10 +310,11 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 Remote files export only remote functions. If other exports are needed, split into a folder:
 
 ```text
-current-user.remote.ts
-login/send/
-├── remote.ts
-└── shared.ts # e.g. preflight schemas
+src/routes/posts/new/
+├── save-draft.remote.ts
+└── create-post/
+    ├── remote.ts
+    └── shared.ts # e.g. preflight schemas
 ```
 
 #### `command`

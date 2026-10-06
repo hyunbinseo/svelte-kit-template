@@ -1,10 +1,5 @@
 import type { PageLoad } from './$types.ts';
 
-export const prerender = true;
-
 export const load = (() => {
-	return {
-		title: '홈',
-		robots: 'index',
-	};
+	return { title: '내 정보' };
 }) satisfies PageLoad;

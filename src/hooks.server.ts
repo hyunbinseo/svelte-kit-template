@@ -2,11 +2,7 @@ import { handleErrorWithSentry, logger, sentryHandle } from '@sentry/sveltekit';
 import { getDotPath } from '@standard-schema/utils';
 import type { HandleServerError } from '@sveltejs/kit/hooks';
 import { sequence } from '@sveltejs/kit/hooks';
-import { setGlobalConfig } from 'valibot';
-import '@valibot/i18n/ko';
 import { handleJWT } from '#auth/server/handle.ts';
-
-setGlobalConfig({ lang: 'ko' });
 
 export const handle = sequence(
 	sentryHandle(), //

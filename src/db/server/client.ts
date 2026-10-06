@@ -1,11 +1,10 @@
-import { hash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { dev } from '$app/env';
 import { DATABASE_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { auditDb } from './audit.client.ts';
-import { logTable, queryTable } from './audit.schema.ts';
+import { auditDb } from './audit/client.ts';
+import { createAuditLogger } from './audit/logger.ts';
 import { DB_AUDIT_LOG_SELECT_QUERIES } from './config.ts';
 import { databaseSyncOptions } from './options.ts';
 import { relations } from './relations.ts';
@@ -27,32 +26,18 @@ export const db = drizzle({
 	jit: true,
 	logger: dev
 		? false
-		: {
-				logQuery: (query, params) => {
-					if (!auditDb) return;
-					if (!DB_AUDIT_LOG_SELECT_QUERIES && query.startsWith('select ')) return;
-
-					const queryHash = hash('sha1', query, 'hex');
+		: createAuditLogger(
+				auditDb,
+				() => {
 					const event = getRequestEvent();
-
-					auditDb
-						.insert(queryTable)
-						.values({ hash: queryHash, sql: query })
-						.onConflictDoNothing()
-						.run();
-
-					auditDb
-						.insert(logTable)
-						.values({
-							sub: event.locals.session?.sub,
-							ip: event.getClientAddress(),
-							pathname: new URL(event.request.url).pathname,
-							queryHash,
-							params: JSON.stringify(params),
-						})
-						.run();
+					return {
+						sub: event.locals.session?.sub,
+						ip: event.getClientAddress(),
+						pathname: new URL(event.request.url).pathname,
+					};
 				},
-			},
+				{ logSelectQueries: DB_AUDIT_LOG_SELECT_QUERIES },
+			),
 });
 
 // See https://pm2.keymetrics.io/docs/usage/cluster-mode/#graceful-shutdown

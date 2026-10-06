@@ -14,7 +14,7 @@ export const DB_APP_DRIZZLE_CONFIG = {
 
 export const DB_AUDIT_DRIZZLE_CONFIG = {
 	...DB_SHARED_DRIZZLE_CONFIG,
-	schema: './src/db/server/audit.schema.ts',
+	schema: './src/db/server/audit/schema.ts',
 	out: './drizzle/audit',
 } satisfies Config;
 

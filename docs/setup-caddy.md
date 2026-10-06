@@ -48,7 +48,7 @@ nano Caddyfile
 
 <your-domain.com> {
 	import defaults
-	reverse_proxy localhost:3000
+	reverse_proxy 127.0.0.1:3000
 }
 ```
 

@@ -281,6 +281,7 @@ db.transaction(
 Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 
 - Call `getRequestEvent()` in utility functions instead of passing `event`.
+- Check `load` return types with `satisfies`. See [sveltejs/kit#9799](https://github.com/sveltejs/kit/issues/9799).
 - Use `form` remote functions instead of `actions` in `+page.server.ts`.
 
 ### Remote Functions (RPC)

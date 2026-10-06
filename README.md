@@ -45,7 +45,7 @@ Generate and apply the database migrations:
 
 ```shell
 vpr db:app:generate
-vp exec drizzle-kit generate --custom --name=triggers
+vpr db:app:generate --custom --name=triggers
 # Flush `drizzle/app-triggers.staged.sql` into the generated `migration.sql`.
 
 # Purge `drizzle/app` to reset the schema.

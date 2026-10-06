@@ -227,7 +227,7 @@ Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active r
 
 ```shell
 # Trigger API unsupported; write migration in raw SQL.
-vp exec drizzle-kit generate --custom --name=triggers
+vpr db:app:generate --custom --name=triggers
 ```
 
 Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table.

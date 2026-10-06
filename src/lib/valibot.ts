@@ -1,9 +1,11 @@
-import { check, email, isoDate, pipe, startsWith, string, transform } from 'valibot';
+import { check, email, isoDate, pipe, startsWith, string, transform, uuid } from 'valibot';
 import type { ISODateString } from './types.ts';
 
 const EXAMPLE_ORIGIN = 'https://example.com';
 
 export const EmailSchema = pipe(string(), email());
+
+export const UUIDSchema = pipe(string(), uuid());
 
 export const ISODateSchema = pipe(
 	string(),

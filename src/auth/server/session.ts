@@ -7,6 +7,7 @@ import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
 import { db } from '#database/client.ts';
 import { tokenBanTable } from '#database/schema.ts';
+import type { UserRole } from '#lib/enums/user.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();
@@ -20,6 +21,12 @@ export const requireOnboarded = () => {
 	if (!session.profile) redirect(303, resolve('onboard'));
 
 	return session as typeof session & { profile: true };
+};
+
+export const requireRole = (role: UserRole) => {
+	const session = requireOnboarded();
+	if (!session.roles.has(role)) error(403);
+	return session;
 };
 
 export const requireLoggedOut = () => {

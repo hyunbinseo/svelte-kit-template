@@ -22,6 +22,11 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 - Route-specific code lives next to its route.
 - Shared code lives in `src/*/` (e.g. test helpers in `src/tests/`).
 - `cli/` is Node-only and may import from `src/`, but not vice versa.
+- Feature server code lives in `src/server/<feature>/`, split by layer:
+  - `domain.ts` — pure rules without DB or SvelteKit, unit-tested (e.g. `CareCenter.canManage()`)
+  - `service.ts` — guards, queries, and transactions calling `db` directly
+- Remotes call `service.ts` functions instead of `db`, so they read as named steps.
+- Business failures are returned with `fail()` from `#lib/failure.ts` and turned into `invalid()` by the remote.
 
 ## Debugging
 

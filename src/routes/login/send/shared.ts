@@ -6,9 +6,9 @@ export const SendCodeSchema = object({
 });
 
 export const sendErrors = {
-	RATE_LIMITED: '잠시 뒤 재시도해주세요.',
-	SEND_FAILED: '인증번호 전송에 실패했습니다.',
-	UNREGISTERED: '등록되지 않은 사용자입니다.',
+	RATE_LIMITED: '진행 중인 로그인 시도가 있습니다. 잠시 후 재요청해 주세요.',
+	SEND_FAILED: '인증번호를 보내지 못했습니다. 잠시 후 재요청해 주세요.',
+	UNREGISTERED: '등록되지 않은 연락처입니다.',
 } as const;
 
 export type SendErrorCode = keyof typeof sendErrors;

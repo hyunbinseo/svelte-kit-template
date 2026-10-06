@@ -44,15 +44,11 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!login) error(400);
 
-			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
+			if (login.attempts.some((attempt) => attempt.isSuccessful)) return { errorCode: 'CODE_USED' };
 
-			if (
-				login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS ||
-				login.attempts.some((attempt) => attempt.isSuccessful)
-			) {
-				return { errorCode: 'CODE_BLOCKED' };
-			}
+			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
+			if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS) return { errorCode: 'CODE_EXHAUSTED' };
 
 			const isCorrect = timingSafeEqual(
 				Buffer.from(login.code), //
@@ -67,7 +63,10 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				})
 				.run();
 
-			if (!isCorrect) return { errorCode: 'CODE_INVALID' };
+			if (!isCorrect) {
+				const isLastAttempt = login.attempts.length + 1 >= AUTH_CODE_MAX_ATTEMPTS;
+				return { errorCode: isLastAttempt ? 'CODE_EXHAUSTED' : 'CODE_INVALID' };
+			}
 
 			let user = login.activeUserByContact;
 

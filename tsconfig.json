@@ -25,5 +25,5 @@
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 	},
-	"include": ["src", "*.ts", "*.js", "node_modules/$app/types/env.d.ts"]
+	"include": ["src", "*.ts", "*.js"]
 }

@@ -6,7 +6,7 @@ const DatabaseURLSchema = pipe(string(), endsWith('.db'));
 const NonEmptyStringSchema = pipe(string(), nonEmpty());
 
 export const variables = defineEnvVars({
-	DATABASE_URL: { schema: DatabaseURLSchema },
+	DATABASE_APP_URL: { schema: DatabaseURLSchema },
 	DATABASE_AUDIT_URL: { schema: !dev ? DatabaseURLSchema : undefined_() },
 
 	SENTRY_DSN: { public: true, schema: optional(NonEmptyStringSchema) },

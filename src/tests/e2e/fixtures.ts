@@ -8,8 +8,8 @@ export const test = base.extend<object, { db: ReturnType<typeof createAppDb> }>(
 	db: [
 		// eslint-disable-next-line no-empty-pattern
 		async ({}, use) => {
-			assert(env.DATABASE_URL);
-			const db = createAppDb(env.DATABASE_URL);
+			assert(env.DATABASE_APP_URL);
+			const db = createAppDb(env.DATABASE_APP_URL);
 
 			await use(db);
 

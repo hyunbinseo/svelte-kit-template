@@ -5,8 +5,8 @@ import { defineConfig } from '@playwright/test';
 
 loadEnvFile(resolve(import.meta.dirname, '.env.e2e'));
 
-assert(env.DATABASE_URL);
-assert.match(env.DATABASE_URL, /e2e\.db$/);
+assert(env.DATABASE_APP_URL);
+assert.match(env.DATABASE_APP_URL, /e2e\.db$/);
 
 const PORT = 6526;
 const BASE_URL = `http://localhost:${PORT}`;

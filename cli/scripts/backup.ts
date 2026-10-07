@@ -5,7 +5,7 @@ import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
 import { captureException as _captureException } from '@sentry/sveltekit';
 import { lte, max } from 'drizzle-orm';
-import { DB_AUDIT_BACKUP_RETENTION, DB_BACKUP_RETENTION } from '#cli/lib/config.ts';
+import { DB_APP_BACKUP_RETENTION, DB_AUDIT_BACKUP_RETENTION } from '#cli/lib/config.ts';
 import { appDb } from '#cli/lib/database/app.ts';
 import { auditDb } from '#cli/lib/database/audit.ts';
 import { root } from '#cli/lib/utilities.ts';
@@ -34,7 +34,7 @@ const pruneBackups = async (cwd: string, retention: number) => {
 	const dir = resolve(root, 'backups/app');
 	mkdirSync(dir, { recursive: true });
 	await Promise.all([
-		pruneBackups(dir, DB_BACKUP_RETENTION),
+		pruneBackups(dir, DB_APP_BACKUP_RETENTION),
 		backup(appDb.$client, resolve(dir, dateToFilename()))
 			.finally(() => appDb.$client.close())
 			.catch(captureException),

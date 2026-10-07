@@ -278,7 +278,7 @@ db.transaction(
 
 ## SvelteKit
 
-Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
+Use the SvelteKit 3 API (e.g. `$app/env`).
 
 - Call `getRequestEvent()` in utility functions instead of passing `event`.
 - Check `load` return types with `satisfies`. See [sveltejs/kit#9799](https://github.com/sveltejs/kit/issues/9799).
@@ -286,8 +286,7 @@ Use the SvelteKit 3 API (e.g. remote functions, `$app/env`).
 
 ### Remote Functions (RPC)
 
-- Requests must be public, or guarded via `session.ts` helpers.
-- `event.request.url` is the endpoint (`/_app/remote/<id>`).
+Requests must be public, or guarded via `session.ts` helpers:
 
 ```ts
 import { form, query } from '$app/server';
@@ -317,13 +316,18 @@ src/routes/posts/new/
     └── shared.ts # e.g. preflight schemas
 ```
 
+Inside remote functions (via `getRequestEvent()`):
+
+- `event.request.url` is the remote endpoint (`/_app/remote/<id>`).
+- `event.url`, `event.route`, and `event.params` describe the calling page:
+  - In `query`, they throw — pass page values as arguments instead.
+  - In `form` and `command`, they're client-sent — never use them for authorization.
+
 #### `command`
 
 Don't use for user-triggered actions (e.g. a button click) — use `form` instead. See [sveltejs/kit#16275](https://github.com/sveltejs/kit/issues/16275).
 
 #### `form`
-
-`event.url`, `event.route`, and `event.params` are the calling page (also in `command`) — client-sent, so never use them for authorization.
 
 See `src/routes/login/` for conventions. For example:
 

@@ -12,7 +12,7 @@
 </script>
 
 <div class="page-container">
-	<main class="w-full page-card xs:w-sm">
+	<main class="page-card">
 		<header class="mt-2">
 			<p class="text-sm text-gray-600">{SITE_NAME}</p>
 			<h1 class="text-2xl font-bold">{data.title}</h1>

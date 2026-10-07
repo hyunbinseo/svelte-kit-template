@@ -57,7 +57,7 @@
 }
 
 @utility page-card {
-	@apply bg-white p-6 xs:rounded-lg;
+	@apply w-full bg-white p-6 xs:w-sm xs:rounded-lg;
 }
 
 @utility toast {

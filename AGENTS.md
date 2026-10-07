@@ -283,6 +283,9 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
 - Call `getRequestEvent()` in utility functions instead of passing `event`.
 - Check `load` return types with `satisfies`. See [sveltejs/kit#9799](https://github.com/sveltejs/kit/issues/9799).
 - Use `form` remote functions instead of `actions` in `+page.server.ts`.
+- Mark server-only modules by name or location:
+  - `server.ts` or `*.server.ts` — anywhere
+  - `server/` directories — outside `src/routes/`
 
 ### Remote Functions (RPC)
 

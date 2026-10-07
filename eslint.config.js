@@ -44,4 +44,17 @@ export default defineConfig(
 			'svelte/sort-attributes': 'error',
 		},
 	},
+	{
+		files: ['src/routes/**/server/**'],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'Program',
+					message:
+						'Rename to `server.ts` or `*.server.ts` — `server/` is not server-only in `src/routes/`.',
+				},
+			],
+		},
+	},
 );

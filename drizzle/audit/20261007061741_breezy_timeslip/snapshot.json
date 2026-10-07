@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "0a06a3d1-c81e-4676-a613-29b50a7076a1",
+  "id": "ae7f7d7d-95f7-4ab2-9e8a-f4af6890177f",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -28,7 +28,7 @@
       "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": "(unixepoch())",
+      "default": null,
       "generated": null,
       "name": "logged_at",
       "entityType": "columns",

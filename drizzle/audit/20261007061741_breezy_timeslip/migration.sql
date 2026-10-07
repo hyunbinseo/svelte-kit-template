@@ -1,6 +1,6 @@
 CREATE TABLE `log` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
-	`logged_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`logged_at` integer NOT NULL,
 	`sub` text,
 	`ip` text,
 	`pathname` text,

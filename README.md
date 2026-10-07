@@ -39,7 +39,10 @@ vp env pin pnpm@latest
 vp update
 ```
 
-Create `.env.development.local` based on `.env.[mode].local.example`.
+Configure the environment:
+
+- Review `.env` and replace placeholder values
+- Create `.env.development.local` based on `.env.[mode].local.example`
 
 Generate and apply the database migrations:
 

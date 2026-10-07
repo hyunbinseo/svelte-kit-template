@@ -309,14 +309,15 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 });
 ```
 
-Remote files export only remote functions. If other exports are needed, split into a folder:
+Name remote modules `remote.ts` or `*.remote.ts`, outside `server/` directories. They export only remote functions — move other exports to separate files:
 
 ```text
 src/routes/posts/new/
 ├── save-draft.remote.ts
 └── create-post/
     ├── remote.ts
-    └── shared.ts # e.g. preflight schemas
+    ├── server.ts # server-only (e.g. db access)
+    └── shared.ts # isomorphic (e.g. schemas)
 ```
 
 Inside remote functions (via `getRequestEvent()`):

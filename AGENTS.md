@@ -29,6 +29,7 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 - Keep authentication guards, processing order, business validation, and response handling in `remote.ts` or the existing entry point.
 - Keep all SQL and Drizzle query construction in `server.ts`, even for short queries used only once. Remote modules must not import database schemas, SQL operators, or query builders, or call `select`, `insert`, `update`, `delete`, `execute`, or `db.query` directly.
 - Expose individual named query functions. Pass the database client or transaction as the first argument, typed with the shared `Database` type exported from `src/app.d.ts`. Do not bind queries into objects, classes, factories, or prototype extensions.
+- Accept query inputs as objects typed with `Pick` of the relevant data type. For Valibot schemas, use `Pick<InferOutput<typeof Schema>, Keys>`, not `Pick<typeof Schema, Keys>`. For database data, use the table’s inferred select or insert type. Receive the object as `data` and use `pick(data, ['field'])` from `#lib/pick.ts` to select query conditions and write values at runtime; TypeScript's `Pick` alone does not remove extra properties.
 - Coordinate transactions directly in the entry point with `db.transaction((tx) => { ... })`. Inside that callback, call query functions with `tx` and perform business checks. Outside a transaction, call query functions with `db`.
 - Do not introduce `withLoginTransaction`-style wrappers, `createLoginQueries`-style factories, or callback-only types. Query functions must not own the use case's transaction or HTTP response handling.
 - Keep dependencies one-way: entry points call query modules; query modules use database definitions. Entry points may import the database client for transaction orchestration and passing it to query functions. Query modules must not import entry points, including type-only imports.
@@ -48,12 +49,18 @@ src/routes/login/send/
 Individual query functions in `server.ts` accept the shared database type:
 
 ```ts
+import type { InferOutput } from 'valibot';
+import { pick } from '#lib/pick.ts';
 import type { Database } from '../../../app.d.ts';
+import type { SendCodeSchema } from './shared.ts';
 
-export const findActiveUser = (db: Database, contact: string) =>
+export const findActiveUser = (
+	db: Database,
+	data: Pick<InferOutput<typeof SendCodeSchema>, 'contact'>,
+) =>
 	db.query.userTable
 		.findFirst({
-			where: { contact, deactivatedAt: { isNull: true } },
+			where: { ...pick(data, ['contact']), deactivatedAt: { isNull: true } },
 			columns: { id: true },
 		})
 		.sync();
@@ -64,7 +71,7 @@ The entry point coordinates calls without constructing queries:
 ```ts
 const result = db.transaction(
 	(tx) => {
-		const user = findActiveUser(tx, data.contact);
+		const user = findActiveUser(tx, data);
 		if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
 		return insertLogin(tx, {
 			contact: data.contact,

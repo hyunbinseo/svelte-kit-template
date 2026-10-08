@@ -38,7 +38,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 	const result = db.transaction(
 		(tx) => {
-			const login = findLogin(tx, { id: data.id, contact: data.contact });
+			const login = findLogin(tx, data);
 			if (!login) error(400);
 
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' } as const;
@@ -70,12 +70,12 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);
 
-				const created = insertUser(tx, data.contact);
-				user = findUser(tx, created.id) ?? null;
+				const created = insertUser(tx, data);
+				user = findUser(tx, created) ?? null;
 				if (!user) error(500);
 			}
 
-			if (!login.userId) linkUser(tx, { loginId: data.id, userId: user.id });
+			if (!login.userId) linkUser(tx, { id: data.id, userId: user.id });
 
 			return { user };
 		},

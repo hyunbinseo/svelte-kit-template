@@ -20,10 +20,10 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	const result = db.transaction(
 		(tx) => {
-			const user = findActiveUser(tx, data.contact);
+			const user = findActiveUser(tx, data);
 			if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
 
-			const existingLogin = findLatestUnexpiredLogin(tx, data.contact);
+			const existingLogin = findLatestUnexpiredLogin(tx, data);
 			if (existingLogin && existingLogin.successfulAttempts.length === 0) {
 				invalid(issue.contact(sendErrors.RATE_LIMITED));
 			}
@@ -52,10 +52,10 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		sendId = await Promise.resolve(randomUUID());
 	} catch (cause) {
 		captureException(cause);
-		discardLogin(db, result.login.id);
+		discardLogin(db, result.login);
 		invalid(issue.contact(sendErrors.SEND_FAILED));
 	}
 
-	markDelivered(db, { loginId: result.login.id, sendId });
+	markDelivered(db, { id: result.login.id, sendId });
 	return { id: result.login.id, contact: data.contact };
 });

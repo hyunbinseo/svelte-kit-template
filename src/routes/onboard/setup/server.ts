@@ -1,6 +1,13 @@
-import { db } from '#database/client.ts';
 import { userProfileTable } from '#database/schema.ts';
+import { pick } from '#lib/pick.ts';
+import type { Database } from '../../../app.d.ts';
 
-export const insertProfile = (data: typeof userProfileTable.$inferInsert) => {
-	db.insert(userProfileTable).values(data).onConflictDoNothing().run();
+export const insertProfile = (
+	db: Database,
+	data: Pick<typeof userProfileTable.$inferInsert, 'id' | 'birth'>,
+) => {
+	db.insert(userProfileTable)
+		.values(pick(data, ['id', 'birth']))
+		.onConflictDoNothing()
+		.run();
 };

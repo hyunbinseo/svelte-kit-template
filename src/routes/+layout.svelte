@@ -44,7 +44,7 @@
 		<p class="flex items-center gap-x-4 toast pr-2" transition:slide>
 			새 버전이 있습니다.
 			<button
-				class="btn btn-primary"
+				class="btn btn-secondary"
 				disabled={client.online === false}
 				onclick={() => location.reload()}
 			>

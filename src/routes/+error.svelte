@@ -22,7 +22,7 @@
 		{/if}
 	</h1>
 	<nav class="mt-4 flex gap-x-4">
-		<a class="btn btn-primary" href={resolve('/')}>처음으로</a>
+		<a class="btn btn-secondary only:btn-primary" href={resolve('/')}>처음으로</a>
 		{#if page.status === 401}
 			<form class="contents" action={resolve('login')}>
 				<input

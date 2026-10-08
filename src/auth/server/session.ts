@@ -1,12 +1,10 @@
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
-import { gt } from 'drizzle-orm';
 import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
-import { db } from '#database/client.ts';
-import { tokenBanTable } from '#database/schema.ts';
+import { revokeToken } from './server.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();
@@ -34,27 +32,13 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 	const ip = event.getClientAddress();
 	const bannedAt = new Date();
 
-	db.insert(tokenBanTable)
-		.values({
-			tokenId: event.locals.session.jti,
-			reason,
-			effectiveAt: bannedAt,
-			bannedAt,
-			bannedBy: event.locals.session.sub,
-			ip,
-		})
-		.onConflictDoUpdate({
-			target: tokenBanTable.tokenId,
-			set: {
-				reason,
-				effectiveAt: bannedAt,
-				bannedAt,
-				bannedBy: event.locals.session.sub,
-				ip,
-			},
-			setWhere: gt(tokenBanTable.effectiveAt, bannedAt),
-		})
-		.run();
+	revokeToken({
+		tokenId: event.locals.session.jti,
+		userId: event.locals.session.sub,
+		reason,
+		ip,
+		bannedAt,
+	});
 
 	event.cookies.delete(AUTH_COOKIE_NAME);
 	delete event.locals.session;

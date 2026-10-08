@@ -1,7 +1,7 @@
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
-import { silentDb } from '#database/client.ts';
+import { findTokenBan } from './server.ts';
 import { rotateToken, verifyToken } from './token.ts';
 
 type Session = NonNullable<App.Locals['session']>;
@@ -12,14 +12,7 @@ export const handleJWT: Handle = async ({ event, resolve }) => {
 
 	const verified = await verifyToken(jwt);
 
-	const ban =
-		verified &&
-		silentDb.query.tokenBanTable
-			.findFirst({
-				where: { tokenId: verified.payload.jti },
-				columns: { reason: true, effectiveAt: true },
-			})
-			.sync();
+	const ban = verified && findTokenBan(verified.payload.jti);
 
 	if (!verified || (ban && ban.effectiveAt <= new Date())) {
 		event.cookies.delete(AUTH_COOKIE_NAME);

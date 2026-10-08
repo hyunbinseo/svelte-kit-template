@@ -1,4 +1,6 @@
+import type { NodeSQLiteDatabase, NodeSQLiteTransaction } from 'drizzle-orm/node-sqlite';
 import type { Payload } from '#auth/server/token.ts';
+import type { relations } from '#database/relations.ts';
 import type { UserRole } from '#lib/enums/user.ts';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -20,4 +22,6 @@ declare global {
 	}
 }
 
-export {};
+export type Database =
+	| NodeSQLiteDatabase<typeof relations>
+	| NodeSQLiteTransaction<typeof relations>;

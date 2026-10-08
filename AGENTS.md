@@ -23,6 +23,60 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 - Shared code lives in `src/*/` (e.g. test helpers in `src/tests/`).
 - `cli/` is Node-only and may import from `src/`, but not vice versa.
 
+## Remote and Query
+
+- Name route-adjacent query modules exactly `server.ts`. Do not use `query.server.ts`, `repository.ts`, or `+server.ts` for query helpers. Shared authentication queries remain in `src/auth/server/server.ts`.
+- Keep authentication guards, processing order, business validation, and response handling in `remote.ts` or the existing entry point.
+- Keep all SQL and Drizzle query construction in `server.ts`, even for short queries used only once. Remote modules must not import database schemas, SQL operators, or query builders, or call `select`, `insert`, `update`, `delete`, `execute`, or `db.query` directly.
+- Expose individual named query functions. Pass the database client or transaction as the first argument, typed with the shared `Database` type exported from `src/app.d.ts`. Do not bind queries into objects, classes, factories, or prototype extensions.
+- Coordinate transactions directly in the entry point with `db.transaction((tx) => { ... })`. Inside that callback, call query functions with `tx` and perform business checks. Outside a transaction, call query functions with `db`.
+- Do not introduce `withLoginTransaction`-style wrappers, `createLoginQueries`-style factories, or callback-only types. Query functions must not own the use case's transaction or HTTP response handling.
+- Keep dependencies one-way: entry points call query modules; query modules use database definitions. Entry points may import the database client for transaction orchestration and passing it to query functions. Query modules must not import entry points, including type-only imports.
+- Use synchronous transaction callbacks and `immediate` for read-before-write transactions. Deliver messages, issue tokens, and perform other asynchronous work after commit.
+- Preserve failure semantics: return a business result when an attempt record must commit, and throw when the transaction must roll back.
+- Keep form schemas, user-facing error messages, and error-code types in existing `shared.ts` files. Do not add use-case, contract, repository, adapter, or composition layers.
+- Keep required data and operation failures explicit. Do not introduce fallback behavior or unrelated abstractions during separation.
+- Apply these rules to route query changes. Preserve the existing shared authentication and CLI structures unless explicitly requested.
+
+```text
+src/routes/login/send/
+├── remote.ts
+├── server.ts
+└── shared.ts
+```
+
+Individual query functions in `server.ts` accept the shared database type:
+
+```ts
+import type { Database } from '../../../app.d.ts';
+
+export const findActiveUser = (db: Database, contact: string) =>
+	db.query.userTable
+		.findFirst({
+			where: { contact, deactivatedAt: { isNull: true } },
+			columns: { id: true },
+		})
+		.sync();
+```
+
+The entry point coordinates calls without constructing queries:
+
+```ts
+const result = db.transaction(
+	(tx) => {
+		const user = findActiveUser(tx, data.contact);
+		if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
+		return insertLogin(tx, {
+			contact: data.contact,
+			userId: user?.id ?? null,
+			code,
+			ip,
+		});
+	},
+	{ behavior: 'immediate' },
+);
+```
+
 ## Debugging
 
 Consider whether a bug may originate from a library or framework, not just application code. If so, ask before checking issues, writing an MRE, or inspecting the source.
@@ -134,11 +188,13 @@ new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_trig
 
 ## Drizzle ORM
 
-Database code lives in `src/db/server/`, imported as `#database/*`:
+Shared database clients, schemas, and relations live in `src/db/server/`, imported by query modules as `#database/*`:
 
 - `src/db/server/client.ts`
 - `src/db/server/schema.ts`
 - `src/db/server/relations.ts`
+
+Export the shared `Database` type once from `src/app.d.ts`, outside `declare global` and the `App` namespace using `NodeSQLiteDatabase<typeof relations> | NodeSQLiteTransaction<typeof relations>` from `drizzle-orm/node-sqlite`. Import `Database` explicitly with `import type`; keep the Drizzle and relations imports in `src/app.d.ts` type-only. Do not duplicate aliases in query modules or extract transaction types through nested `Parameters`.
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
@@ -284,8 +340,9 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
 - Check `load` return types with `satisfies`. See [sveltejs/kit#9799](https://github.com/sveltejs/kit/issues/9799).
 - Use `form` remote functions instead of `actions` in `+page.server.ts`.
 - Mark server-only modules by name or location:
-  - `server.ts` or `*.server.ts` — anywhere
+  - `server.ts` or `*.server.ts` — query modules import server-only `#database/*` modules
   - `server/` directories — outside `src/routes/`
+  - Adjacent `server.ts` modules are used only by server entry points and import server-only `#database/*` modules.
 
 ### Remote Functions (RPC)
 
@@ -309,14 +366,14 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 });
 ```
 
-Name remote modules `remote.ts` or `*.remote.ts`, outside `server/` directories. They export only remote functions — move other exports to separate files:
+Name route-adjacent remote modules exactly `remote.ts`, outside `server/` directories. Do not add descriptive prefixes such as `user.remote.ts`. Shared remote modules outside routes may use `*.remote.ts`. They export only remote functions — move other exports to separate files:
 
 ```text
 src/routes/posts/new/
-├── save-draft.remote.ts
+├── remote.ts
 └── create-post/
     ├── remote.ts
-    ├── server.ts # server-only (e.g. db access)
+    ├── server.ts # database operations
     └── shared.ts # isomorphic (e.g. schemas)
 ```
 
@@ -350,14 +407,14 @@ export const CreatePostSchema = object({
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
 import { db } from '#database/client.ts';
+import { insertPost } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
 	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-	// Insertion is guaranteed to return exactly one row.
-	const newPost = db.insert(postTable).values(data).returning().all()[0]!;
+	const newPost = insertPost(db, data);
 
 	return { slug: newPost.slug }; // populates `createPost.result` in Svelte
 });
@@ -392,12 +449,13 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
-import { db } from '#database/client.ts';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
+import { db } from '#database/client.ts';
+import { insertPost } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
-	const post = db.insert(postTable).values(data).returning().all()[0]!;
+	const post = insertPost(db, data);
 
 	// Unknown args — the client must request it.
 	await requested(getPosts, 2).refreshAll(); // max 2 instances

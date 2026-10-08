@@ -11,9 +11,8 @@ import {
 } from '#auth/config.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { issueToken } from '#auth/server/token.ts';
-import { db } from '#database/client.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
-import { findLogin, recordAttempt, insertUser, findUser, linkUser } from './server.ts';
+import { db } from './server.ts';
 import { validateErrors, ValidateCodeSchema, type ValidateErrorCode } from './shared.ts';
 
 const getRedirectDestination = () => {
@@ -38,7 +37,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 	const result = db.transaction(
 		(tx) => {
-			const login = findLogin(tx, data);
+			const login = tx.findLogin({ id: data.id, contact: data.contact });
 			if (!login) error(400);
 
 			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' } as const;
@@ -52,7 +51,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			}
 
 			const isCorrect = timingSafeEqual(Buffer.from(login.code), Buffer.from(data.code));
-			recordAttempt(tx, { loginId: data.id, isSuccessful: isCorrect, ip });
+			tx.recordAttempt({ loginId: data.id, isSuccessful: isCorrect, ip });
 
 			if (!isCorrect) {
 				const isLastAttempt = login.attempts.length + 1 >= AUTH_CODE_MAX_ATTEMPTS;
@@ -70,12 +69,12 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);
 
-				const created = insertUser(tx, data);
-				user = findUser(tx, created) ?? null;
+				const created = tx.insertUser(data.contact);
+				user = tx.findUser(created.id) ?? null;
 				if (!user) error(500);
 			}
 
-			if (!login.userId) linkUser(tx, { id: data.id, userId: user.id });
+			if (!login.userId) tx.linkUser({ id: data.id, userId: user.id });
 
 			return { user };
 		},

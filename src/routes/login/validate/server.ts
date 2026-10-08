@@ -1,13 +1,17 @@
 import { eq } from 'drizzle-orm';
-import type { InferOutput } from 'valibot';
+import { db as client } from '#database/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/schema.ts';
+import { withTransactions } from '#database/transaction.ts';
 import { pick } from '#lib/pick.ts';
 import type { Database } from '../../../app.d.ts';
-import type { ValidateCodeSchema } from './shared.ts';
 
-export const findLogin = (
-	tx: Database,
-	data: Pick<InferOutput<typeof ValidateCodeSchema>, 'id' | 'contact'>,
+const findLogin = (
+	tx: Database, //
+	data: Pick<
+		typeof loginTable.$inferSelect,
+		| 'id' //
+		| 'contact'
+	>,
 ) =>
 	tx.query.loginTable
 		.findFirst({
@@ -23,40 +27,55 @@ export const findLogin = (
 		})
 		.sync();
 
-export const recordAttempt = (
-	tx: Database,
-	data: Pick<typeof loginAttemptTable.$inferInsert, 'loginId' | 'isSuccessful' | 'ip'>,
+const recordAttempt = (
+	tx: Database, //
+	data: Pick<
+		typeof loginAttemptTable.$inferInsert,
+		| 'loginId' //
+		| 'isSuccessful'
+		| 'ip'
+	>,
 ) => {
 	tx.insert(loginAttemptTable)
 		.values(pick(data, ['loginId', 'isSuccessful', 'ip']))
 		.run();
 };
 
-export const insertUser = (
-	tx: Database,
-	data: Pick<InferOutput<typeof ValidateCodeSchema>, 'contact'>,
-) =>
-	tx
-		.insert(userTable)
-		.values(pick(data, ['contact']))
-		.returning({ id: userTable.id })
-		.all()[0]!;
+const insertUser = (
+	tx: Database, //
+	contact: typeof userTable.$inferInsert.contact,
+) => tx.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!;
 
-export const findUser = (tx: Database, data: Pick<typeof userTable.$inferSelect, 'id'>) =>
+const findUser = (
+	tx: Database, //
+	id: typeof userTable.$inferSelect.id,
+) =>
 	tx.query.userTable
 		.findFirst({
-			where: pick(data, ['id']),
+			where: { id },
 			columns: { id: true },
 			with: { profile: { columns: { id: true } }, activeRoles: { columns: { role: true } } },
 		})
 		.sync();
 
-export const linkUser = (
-	tx: Database,
-	data: Pick<typeof loginTable.$inferSelect, 'id' | 'userId'>,
+const linkUser = (
+	tx: Database, //
+	data: Pick<
+		typeof loginTable.$inferSelect,
+		| 'id' //
+		| 'userId'
+	>,
 ) => {
 	tx.update(loginTable)
 		.set(pick(data, ['userId']))
 		.where(eq(loginTable.id, data.id))
 		.run();
 };
+
+export const db = withTransactions(client, {
+	findLogin,
+	recordAttempt,
+	insertUser,
+	findUser,
+	linkUser,
+});

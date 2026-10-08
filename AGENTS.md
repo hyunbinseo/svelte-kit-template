@@ -25,19 +25,71 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 
 ## Remote and Query
 
-- Name route-adjacent query modules exactly `server.ts`. Do not use `query.server.ts`, `repository.ts`, or `+server.ts` for query helpers. Shared authentication queries remain in `src/auth/server/server.ts`.
+- Name adjacent query modules exactly `server.ts`. Do not use `query.server.ts`, `repository.ts`, or `+server.ts` for query helpers. Shared authentication queries remain in `src/auth/server/server.ts`.
 - Keep authentication guards, processing order, business validation, and response handling in `remote.ts` or the existing entry point.
 - Keep all SQL and Drizzle query construction in `server.ts`, even for short queries used only once. Remote modules must not import database schemas, SQL operators, or query builders, or call `select`, `insert`, `update`, `delete`, `execute`, or `db.query` directly.
-- Expose individual named query functions. Pass the database client or transaction as the first argument, typed with the shared `Database` type exported from `src/app.d.ts`. Do not bind queries into objects, classes, factories, or prototype extensions.
-- Accept query inputs as objects typed with `Pick` of the relevant data type. For Valibot schemas, use `Pick<InferOutput<typeof Schema>, Keys>`, not `Pick<typeof Schema, Keys>`. For database data, use the table’s inferred select or insert type. Receive the object as `data` and use `pick(data, ['field'])` from `#lib/pick.ts` to select query conditions and write values at runtime; TypeScript's `Pick` alone does not remove extra properties.
-- Coordinate transactions directly in the entry point with `db.transaction((tx) => { ... })`. Inside that callback, call query functions with `tx` and perform business checks. Outside a transaction, call query functions with `db`.
-- Do not introduce `withLoginTransaction`-style wrappers, `createLoginQueries`-style factories, or callback-only types. Query functions must not own the use case's transaction or HTTP response handling.
-- Keep dependencies one-way: entry points call query modules; query modules use database definitions. Entry points may import the database client for transaction orchestration and passing it to query functions. Query modules must not import entry points, including type-only imports.
-- Use synchronous transaction callbacks and `immediate` for read-before-write transactions. Deliver messages, issue tokens, and perform other asynchronous work after commit.
-- Preserve failure semantics: return a business result when an attempt record must commit, and throw when the transaction must roll back.
+- Keep dependencies one-way: entry points call query modules; query modules use database definitions. Raw database modules must not import route query modules. Query modules must not import entry points, including type-only imports.
 - Keep form schemas, user-facing error messages, and error-code types in existing `shared.ts` files. Do not add use-case, contract, repository, adapter, or composition layers.
 - Keep required data and operation failures explicit. Do not introduce fallback behavior or unrelated abstractions during separation.
-- Apply these rules to route query changes. Preserve the existing shared authentication and CLI structures unless explicitly requested.
+- Apply these rules to route, authentication, and CLI query modules. Preserve the selected client: authentication token-ban lookups use `silentDb`; audited operations use `db`. Keep asynchronous CLI backups and file operations outside transactions.
+
+### Query Inputs
+
+- Put the raw database or transaction first, typed with the shared `Database` type exported from `src/app.d.ts`.
+- Put each function parameter on its own line, even when the signature fits on one line. Add a blank trailing `//` after the database parameter to preserve formatting.
+- Do not introduce per-query input aliases or schema-derived input helpers. Keep external input validation in existing form schemas.
+
+For a single input field, accept the value directly and use its column type. Name the lookup key when needed to distinguish queries:
+
+```ts
+const findActiveUserByContact = (
+	tx: Database, //
+	contact: typeof userTable.$inferSelect.contact,
+) =>
+	tx.query.userTable
+		.findFirst({
+			where: { contact, deactivatedAt: { isNull: true } },
+			columns: { id: true },
+		})
+		.sync();
+
+tx.findActiveUserByContact(data.contact);
+```
+
+For multiple input fields, accept one object typed directly with `Pick<typeof table.$inferSelect, Keys>` or `Pick<typeof table.$inferInsert, Keys>`. Put each selected column on its own union line, with a blank trailing `//` after the first member:
+
+```ts
+const insertLogin = (
+	tx: Database, //
+	data: Pick<
+		typeof loginTable.$inferInsert,
+		| 'contact' //
+		| 'userId'
+		| 'code'
+		| 'ip'
+	>,
+) =>
+	tx
+		.insert(loginTable)
+		.values(pick(data, ['contact', 'userId', 'code', 'ip']))
+		.returning({ id: loginTable.id })
+		.all()[0]!;
+
+tx.insertLogin({ contact: data.contact, userId: user?.id ?? null, code, ip });
+```
+
+- At call sites, pass the single value or explicitly construct the multi-field object. Do not forward the whole form data.
+- For object inputs, use `pick(data, ['field'])` from `#lib/pick.ts` to select runtime fields. TypeScript's `Pick` does not remove extra properties.
+
+### Transaction Calls
+
+- Export a scoped `db` with `withTransactions(client, { queryName })` from each `server.ts` query module. Entry points import this `db` instead of the raw client or individual query functions.
+- Use `db.transaction.queryName(input)` for one operation. Each call opens its own transaction.
+- Use `db.transaction((tx) => { ... })` with `tx.queryName(input)` for multiple operations. All callback methods share the same transaction.
+- Keep business checks and response handling in the entry point. Use synchronous callbacks and `immediate` for read-before-write transactions.
+- Deliver messages, issue tokens, and perform other asynchronous work after commit.
+- Return a business result when an attempt record must commit, and throw when the transaction must roll back.
+- Use only the shared transaction helper. Do not mutate Drizzle clients or prototypes or add per-use-case transaction wrappers.
 
 ```text
 src/routes/login/send/
@@ -46,24 +98,32 @@ src/routes/login/send/
 └── shared.ts
 ```
 
-Individual query functions in `server.ts` accept the shared database type:
+Define input types directly in `server.ts`:
 
 ```ts
-import type { InferOutput } from 'valibot';
+import { db as client } from '#database/client.ts';
+import { loginTable } from '#database/schema.ts';
+import { withTransactions } from '#database/transaction.ts';
 import { pick } from '#lib/pick.ts';
 import type { Database } from '../../../app.d.ts';
-import type { SendCodeSchema } from './shared.ts';
 
-export const findActiveUser = (
-	db: Database,
-	data: Pick<InferOutput<typeof SendCodeSchema>, 'contact'>,
+const insertLogin = (
+	tx: Database, //
+	data: Pick<
+		typeof loginTable.$inferInsert,
+		| 'contact' //
+		| 'userId'
+		| 'code'
+		| 'ip'
+	>,
 ) =>
-	db.query.userTable
-		.findFirst({
-			where: { ...pick(data, ['contact']), deactivatedAt: { isNull: true } },
-			columns: { id: true },
-		})
-		.sync();
+	tx
+		.insert(loginTable)
+		.values(pick(data, ['contact', 'userId', 'code', 'ip']))
+		.returning({ id: loginTable.id })
+		.all()[0]!;
+
+export const db = withTransactions(client, { insertLogin });
 ```
 
 The entry point coordinates calls without constructing queries:
@@ -71,9 +131,9 @@ The entry point coordinates calls without constructing queries:
 ```ts
 const result = db.transaction(
 	(tx) => {
-		const user = findActiveUser(tx, data);
+		const user = tx.findActiveUserByContact(data.contact);
 		if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
-		return insertLogin(tx, {
+		return tx.insertLogin({
 			contact: data.contact,
 			userId: user?.id ?? null,
 			code,
@@ -413,15 +473,14 @@ export const CreatePostSchema = object({
 // src/routes/posts/new/create-post/remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from '#database/client.ts';
-import { insertPost } from './server.ts';
+import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
 	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-	const newPost = insertPost(db, data);
+	const newPost = db.transaction.insertPost(data);
 
 	return { slug: newPost.slug }; // populates `createPost.result` in Svelte
 });
@@ -457,12 +516,11 @@ import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
-import { db } from '#database/client.ts';
-import { insertPost } from './server.ts';
+import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
-	const post = insertPost(db, data);
+	const post = db.transaction.insertPost(data);
 
 	// Unknown args — the client must request it.
 	await requested(getPosts, 2).refreshAll(); // max 2 instances

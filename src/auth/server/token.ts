@@ -6,7 +6,7 @@ import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/erro
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#auth/config.ts';
 import type { TokenRefreshReason } from '#auth/enums.ts';
 import type { UserRole } from '#lib/enums/user.ts';
-import { claimTokenRotation, findActiveUser, insertToken } from './server.ts';
+import { db } from './server.ts';
 
 const encoder = new TextEncoder();
 
@@ -49,7 +49,7 @@ type TokenInput = Pick<
 export const issueToken = async (input: TokenInput) => {
 	const event = getRequestEvent();
 
-	const token = insertToken({
+	const token = db.transaction.insertToken({
 		userId: input.sub,
 		refreshedFrom: input.refreshedFrom,
 		refreshReason: input.refreshReason,
@@ -91,16 +91,16 @@ export const rotateToken = async (
 	const event = getRequestEvent();
 
 	if (reason !== 'stale') {
-		const claimed = claimTokenRotation({
+		const claimed = db.transaction.claimTokenRotation({
 			tokenId: session.jti,
-			userId: session.sub,
+			bannedBy: session.sub,
 			ip: event.getClientAddress(),
 			effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
 		});
 		if (!claimed) return;
 	}
 
-	const user = findActiveUser(session.sub);
+	const user = db.transaction.findActiveUserById(session.sub);
 
 	if (!user) {
 		event.cookies.delete(AUTH_COOKIE_NAME);

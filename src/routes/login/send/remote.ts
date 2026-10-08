@@ -5,14 +5,7 @@ import { captureException } from '@sentry/sveltekit';
 import { invalid } from '@sveltejs/kit';
 import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
-import { db } from '#database/client.ts';
-import {
-	discardLogin,
-	markDelivered,
-	findActiveUser,
-	findLatestUnexpiredLogin,
-	insertLogin,
-} from './server.ts';
+import { db } from './server.ts';
 import { SendCodeSchema, sendErrors } from './shared.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
@@ -20,10 +13,10 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	const result = db.transaction(
 		(tx) => {
-			const user = findActiveUser(tx, data);
+			const user = tx.findActiveUserByContact(data.contact);
 			if (!user && !AUTH_ALLOW_UNREGISTERED) invalid(issue.contact(sendErrors.UNREGISTERED));
 
-			const existingLogin = findLatestUnexpiredLogin(tx, data);
+			const existingLogin = tx.findLatestUnexpiredLogin(data.contact);
 			if (existingLogin && existingLogin.successfulAttempts.length === 0) {
 				invalid(issue.contact(sendErrors.RATE_LIMITED));
 			}
@@ -32,7 +25,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 				.toString()
 				.padStart(AUTH_CODE_LENGTH, '0');
 
-			const login = insertLogin(tx, {
+			const login = tx.insertLogin({
 				contact: data.contact,
 				userId: user?.id ?? null,
 				code,
@@ -52,10 +45,10 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		sendId = await Promise.resolve(randomUUID());
 	} catch (cause) {
 		captureException(cause);
-		discardLogin(db, result.login);
+		db.transaction.discardLogin(result.login.id);
 		invalid(issue.contact(sendErrors.SEND_FAILED));
 	}
 
-	markDelivered(db, { id: result.login.id, sendId });
+	db.transaction.markDelivered({ id: result.login.id, sendId });
 	return { id: result.login.id, contact: data.contact };
 });

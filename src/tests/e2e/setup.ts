@@ -4,5 +4,5 @@ import { env } from 'node:process';
 import { createAppDb } from '#tests/database/app.ts';
 
 assert(env.DATABASE_APP_URL);
-rmSync(env.DATABASE_APP_URL, { force: true });
+for (const suffix of ['', '-wal', '-shm']) rmSync(env.DATABASE_APP_URL + suffix, { force: true });
 createAppDb(env.DATABASE_APP_URL);

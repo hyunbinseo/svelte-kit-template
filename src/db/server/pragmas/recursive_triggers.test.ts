@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { test } from 'vite-plus/test';
-import { databaseSyncOptions } from '#database/options.ts';
+import { databaseOptions } from '#database/connection.ts';
 
 const createDb = () => {
-	const db = new DatabaseSync(':memory:', databaseSyncOptions);
+	const db = new DatabaseSync(':memory:', databaseOptions);
 	db.exec('CREATE TABLE a (n INTEGER); CREATE TABLE b (n INTEGER); CREATE TABLE c (n INTEGER);');
 	return db;
 };

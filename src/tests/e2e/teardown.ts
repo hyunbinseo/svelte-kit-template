@@ -4,5 +4,5 @@ import { env } from 'node:process';
 
 export default () => {
 	assert(env.DATABASE_APP_URL);
-	rmSync(env.DATABASE_APP_URL, { force: true });
+	for (const suffix of ['', '-wal', '-shm']) rmSync(env.DATABASE_APP_URL + suffix, { force: true });
 };

@@ -6,10 +6,10 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { Worker } from 'node:worker_threads';
 import { afterAll, describe, test } from 'vite-plus/test';
-import { databaseSyncOptions } from '#database/options.ts';
+import { databaseOptions } from '#database/connection.ts';
 
 const HOLD_MS = 1000;
-assert.ok(HOLD_MS < databaseSyncOptions.timeout);
+assert(HOLD_MS < databaseOptions.timeout);
 
 const SQLITE_BUSY = { code: 'ERR_SQLITE_ERROR', errcode: 5 } as const;
 const SQLITE_BUSY_SNAPSHOT = { code: 'ERR_SQLITE_ERROR', errcode: 517 } as const;
@@ -55,17 +55,17 @@ const elapsed = (fn: () => void) => {
 test('0 by default, overridden', () => {
 	const read = (db: DatabaseSync) => db.prepare('PRAGMA busy_timeout').get()?.['timeout'];
 	using defaultDb = new DatabaseSync(':memory:');
-	using db = new DatabaseSync(':memory:', databaseSyncOptions);
+	using db = new DatabaseSync(':memory:', databaseOptions);
 
 	assert.equal(read(defaultDb), 0);
-	assert.equal(read(db), databaseSyncOptions.timeout);
+	assert.equal(read(db), databaseOptions.timeout);
 });
 
 for (const journalMode of ['DELETE', 'WAL'] as const) {
 	describe(`journal_mode = ${journalMode}`, () => {
 		test('BEGIN IMMEDIATE waits', async () => {
 			const filename = createFile(journalMode);
-			using db = new DatabaseSync(filename, databaseSyncOptions);
+			using db = new DatabaseSync(filename, databaseOptions);
 			const worker = await holdWriteLock(filename);
 
 			const ms = elapsed(() => {
@@ -75,13 +75,13 @@ for (const journalMode of ['DELETE', 'WAL'] as const) {
 				db.exec('COMMIT');
 			});
 
-			assert.ok(ms >= HOLD_MS / 2, `${ms}ms`);
+			assert(ms >= HOLD_MS / 2, `${ms}ms`);
 			await once(worker, 'exit');
 		});
 
 		test('deferred write only waits', async () => {
 			const filename = createFile(journalMode);
-			using db = new DatabaseSync(filename, databaseSyncOptions);
+			using db = new DatabaseSync(filename, databaseOptions);
 			const worker = await holdWriteLock(filename);
 
 			const ms = elapsed(() => {
@@ -90,14 +90,14 @@ for (const journalMode of ['DELETE', 'WAL'] as const) {
 				db.exec('COMMIT');
 			});
 
-			assert.ok(ms >= HOLD_MS / 2, `${ms}ms`);
+			assert(ms >= HOLD_MS / 2, `${ms}ms`);
 			await once(worker, 'exit');
 		});
 
 		test('deferred read → write, lock held, throws immediately', () => {
 			const filename = createFile(journalMode);
-			using holder = new DatabaseSync(filename, databaseSyncOptions);
-			using db = new DatabaseSync(filename, databaseSyncOptions);
+			using holder = new DatabaseSync(filename, databaseOptions);
+			using db = new DatabaseSync(filename, databaseOptions);
 
 			holder.exec('BEGIN IMMEDIATE');
 			holder.exec('INSERT INTO t (v) VALUES (0)');
@@ -109,15 +109,15 @@ for (const journalMode of ['DELETE', 'WAL'] as const) {
 				assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), SQLITE_BUSY),
 			);
 
-			assert.ok(ms < databaseSyncOptions.timeout, `${ms}ms`);
+			assert(ms < databaseOptions.timeout, `${ms}ms`);
 		});
 	});
 }
 
 test('deferred read → write, stale snapshot (WAL), throws immediately', () => {
 	const filename = createFile('WAL');
-	using other = new DatabaseSync(filename, databaseSyncOptions);
-	using db = new DatabaseSync(filename, databaseSyncOptions);
+	using other = new DatabaseSync(filename, databaseOptions);
+	using db = new DatabaseSync(filename, databaseOptions);
 
 	db.exec('BEGIN');
 	db.exec('SELECT * FROM t');
@@ -127,5 +127,5 @@ test('deferred read → write, stale snapshot (WAL), throws immediately', () => 
 		assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), SQLITE_BUSY_SNAPSHOT),
 	);
 
-	assert.ok(ms < databaseSyncOptions.timeout, `${ms}ms`);
+	assert(ms < databaseOptions.timeout, `${ms}ms`);
 });

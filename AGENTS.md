@@ -123,12 +123,13 @@ If a `PRAGMA` matters, verify it against runtime in `src/db/server/pragmas/<prag
 
 ```ts
 import { DatabaseSync } from 'node:sqlite';
-import { databaseSyncOptions } from '#database/options.ts';
+import { databaseOptions } from '#database/connection.ts';
 
-new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_triggers').get();
+new DatabaseSync(':memory:', databaseOptions).prepare('PRAGMA recursive_triggers').get();
 ```
 
-- `PRAGMA busy_timeout` (0 by default, overridden)
+- `PRAGMA busy_timeout` (0 by default, overridden via `databaseOptions`)
+- `PRAGMA journal_mode` (`delete` by default, `wal` via `openDatabase()`)
 - `PRAGMA recursive_triggers` (off by default)
   - Direct (`A -> A`) — blocked
   - Cycle (`A -> B -> A`) — blocked

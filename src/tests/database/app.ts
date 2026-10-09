@@ -1,22 +1,21 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
 import { eq } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
-import { DB_APP_MIGRATIONS_DIR } from '#database/config.ts';
-import { databaseSyncOptions } from '#database/options.ts';
 import { relations } from '#database/app/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#database/app/schema.ts';
+import { DB_APP_MIGRATIONS_DIR } from '#database/config.ts';
+import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { root } from '#tests/utilities.ts';
 
 export const createAppDb = (filename = ':memory:') => {
 	const migrationsFolder = resolve(root, DB_APP_MIGRATIONS_DIR);
 	assert(readMigrationFiles({ migrationsFolder }).length > 0);
 
-	const db = drizzle({ client: new DatabaseSync(filename, databaseSyncOptions), relations });
+	const db = drizzle({ ...drizzleOptions, client: openDatabase(filename), relations });
 	migrate(db, { migrationsFolder });
 	return db;
 };

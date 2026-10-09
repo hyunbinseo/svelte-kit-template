@@ -7,7 +7,7 @@ const NonEmptyStringSchema = pipe(string(), nonEmpty());
 
 export const variables = defineEnvVars({
 	DATABASE_APP_URL: { schema: DatabaseURLSchema },
-	DATABASE_AUDIT_URL: { schema: !dev ? DatabaseURLSchema : undefined_() },
+	DATABASE_AUDIT_URL: { schema: dev ? undefined_() : DatabaseURLSchema }, // must be unset in dev
 
 	SENTRY_DSN: { public: true, schema: optional(NonEmptyStringSchema) },
 	SITE_NAME: { public: true, schema: NonEmptyStringSchema },

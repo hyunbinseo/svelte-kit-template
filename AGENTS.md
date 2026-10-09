@@ -139,11 +139,12 @@ new DatabaseSync(':memory:', databaseOptions).prepare('PRAGMA recursive_triggers
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `app/` — application data (`client.ts`, `schema.ts`, `relations.ts`):
+- `app/` — application data, with schema, relations, and clients:
   - `db` — logs writes only (plus CTEs)
   - `fullyAuditedDb` — logs every query, including reads
-- `audit/` — query log, enabled if `DATABASE_AUDIT_URL` is set:
-  - A failed audit write throws `AuditWriteError`, except on rollbacks.
+- `audit/` — query log, with schema and logger:
+  - Logging is off unless `DATABASE_AUDIT_URL` is set.
+  - If logging fails, `AuditWriteError` is thrown before the query runs.
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
@@ -187,18 +188,18 @@ const users = db.query.userTable
 
 ### Schema
 
-Table names follow 2 conventions:
+Import tables from `#database/<db>/schema.ts`. Group tables by owner:
 
-- `<owner><Attribute>` — 1:N tables, no `To` (e.g. `userTable` → `userProfileTable`/`userRoleTable`)
-- `<subject>To<Other>` — M:N join tables (e.g. `postToTagTable`)
+- Single file — one block per owner in `schema.ts`
+- Split — `schema/<owner>.ts`, re-exported from `schema.ts`
 
-Tables are grouped by owner in FK order in `schema.ts`:
+Each group declares, in order:
 
-- Subject table (e.g. `userTable`)
-- Subject's own attribute tables (e.g. `userProfileTable`, `userRoleTable`)
-- Join table (e.g. `postToTagTable`) — even if it forward-references a table declared later (e.g. `tagTable`)
+- `<owner>` — owner table (e.g. `userTable`)
+- `<owner><Attribute>` — 1:N tables, no `To` (e.g. `userRoleTable`)
+- `<owner>To<Other>` — M:N join tables (e.g. `userToTeamTable`)
 
-Prefer soft-delete (e.g. `deactivatedAt`, `revokedAt`) over hard `DELETE` if an audit trail is needed — join-table rows typically don't need one.
+Soft-delete instead of `DELETE` by default, using nullable columns (e.g. `deactivatedAt`/`deactivatedBy`).
 
 #### Indexes
 

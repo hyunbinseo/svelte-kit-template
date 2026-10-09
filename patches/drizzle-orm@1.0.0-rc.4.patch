@@ -1,0 +1,32 @@
+diff --git a/errors.cjs b/errors.cjs
+index 46d7733d38c2d9a31b8a0c39d778634d2bf4b140..d7cf7e4150fbbf770d0e981d326a8691a8e1767c 100644
+--- a/errors.cjs
++++ b/errors.cjs
+@@ -14,9 +14,9 @@ var DrizzleError = class extends Error {
+ var DrizzleQueryError = class DrizzleQueryError extends Error {
+ 	static [__entity_ts.entityKind] = "DrizzleQueryError";
+ 	constructor(query, params, cause) {
+-		super(`Failed query: ${query}\nparams: ${params}`);
++		super(`Failed query: ${query}`);
+ 		this.query = query;
+-		this.params = params;
++		Object.defineProperty(this, "params", { value: params, enumerable: false });
+ 		this.cause = cause;
+ 		this.name = "DrizzleQueryError";
+ 		Error.captureStackTrace(this, DrizzleQueryError);
+diff --git a/errors.js b/errors.js
+index d9eda4a86439ecfec167d5fd4f554e3a1dc39067..34c914bb9c13c892a1904130f3b098354bbdbda9 100644
+--- a/errors.js
++++ b/errors.js
+@@ -12,9 +12,9 @@ var DrizzleError = class extends Error {
+ var DrizzleQueryError = class DrizzleQueryError extends Error {
+ 	static [entityKind] = "DrizzleQueryError";
+ 	constructor(query, params, cause) {
+-		super(`Failed query: ${query}\nparams: ${params}`);
++		super(`Failed query: ${query}`);
+ 		this.query = query;
+-		this.params = params;
++		Object.defineProperty(this, "params", { value: params, enumerable: false });
+ 		this.cause = cause;
+ 		this.name = "DrizzleQueryError";
+ 		Error.captureStackTrace(this, DrizzleQueryError);

@@ -35,7 +35,7 @@ const setup = () => {
 		createAuditLogger(
 			auditDb,
 			(error) => errors.push(error),
-			() => ({ sub: null, ip: null, pathname: null }),
+			() => ({ sub: null, ip: '', pathname: null }),
 			{ scope },
 		);
 
@@ -122,7 +122,7 @@ describe('transaction logging', () => {
 			logger: createAuditLogger(
 				drizzle({ ...drizzleOptions, client: openDatabase(':memory:') }),
 				(error) => errors.push(error),
-				() => ({ sub: null, ip: null, pathname: null }),
+				() => ({ sub: null, ip: '', pathname: null }),
 				{ scope: 'all' },
 			),
 		});

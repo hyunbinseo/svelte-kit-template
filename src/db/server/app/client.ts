@@ -33,7 +33,7 @@ const createLogger = (scope: AuditScope) => {
 					pathname: new URL(event.request.url).pathname,
 				};
 			} catch {
-				return { sub: null, ip: null, pathname: null };
+				return { sub: null, ip: '', pathname: null };
 			}
 		},
 		{ scope },

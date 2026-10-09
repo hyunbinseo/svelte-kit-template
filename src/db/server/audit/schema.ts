@@ -11,7 +11,7 @@ export const logTable = snakeCase.table('log', {
 		.notNull()
 		.$default(() => new Date()),
 	sub: text(),
-	ip: text(),
+	ip: text().notNull(),
 	pathname: text(),
 	queryHash: text().notNull(),
 	params: text().notNull(),

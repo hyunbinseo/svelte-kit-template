@@ -2,7 +2,7 @@ CREATE TABLE `log` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`logged_at` integer NOT NULL,
 	`sub` text,
-	`ip` text,
+	`ip` text NOT NULL,
 	`pathname` text,
 	`query_hash` text NOT NULL,
 	`params` text NOT NULL

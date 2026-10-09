@@ -16,7 +16,7 @@ const logger = auditDb
 				console.error(error);
 				captureException(error);
 			},
-			() => ({ sub: null, ip: null, pathname: null }),
+			() => ({ sub: null, ip: '', pathname: null }),
 			{ scope: 'writes' },
 		)
 	: undefined;

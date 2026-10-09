@@ -16,7 +16,8 @@ export const getCurrentUser = query(async () => {
 		})
 		.sync();
 
-	if (!user?.profile) error(500);
+	if (!user) error(401);
+	if (!user.profile) error(500);
 
 	return { ...user, profile: user.profile };
 });

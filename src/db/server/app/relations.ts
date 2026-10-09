@@ -29,4 +29,10 @@ export const relations = defineRelations(schema, (r) => ({
 			where: { isSuccessful: true },
 		}),
 	},
+	tokenTable: {
+		ban: r.one.tokenBanTable({
+			from: r.tokenTable.id,
+			to: r.tokenBanTable.tokenId,
+		}),
+	},
 }));

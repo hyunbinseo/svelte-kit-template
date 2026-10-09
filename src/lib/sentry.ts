@@ -1,4 +1,4 @@
-import type { NodeOptions } from '@sentry/sveltekit';
+import type { NodeOptions } from '@sentry/node';
 
 export const SENTRY_TRACES_SAMPLE_RATE = 0.2;
 

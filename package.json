@@ -19,7 +19,8 @@
 		"lint:fix": "eslint . --fix",
 		"test": "vp test",
 		"test:e2e": "playwright test",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && node --run check:cli",
+		"check:cli": "tsc -p cli && ! tsc -p cli --listFilesOnly | grep -F '/@sveltejs/kit/'",
 		"db:app:generate": "drizzle-kit generate --config=cli/drizzle/config/app.ts",
 		"db:app:migrate:dev": "drizzle-kit migrate --config=cli/drizzle/config/app.dev.ts",
 		"db:app:migrate:prod": "drizzle-kit migrate --config=cli/drizzle/config/app.prod.ts",
@@ -29,7 +30,8 @@
 	},
 	"dependencies": {
 		"@opentelemetry/api": "^1.9.1",
-		"@sentry/sveltekit": "^11.0.0"
+		"@sentry/node": "11.5.0",
+		"@sentry/sveltekit": "11.5.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

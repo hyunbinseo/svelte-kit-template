@@ -2,7 +2,8 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"lib": ["ESNext"],
-		"paths": {}
+		"paths": {},
+		"types": ["node"]
 	},
 	"include": ["./**/*.js", "./**/*.ts"]
 }

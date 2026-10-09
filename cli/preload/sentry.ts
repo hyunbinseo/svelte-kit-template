@@ -1,5 +1,5 @@
 import { env } from 'node:process';
-import * as Sentry from '@sentry/sveltekit';
+import * as Sentry from '@sentry/node';
 import { SENTRY_DATA_COLLECTION } from '#lib/sentry.ts';
 
 if (env.SENTRY_DSN) {

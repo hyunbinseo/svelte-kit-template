@@ -3,7 +3,7 @@ import type { Logger } from 'drizzle-orm';
 import type { NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite';
 import { logTable, queryTable } from './schema.ts';
 
-export const SELECT_PREFIX = 'select ';
+export const SELECT_REGEX = /^\s*select\b/i;
 
 export const createAuditLogger = (
 	auditDb: NodeSQLiteDatabase,
@@ -12,7 +12,7 @@ export const createAuditLogger = (
 	{ logSelectQueries }: { logSelectQueries: boolean },
 ): Logger => ({
 	logQuery: (query, params) => {
-		if (!logSelectQueries && query.startsWith(SELECT_PREFIX)) return;
+		if (!logSelectQueries && SELECT_REGEX.test(query)) return;
 
 		try {
 			const queryHash = hash('sha1', query, 'hex');

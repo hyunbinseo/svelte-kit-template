@@ -139,11 +139,11 @@ new DatabaseSync(':memory:', databaseOptions).prepare('PRAGMA recursive_triggers
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `src/db/server/app/client.ts` (logging if `DATABASE_AUDIT_URL` is set):
-  - `db` — writes only (plus CTEs)
-  - `fullyAuditedDb` — every query, including reads
-- `src/db/server/app/schema.ts`
-- `src/db/server/app/relations.ts`
+- `app/` — application data (`client.ts`, `schema.ts`, `relations.ts`):
+  - `db` — logs writes only (plus CTEs)
+  - `fullyAuditedDb` — logs every query, including reads
+- `audit/` — query log, enabled if `DATABASE_AUDIT_URL` is set:
+  - A failed audit write throws `AuditWriteError`, except on rollbacks.
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 

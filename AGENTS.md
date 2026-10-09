@@ -138,9 +138,9 @@ new DatabaseSync(':memory:', databaseSyncOptions).prepare('PRAGMA recursive_trig
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `src/db/server/client.ts`
-- `src/db/server/schema.ts`
-- `src/db/server/relations.ts`
+- `src/db/server/app/client.ts`
+- `src/db/server/app/schema.ts`
+- `src/db/server/app/relations.ts`
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
@@ -240,7 +240,7 @@ Separate trigger statements with a breakpoint comment:
 --> statement-breakpoint
 ```
 
-Add a test case in `src/db/server/triggers/<trigger_name>.test.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
+Add a test case in `src/db/server/app/triggers/<trigger_name>.test.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
 
 - Direct effect: the cascade fires under the trigger's condition.
 - Guards: each condition that blocks the effect (e.g. already revoked, already banned, already expired).
@@ -351,7 +351,7 @@ export const CreatePostSchema = object({
 // src/routes/posts/new/create-post/remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from '#database/client.ts';
+import { db } from '#database/app/client.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
@@ -394,7 +394,7 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
-import { db } from '#database/client.ts';
+import { db } from '#database/app/client.ts';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
 import { CreatePostSchema } from './shared.ts';
 

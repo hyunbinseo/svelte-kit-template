@@ -8,8 +8,8 @@ import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { DB_APP_MIGRATIONS_DIR } from '#database/config.ts';
 import { databaseSyncOptions } from '#database/options.ts';
-import { relations } from '#database/relations.ts';
-import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#database/schema.ts';
+import { relations } from '#database/app/relations.ts';
+import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#database/app/schema.ts';
 import { root } from '#tests/utilities.ts';
 
 export const createAppDb = (filename = ':memory:') => {

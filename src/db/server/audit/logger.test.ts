@@ -3,8 +3,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { test } from 'vite-plus/test';
-import { relations } from '#database/relations.ts';
-import { userTable } from '#database/schema.ts';
+import { relations } from '#database/app/relations.ts';
+import { userTable } from '#database/app/schema.ts';
 
 const db = drizzle({ client: new DatabaseSync(':memory:'), relations });
 

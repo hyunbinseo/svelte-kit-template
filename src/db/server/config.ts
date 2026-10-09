@@ -1,5 +1,5 @@
 export const DB_APP_MIGRATIONS_DIR = './drizzle/app';
-export const DB_APP_SCHEMA_FILE = './src/db/server/schema.ts';
+export const DB_APP_SCHEMA_FILE = './src/db/server/app/schema.ts';
 
 export const DB_AUDIT_LOG_SELECT_QUERIES = false;
 export const DB_AUDIT_MIGRATIONS_DIR = './drizzle/audit';

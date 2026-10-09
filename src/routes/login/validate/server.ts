@@ -10,8 +10,8 @@ import {
 	AUTH_CODE_MAX_ATTEMPTS,
 	AUTH_REDIRECT_PARAM,
 } from '#auth/config.ts';
-import { db } from '#database/client.ts';
-import { loginAttemptTable, loginTable, userTable } from '#database/schema.ts';
+import { db } from '#database/app/client.ts';
+import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import type { ValidateCodeSchema, ValidateErrorCode } from './shared.ts';
 

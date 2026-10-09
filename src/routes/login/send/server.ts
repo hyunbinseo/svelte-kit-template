@@ -4,8 +4,8 @@ import { captureException } from '@sentry/sveltekit';
 import { eq } from 'drizzle-orm';
 import type { InferOutput } from 'valibot';
 import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
-import { db } from '#database/client.ts';
-import { loginTable } from '#database/schema.ts';
+import { db } from '#database/app/client.ts';
+import { loginTable } from '#database/app/schema.ts';
 import type { SendCodeSchema, SendErrorCode } from './shared.ts';
 
 const generateCode = () =>

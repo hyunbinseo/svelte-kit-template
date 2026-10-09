@@ -5,7 +5,7 @@ import { drizzle } from 'drizzle-orm/node-sqlite';
 import { DB_AUDIT_LOG_SELECT_QUERIES } from '#cli/lib/config.ts';
 import { createAuditLogger } from '#database/audit/logger.ts';
 import { databaseSyncOptions } from '#database/options.ts';
-import { relations } from '#database/relations.ts';
+import { relations } from '#database/app/relations.ts';
 import { auditDb } from './audit.ts';
 
 assert(env.DATABASE_APP_URL);

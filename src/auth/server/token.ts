@@ -5,8 +5,8 @@ import { jwtVerify, SignJWT } from 'jose';
 import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#auth/config.ts';
 import type { TokenRefreshReason } from '#auth/enums.ts';
-import { db } from '#database/client.ts';
-import { tokenBanTable, tokenTable } from '#database/schema.ts';
+import { db } from '#database/app/client.ts';
+import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
 import type { UserRole } from '#lib/enums/user.ts';
 
 const encoder = new TextEncoder();

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
 import { describe, test } from 'vite-plus/test';
-import { tokenBanTable, userRoleTable } from '#database/schema.ts';
 import { banFor, createAppDb, seedRole, seedToken, seedUser } from '#tests/database/app.ts';
+import { tokenBanTable, userRoleTable } from '../schema.ts';
 
 describe('user_role.revoked_at set', () => {
 	describe('direct effect', () => {

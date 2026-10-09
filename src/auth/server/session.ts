@@ -5,8 +5,8 @@ import { gt } from 'drizzle-orm';
 import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
-import { db } from '#database/client.ts';
-import { tokenBanTable } from '#database/schema.ts';
+import { db } from '#database/app/client.ts';
+import { tokenBanTable } from '#database/app/schema.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();

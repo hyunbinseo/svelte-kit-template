@@ -3,10 +3,10 @@ import { dev } from '$app/env';
 import { DATABASE_APP_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { auditDb } from './audit/client.ts';
-import { createAuditLogger } from './audit/logger.ts';
-import { DB_AUDIT_LOG_SELECT_QUERIES } from './config.ts';
-import { databaseSyncOptions } from './options.ts';
+import { auditDb } from '#database/audit/client.ts';
+import { createAuditLogger } from '#database/audit/logger.ts';
+import { DB_AUDIT_LOG_SELECT_QUERIES } from '#database/config.ts';
+import { databaseSyncOptions } from '#database/options.ts';
 import { relations } from './relations.ts';
 
 const client = new DatabaseSync(DATABASE_APP_URL, databaseSyncOptions);

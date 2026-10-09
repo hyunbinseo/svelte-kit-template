@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { test } from 'vite-plus/test';
 import { relations } from '#database/app/relations.ts';
 import { userTable } from '#database/app/schema.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
-import { SELECT_PREFIX } from './logger.ts';
+import { createAuditLogger, SELECT_PREFIX } from './logger.ts';
 
 const db = drizzle({
 	...drizzleOptions,
@@ -32,4 +32,32 @@ test('write queries do not start with select', () => {
 	];
 
 	for (const query of queries) assert(!query.toSQL().sql.startsWith(SELECT_PREFIX));
+});
+
+test('audit write errors do not block rollback', () => {
+	const errors: unknown[] = [];
+
+	const auditedDb = drizzle({
+		...drizzleOptions,
+		client: openDatabase(':memory:'),
+		logger: createAuditLogger(
+			drizzle({ ...drizzleOptions, client: openDatabase(':memory:') }),
+			(error) => errors.push(error),
+			() => ({ sub: null, ip: null, pathname: null }),
+			{ logSelectQueries: true },
+		),
+	});
+
+	auditedDb.run(sql`CREATE TABLE t (v INTEGER)`);
+
+	assert.throws(() =>
+		auditedDb.transaction((tx) => {
+			tx.run(sql`INSERT INTO t (v) VALUES (1)`);
+			throw new Error();
+		}),
+	);
+
+	assert(!auditedDb.$client.isTransaction);
+	assert.equal(auditedDb.all(sql`SELECT * FROM t`).length, 0);
+	assert(errors.length > 0);
 });

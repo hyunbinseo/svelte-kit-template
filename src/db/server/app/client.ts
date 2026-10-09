@@ -1,5 +1,6 @@
 import { DATABASE_APP_URL, DATABASE_AUDIT_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
+import { captureException } from '@sentry/sveltekit';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { createAuditLogger } from '#database/audit/logger.ts';
 import { DB_AUDIT_LOG_SELECT_QUERIES } from '#database/config.ts';
@@ -19,6 +20,7 @@ process.on('sveltekit:shutdown', () => {
 const logger = auditClient
 	? createAuditLogger(
 			drizzle({ ...drizzleOptions, client: auditClient }),
+			captureException,
 			() => {
 				try {
 					const event = getRequestEvent();

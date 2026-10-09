@@ -7,7 +7,7 @@ export const queryTable = snakeCase.table('query', {
 
 export const logTable = snakeCase.table('log', {
 	id: integer().primaryKey({ autoIncrement: true }),
-	loggedAt: integer({ mode: 'timestamp' })
+	loggedAt: integer({ mode: 'timestamp_ms' })
 		.notNull()
 		.$default(() => new Date()),
 	sub: text(),

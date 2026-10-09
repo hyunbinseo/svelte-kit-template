@@ -3,16 +3,19 @@ import type { Logger } from 'drizzle-orm';
 import type { NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite';
 import { logTable, queryTable } from './schema.ts';
 
+// CTEs are logged, as they can precede writes (e.g. `WITH … INSERT`).
 export const SELECT_REGEX = /^\s*select\b/i;
+
+export type AuditScope = 'all' | 'writes';
 
 export const createAuditLogger = (
 	auditDb: NodeSQLiteDatabase,
 	onError: (error: unknown) => void,
 	getContext: () => Pick<typeof logTable.$inferInsert, 'sub' | 'ip' | 'pathname'>,
-	{ logSelectQueries }: { logSelectQueries: boolean },
+	{ scope }: { scope: AuditScope },
 ): Logger => ({
 	logQuery: (query, params) => {
-		if (!logSelectQueries && SELECT_REGEX.test(query)) return;
+		if (scope === 'writes' && SELECT_REGEX.test(query)) return;
 
 		try {
 			const queryHash = hash('sha1', query, 'hex');

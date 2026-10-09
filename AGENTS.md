@@ -139,7 +139,9 @@ new DatabaseSync(':memory:', databaseOptions).prepare('PRAGMA recursive_triggers
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `src/db/server/app/client.ts`
+- `src/db/server/app/client.ts` (logging if `DATABASE_AUDIT_URL` is set):
+  - `db` — writes only (plus CTEs)
+  - `fullyAuditedDb` — every query, including reads
 - `src/db/server/app/schema.ts`
 - `src/db/server/app/relations.ts`
 
@@ -278,6 +280,8 @@ db.transaction(
 	{ behavior: 'immediate' },
 );
 ```
+
+If a transaction has reads that must be logged, run all of it on `fullyAuditedDb` — don't nest different clients.
 
 ## SvelteKit
 

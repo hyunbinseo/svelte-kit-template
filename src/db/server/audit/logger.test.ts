@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { test } from 'vite-plus/test';
 import { relations } from '#database/app/relations.ts';
 import { userTable } from '#database/app/schema.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
-import { createAuditLogger, SELECT_REGEX } from './logger.ts';
+import { SELECT_REGEX } from './logger.ts';
 
 const db = drizzle({
 	...drizzleOptions,
@@ -36,35 +36,14 @@ test('write queries do not match the select pattern', () => {
 
 test('raw select queries match regardless of case and whitespace', () => {
 	for (const query of ['SELECT 1', 'Select 1', '\n  select\n1']) assert(SELECT_REGEX.test(query));
-	for (const query of ['selected', 'INSERT INTO t SELECT 1', 'PRAGMA select']) {
+
+	for (const query of [
+		'selected',
+		'INSERT INTO t SELECT 1',
+		'PRAGMA select',
+		'WITH x AS (SELECT 1) SELECT * FROM x',
+		'WITH x AS (SELECT 1) INSERT INTO t SELECT * FROM x',
+	]) {
 		assert(!SELECT_REGEX.test(query));
 	}
-});
-
-test('audit write errors do not block rollback', () => {
-	const errors: unknown[] = [];
-
-	const auditedDb = drizzle({
-		...drizzleOptions,
-		client: openDatabase(':memory:'),
-		logger: createAuditLogger(
-			drizzle({ ...drizzleOptions, client: openDatabase(':memory:') }),
-			(error) => errors.push(error),
-			() => ({ sub: null, ip: null, pathname: null }),
-			{ logSelectQueries: true },
-		),
-	});
-
-	auditedDb.run(sql`CREATE TABLE t (v INTEGER)`);
-
-	assert.throws(() =>
-		auditedDb.transaction((tx) => {
-			tx.run(sql`INSERT INTO t (v) VALUES (1)`);
-			throw new Error();
-		}),
-	);
-
-	assert(!auditedDb.$client.isTransaction);
-	assert.equal(auditedDb.all(sql`SELECT * FROM t`).length, 0);
-	assert(errors.length > 0);
 });

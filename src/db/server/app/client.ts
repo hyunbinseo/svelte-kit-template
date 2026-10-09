@@ -2,8 +2,7 @@ import { DATABASE_APP_URL, DATABASE_AUDIT_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { createAuditLogger } from '#database/audit/logger.ts';
-import { DB_AUDIT_LOG_SELECT_QUERIES } from '#database/config.ts';
+import { type AuditScope, createAuditLogger } from '#database/audit/logger.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { relations } from './relations.ts';
 
@@ -17,36 +16,40 @@ process.on('sveltekit:shutdown', () => {
 	auditClient?.close();
 });
 
-const logger = auditClient
-	? createAuditLogger(
-			drizzle({ ...drizzleOptions, client: auditClient }),
-			captureException,
-			() => {
-				try {
-					const event = getRequestEvent();
-					return {
-						sub: event.locals.session?.sub,
-						ip: event.getClientAddress(),
-						pathname: new URL(event.request.url).pathname,
-					};
-				} catch {
-					return { sub: null, ip: null, pathname: null };
-				}
-			},
-			{ logSelectQueries: DB_AUDIT_LOG_SELECT_QUERIES },
-		)
-	: undefined;
+const auditDb = auditClient ? drizzle({ ...drizzleOptions, client: auditClient }) : undefined;
+
+const createLogger = (scope: AuditScope) => {
+	if (!auditDb) return;
+
+	return createAuditLogger(
+		auditDb,
+		captureException,
+		() => {
+			try {
+				const event = getRequestEvent();
+				return {
+					sub: event.locals.session?.sub,
+					ip: event.getClientAddress(),
+					pathname: new URL(event.request.url).pathname,
+				};
+			} catch {
+				return { sub: null, ip: null, pathname: null };
+			}
+		},
+		{ scope },
+	);
+};
 
 export const db = drizzle({
 	...drizzleOptions,
 	client: appClient,
-	logger,
+	logger: createLogger('writes'),
 	relations,
 });
 
-export const unauditedDb = drizzle({
+export const fullyAuditedDb = drizzle({
 	...drizzleOptions,
 	client: appClient,
-	logger: false,
+	logger: createLogger('all'),
 	relations,
 });

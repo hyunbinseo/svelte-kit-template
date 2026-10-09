@@ -4,10 +4,9 @@ import { db as client, silentDb as silentClient } from '#database/client.ts';
 import { tokenBanTable, tokenTable, type userTable } from '#database/schema.ts';
 import { withTransactions } from '#database/transaction.ts';
 import { pick } from '#lib/pick.ts';
-import type { Database } from '../../app.d.ts';
 
 const insertToken = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof tokenTable.$inferInsert,
 		| 'userId' //
@@ -28,7 +27,7 @@ const insertToken = (
 		.all()[0]!;
 
 const claimTokenRotation = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof tokenBanTable.$inferSelect,
 		| 'tokenId' //
@@ -47,7 +46,7 @@ const claimTokenRotation = (
 };
 
 const findActiveUserById = (
-	tx: Database, //
+	tx: App.Database, //
 	id: typeof userTable.$inferSelect.id,
 ) =>
 	tx.query.userTable
@@ -59,7 +58,7 @@ const findActiveUserById = (
 		.sync();
 
 const findTokenBan = (
-	tx: Database, //
+	tx: App.Database, //
 	tokenId: typeof tokenBanTable.$inferSelect.tokenId,
 ) =>
 	tx.query.tokenBanTable
@@ -70,7 +69,7 @@ const findTokenBan = (
 		.sync();
 
 const revokeToken = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof tokenBanTable.$inferSelect,
 		| 'tokenId' //

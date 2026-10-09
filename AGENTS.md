@@ -33,11 +33,12 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 - Keep dependencies one-way: entry points call query modules; query modules use database definitions. Raw database modules must not import route query modules. Query modules must not import entry points, including type-only imports.
 - Keep form schemas, user-facing error messages, and error-code types in existing `shared.ts` files. Do not add use-case, contract, repository, adapter, or composition layers.
 - Keep required data and operation failures explicit. Do not introduce fallback behavior or unrelated abstractions during separation.
-- Apply these rules to route, authentication, and CLI query modules. Preserve the selected client: authentication token-ban lookups use `silentDb`; audited operations use `db`. Keep asynchronous CLI backups and file operations outside transactions.
+- Apply these rules to route, authentication, and CLI query modules. Authentication token-ban lookups use `silentDb`, which logs no queries. The regular `db` logs non-SELECT statements only; audited reads use `auditedReadDb`. Keep asynchronous CLI backups and file operations outside transactions.
 
 ### Query Inputs
 
-- Put the raw database or transaction first, typed with the shared `Database` type exported from `src/app.d.ts` for application queries. Standalone audit queries use `NodeSQLiteDatabase<EmptyRelations>`.
+- Put the raw database or transaction first, typed with the ambient `App.Database` type declared in `src/app.d.ts` for application queries. Standalone audit queries use `NodeSQLiteDatabase<EmptyRelations>`.
+- Type audited read queries with `App.ReadDatabase` declared in `src/app.d.ts`. This API exposes only `query`, `select`, and `selectDistinct`.
 - Put each function parameter on its own line, even when the signature fits on one line. Add a blank trailing `//` after the database parameter to preserve formatting.
 - Do not introduce per-query input aliases or schema-derived input helpers. Keep external input validation in existing form schemas.
 
@@ -45,7 +46,7 @@ For a single input field, accept the value directly and use its column type. Nam
 
 ```ts
 const findActiveUserByContact = (
-	tx: Database, //
+	tx: App.Database, //
 	contact: typeof userTable.$inferSelect.contact,
 ) =>
 	tx.query.userTable
@@ -62,7 +63,7 @@ For multiple input fields, accept one object typed directly with `Pick<typeof ta
 
 ```ts
 const insertLogin = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof loginTable.$inferInsert,
 		| 'contact' //
@@ -89,6 +90,9 @@ tx.insertLogin({ contact: data.contact, userId: user?.id ?? null, code, ip });
 - For independent queries that do not need an explicit transaction, export the query functions directly and pass the raw client at the call site, such as `findLastLogId(db)` and `deleteLogsThrough(db, cutoff)` in CLI backups.
 - Use `db.transaction.queryName(input)` for one operation that needs an explicit transaction. Each call opens its own transaction.
 - Use `db.transaction((tx) => { ... })` with `tx.queryName(input)` for multiple operations. All callback methods share the same transaction.
+- Register audited reads with `withTransactions(client, queries, { database: auditedReadDb, queries: readQueries })`. Use `db.read.queryName(input)` without opening a transaction, or `tx.read.queryName(input)` inside an existing transaction.
+- The audited read client must share the regular client's `DatabaseSync` connection. Its read-only API restricts exposed methods, not SQLite connection permissions. Inside a transaction, audited reads see uncommitted changes without opening another transaction. Do not use a separate read-only connection.
+- Audit records are written to the separate audit database and survive application transaction rollback. They record execution attempts, not successful commits. Existing development-mode and audit-database configuration still control whether logging is enabled.
 - Keep business checks and response handling in the entry point. Use synchronous callbacks and `immediate` for read-before-write transactions.
 - Deliver messages, issue tokens, and perform other asynchronous work after commit.
 - Return a business result when an attempt record must commit, and throw when the transaction must roll back.
@@ -108,10 +112,9 @@ import { db as client } from '#database/client.ts';
 import { loginTable } from '#database/schema.ts';
 import { withTransactions } from '#database/transaction.ts';
 import { pick } from '#lib/pick.ts';
-import type { Database } from '../../../app.d.ts';
 
 const insertLogin = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof loginTable.$inferInsert,
 		| 'contact' //
@@ -264,7 +267,7 @@ Shared database clients, schemas, and relations live in `src/db/server/`, import
 - `src/db/server/schema.ts`
 - `src/db/server/relations.ts`
 
-Export the shared `Database` type once from `src/app.d.ts`, outside `declare global` and the `App` namespace using `NodeSQLiteDatabase<typeof relations> | NodeSQLiteTransaction<typeof relations>` from `drizzle-orm/node-sqlite`. Import `Database` explicitly with `import type`; keep the Drizzle and relations imports in `src/app.d.ts` type-only. Do not duplicate aliases in query modules or extract transaction types through nested `Parameters`.
+Declare the shared `Database` and `ReadDatabase` types once inside `declare global { namespace App { ... } }` in `src/app.d.ts`. Define `Database` using `NodeSQLiteDatabase<typeof relations> | NodeSQLiteTransaction<typeof relations>` from `drizzle-orm/node-sqlite`. Use `App.Database` and `App.ReadDatabase` without importing them; keep the Drizzle and relations imports in `src/app.d.ts` type-only. Keep helper-local types in their own modules. Do not duplicate aliases in query modules or extract transaction types through nested `Parameters`.
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 

@@ -5,7 +5,7 @@ import { db } from './server.ts';
 
 export const getCurrentUser = query(async () => {
 	const session = requireOnboarded();
-	const user = db.transaction.findCurrentUser(session.sub);
+	const user = db.read.findCurrentUser(session.sub);
 
 	if (!user?.profile) error(500);
 

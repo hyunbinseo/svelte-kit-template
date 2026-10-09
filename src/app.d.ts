@@ -1,3 +1,4 @@
+import type { AnyRelations } from 'drizzle-orm';
 import type { NodeSQLiteDatabase, NodeSQLiteTransaction } from 'drizzle-orm/node-sqlite';
 import type { Payload } from '#auth/server/token.ts';
 import type { relations } from '#database/relations.ts';
@@ -19,9 +20,12 @@ declare global {
 		}
 		// interface PageState {}
 		// interface Platform {}
+
+		type Database = NodeSQLiteDatabase<typeof relations> | NodeSQLiteTransaction<typeof relations>;
+
+		type ReadDatabase<R extends AnyRelations = typeof relations> = Pick<
+			NodeSQLiteDatabase<R>,
+			'query' | 'select' | 'selectDistinct'
+		>;
 	}
 }
-
-export type Database =
-	| NodeSQLiteDatabase<typeof relations>
-	| NodeSQLiteTransaction<typeof relations>;

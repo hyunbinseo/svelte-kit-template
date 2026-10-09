@@ -3,10 +3,9 @@ import { db as client } from '#database/client.ts';
 import { loginTable, type userTable } from '#database/schema.ts';
 import { withTransactions } from '#database/transaction.ts';
 import { pick } from '#lib/pick.ts';
-import type { Database } from '../../../app.d.ts';
 
 const findActiveUserByContact = (
-	tx: Database, //
+	tx: App.Database, //
 	contact: typeof userTable.$inferSelect.contact,
 ) =>
 	tx.query.userTable
@@ -17,7 +16,7 @@ const findActiveUserByContact = (
 		.sync();
 
 const findLatestUnexpiredLogin = (
-	tx: Database, //
+	tx: App.Database, //
 	contact: typeof loginTable.$inferSelect.contact,
 ) =>
 	tx.query.loginTable
@@ -30,7 +29,7 @@ const findLatestUnexpiredLogin = (
 		.sync();
 
 const insertLogin = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof loginTable.$inferInsert,
 		| 'contact' //
@@ -46,7 +45,7 @@ const insertLogin = (
 		.all()[0]!;
 
 const markDelivered = (
-	db: Database, //
+	db: App.Database, //
 	data: Pick<
 		typeof loginTable.$inferSelect,
 		| 'id' //
@@ -60,7 +59,7 @@ const markDelivered = (
 };
 
 const discardLogin = (
-	db: Database, //
+	db: App.Database, //
 	id: typeof loginTable.$inferSelect.id,
 ) => {
 	db.delete(loginTable).where(eq(loginTable.id, id)).run();

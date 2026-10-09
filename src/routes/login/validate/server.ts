@@ -3,10 +3,9 @@ import { db as client } from '#database/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/schema.ts';
 import { withTransactions } from '#database/transaction.ts';
 import { pick } from '#lib/pick.ts';
-import type { Database } from '../../../app.d.ts';
 
 const findLogin = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof loginTable.$inferSelect,
 		| 'id' //
@@ -28,7 +27,7 @@ const findLogin = (
 		.sync();
 
 const recordAttempt = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof loginAttemptTable.$inferInsert,
 		| 'loginId' //
@@ -42,12 +41,12 @@ const recordAttempt = (
 };
 
 const insertUser = (
-	tx: Database, //
+	tx: App.Database, //
 	contact: typeof userTable.$inferInsert.contact,
 ) => tx.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!;
 
 const findUser = (
-	tx: Database, //
+	tx: App.Database, //
 	id: typeof userTable.$inferSelect.id,
 ) =>
 	tx.query.userTable
@@ -59,7 +58,7 @@ const findUser = (
 		.sync();
 
 const linkUser = (
-	tx: Database, //
+	tx: App.Database, //
 	data: Pick<
 		typeof loginTable.$inferSelect,
 		| 'id' //

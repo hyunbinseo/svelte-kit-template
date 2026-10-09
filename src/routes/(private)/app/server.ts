@@ -1,10 +1,9 @@
-import { db as client } from '#database/client.ts';
+import { auditedReadDb, db as client } from '#database/client.ts';
 import type { userTable } from '#database/schema.ts';
 import { withTransactions } from '#database/transaction.ts';
-import type { Database } from '../../../app.d.ts';
 
 const findCurrentUser = (
-	db: Database, //
+	db: App.ReadDatabase, //
 	id: typeof userTable.$inferSelect.id,
 ) =>
 	db.query.userTable
@@ -15,4 +14,11 @@ const findCurrentUser = (
 		})
 		.sync();
 
-export const db = withTransactions(client, { findCurrentUser });
+export const db = withTransactions(
+	client,
+	{},
+	{
+		database: auditedReadDb,
+		queries: { findCurrentUser },
+	},
+);

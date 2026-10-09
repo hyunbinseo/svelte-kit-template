@@ -35,7 +35,7 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 
 ### Query Inputs
 
-- Put the raw database or transaction first, typed with the shared `Database` type exported from `src/app.d.ts`.
+- Put the raw database or transaction first, typed with the shared `Database` type exported from `src/app.d.ts` for application queries. Standalone audit queries use `NodeSQLiteDatabase<EmptyRelations>`.
 - Put each function parameter on its own line, even when the signature fits on one line. Add a blank trailing `//` after the database parameter to preserve formatting.
 - Do not introduce per-query input aliases or schema-derived input helpers. Keep external input validation in existing form schemas.
 
@@ -83,8 +83,9 @@ tx.insertLogin({ contact: data.contact, userId: user?.id ?? null, code, ip });
 
 ### Transaction Calls
 
-- Export a scoped `db` with `withTransactions(client, { queryName })` from each `server.ts` query module. Entry points import this `db` instead of the raw client or individual query functions.
-- Use `db.transaction.queryName(input)` for one operation. Each call opens its own transaction.
+- For queries that need a transaction, export a scoped `db` with `withTransactions(client, { queryName })` from the `server.ts` query module. Entry points import this scoped `db`.
+- For independent queries that do not need an explicit transaction, export the query functions directly and pass the raw client at the call site, such as `findLastLogId(db)` and `deleteLogsThrough(db, cutoff)` in CLI backups.
+- Use `db.transaction.queryName(input)` for one operation that needs an explicit transaction. Each call opens its own transaction.
 - Use `db.transaction((tx) => { ... })` with `tx.queryName(input)` for multiple operations. All callback methods share the same transaction.
 - Keep business checks and response handling in the entry point. Use synchronous callbacks and `immediate` for read-before-write transactions.
 - Deliver messages, issue tokens, and perform other asynchronous work after commit.

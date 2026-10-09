@@ -6,8 +6,9 @@ import { backup } from 'node:sqlite';
 import { captureException as _captureException } from '@sentry/sveltekit';
 import { DB_APP_BACKUP_RETENTION, DB_AUDIT_BACKUP_RETENTION } from '#cli/lib/config.ts';
 import { appDb } from '#cli/lib/database/app.ts';
+import { auditDb } from '#cli/lib/database/audit.ts';
 import { root } from '#cli/lib/utilities.ts';
-import { db as auditDb } from './server.ts';
+import { deleteLogsThrough, findLastLogId } from './server.ts';
 
 let failed = false;
 
@@ -44,16 +45,16 @@ if (auditDb) {
 	const dir = resolve(root, 'backups/audit');
 	mkdirSync(dir, { recursive: true });
 
-	const cutoff = db.transaction.findLastLogId();
+	const cutoff = findLastLogId(db);
 
 	await Promise.all([
 		pruneBackups(dir, DB_AUDIT_BACKUP_RETENTION),
-		backup(db.client, resolve(dir, dateToFilename()))
+		backup(db.$client, resolve(dir, dateToFilename()))
 			.then(() => {
 				if (cutoff == null) return;
-				db.transaction.deleteLogsThrough(cutoff);
+				deleteLogsThrough(db, cutoff);
 			})
-			.finally(() => db.client.close())
+			.finally(() => db.$client.close())
 			.catch(captureException),
 	]);
 }

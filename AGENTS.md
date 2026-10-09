@@ -20,8 +20,10 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 ## Structure
 
 - Route-specific code lives next to its route.
-- Shared code lives in `src/*/` (e.g. test helpers in `src/tests/`).
-- `cli/` is Node-only and may import from `src/`, but not vice versa.
+- Non-route-specific code lives in `src/*/` (e.g. test helpers in `src/tests/`).
+- `cli/` may import Node-compatible `src/` code, but not vice versa. `check:cli` blocks:
+  - `$app/*`, `@sveltejs/kit` (e.g. via `@sentry/sveltekit` — use `@sentry/node`)
+  - Vite-only `import.meta` properties (e.g. `env`, `glob` — also via `@sveltejs/kit`)
 
 ## Remote and Query
 

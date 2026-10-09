@@ -3,7 +3,7 @@ import { rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
-import { captureException as _captureException } from '@sentry/sveltekit';
+import { captureException as _captureException } from '@sentry/node';
 import { DB_APP_BACKUP_RETENTION, DB_AUDIT_BACKUP_RETENTION } from '#cli/lib/config.ts';
 import { appDb } from '#cli/lib/database/app.ts';
 import { auditDb } from '#cli/lib/database/audit.ts';

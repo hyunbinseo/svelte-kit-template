@@ -75,7 +75,7 @@ Import test APIs from `vite-plus/test`, and assertions from `node:assert/strict`
 
 ```ts
 page.locator('form[action="/login"]').getByRole('button');
-page.getByText(userId); // value the test inserted (e.g. `seedUser(db)`)
+page.getByText(userId); // value the test inserted (e.g. `seedUser(db).id`)
 ```
 
 ## TypeScript
@@ -131,10 +131,6 @@ Open connections with the shared options or factory in `#database/connection.ts`
   - Only one writer is allowed at a time, even in WAL mode
   - Makes writers wait instead of throwing `SQLITE_BUSY`
 - `PRAGMA journal_mode` (`delete` → `wal`, factory only)
-- `PRAGMA recursive_triggers` (off, unchanged)
-  - Direct (`A -> A`) — blocked
-  - Cycle (`A -> B -> A`) — blocked
-  - Unrelated cascade (`A -> B -> C`) — not blocked
 
 If a `PRAGMA` matters, verify it against the runtime in `pragmas/` tests and list it above.
 
@@ -142,7 +138,7 @@ If a `PRAGMA` matters, verify it against the runtime in `pragmas/` tests and lis
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `app/` — application data, with schema, relations, clients, and types
+- `app/` — application data, with schema, relations, cascades, clients, and types
 - `audit/` — query log, with schema and logger:
   - Logging is off unless `DATABASE_AUDIT_URL` is set.
   - If logging fails, `AuditWriteError` is thrown before the query runs.
@@ -229,7 +225,7 @@ check(
 
 #### Indexes
 
-Index foreign key columns used in lookups or triggers.
+Index foreign key columns used in lookups or cascades.
 
 Index names follow 2 conventions:
 
@@ -250,34 +246,18 @@ uniqueIndex('active_user_role_user_id_role_idx')
 - Soft-deleted tables can use filtered relations (`where`) to drop inactive rows.
 - Name filtered relations after their filter (e.g. `activeUserByContact`, `successfulAttempts`).
 
-### Triggers
+### Cascades
 
-Use `TRIGGER`s for cascades (e.g. deactivating a user should revoke all active roles).
+Don't use `TRIGGER`s — they are invisible to the audit logger and need raw SQL migrations.
 
-- When modifying the db schema, review `drizzle/*/*_triggers/migration.sql` and edit `drizzle/*-triggers.staged.sql` accordingly.
-- When running `drizzle-kit generate`, or if `drizzle/*/` has been modified, check if `*-triggers.staged.sql` needs to be flushed.
+Write cascades (e.g. deactivating a user revokes all active roles) as functions in `src/db/server/app/cascades.ts`, so both `cli/` and SvelteKit can call them:
 
-```shell
-# Trigger API unsupported; write migration in raw SQL.
-vpr db:app:generate --custom --name=triggers
-```
+- Take the client (`AppDb`) as the first parameter.
+- Run the whole cascade in one transaction — read the clock inside it.
+- Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
+- Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.
 
-Order triggers by owning table's declaration order in `schema.ts`; `BEFORE` guards precede `AFTER` cascades within a table.
-
-Separate trigger statements with a breakpoint comment:
-
-```sql
---> statement-breakpoint
-```
-
-Add a test case in `src/db/server/app/triggers/<trigger_name>.test.ts` for each new or changed trigger, covering the conditions it encodes — not SQL/SQLite mechanics (e.g. multi-row application, `JOIN` scoping, comparison boundaries) already guaranteed by the engine:
-
-- Direct effect: the cascade fires under the trigger's condition.
-- Guards: each condition that blocks the effect (e.g. already revoked, already banned, already expired).
-- Transition guard: the `WHEN` clause blocks re-firing on a repeat update.
-- Cross-trigger state: a condition reading another trigger's output (e.g. `revoke_reason != 'deactivate'`) — test it directly, not only through that trigger's cascade.
-
-Run these tests only after `*-triggers.staged.sql` is flushed into a migration.
+Test each cascade function in `cascades.test.ts`, including each guard (e.g. already revoked).
 
 ### Transactions
 

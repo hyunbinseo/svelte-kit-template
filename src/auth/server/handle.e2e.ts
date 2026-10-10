@@ -12,10 +12,10 @@ import { seedToken, seedUser } from '#tests/database/app.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
 test('rotates a near-expiry JWT cookie and keeps the session', async ({ page, context, db }) => {
-	const userId = seedUser(db);
+	const userId = seedUser(db).id;
 
 	const expiresAt = Date.now() + AUTH_TOKEN_ROTATE_THRESHOLD / 2;
-	const jti = seedToken(db, userId, expiresAt);
+	const jti = seedToken(db, userId, expiresAt).id;
 
 	assert(env.JWT_SECRET_NEW);
 	const jwt = await new SignJWT({})

@@ -5,14 +5,16 @@ An opinionated SvelteKit template for agent-assisted development — best practi
 ## Features
 
 - `AGENTS.md` — plus `CLAUDE.md` and `.mcp.json` for Claude Code
+- Audit logs — all writes, opt-in reads, query blocking on failure
+- Database cascades — TypeScript functions, not SQL triggers
 - Custom auth — JWT revocation, ban tracking, onboarding flows
-- Unit, E2E tests — database trigger cascades, auth cookie rotation
+- Unit, E2E tests — SQLite pragmas, auth cookie rotation
 
 ## Stack
 
 - Svelte 5 — runes, `createContext`, `await` in markup
-- SvelteKit — remote functions (`query`, `form`, `prerender`)
-- Drizzle ORM — Relational Queries v2, trigger-based cascades
+- SvelteKit 3 — remote functions (`query`, `form`, `prerender`)
+- Drizzle ORM 1 — Relational Queries v2, `node:sqlite` driver
 - Vite+ — version manager (Node.js, pnpm), Oxfmt, Vitest
 - Tailwind CSS, Sentry, ESLint, Playwright (E2E), and more
 
@@ -48,8 +50,6 @@ Generate and apply the database migrations:
 
 ```shell
 vpr db:app:generate
-vpr db:app:generate --custom --name=triggers
-# Flush `drizzle/app-triggers.staged.sql` into the generated `migration.sql`.
 
 # Purge `drizzle/app` to reset the schema.
 # Commit the migrations once you're ready to deploy.

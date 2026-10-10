@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { afterAll, test } from 'vite-plus/test';
+import { test } from 'vite-plus/test';
 import { openDatabase } from '#database/connection.ts';
+import { createTemporaryDir } from '#tests/temporary.ts';
 
-const dir = mkdtempSync(join(tmpdir(), 'journal-mode-'));
-afterAll(() => rmSync(dir, { recursive: true, force: true }));
+const dir = createTemporaryDir('journal-mode-');
 
 const read = (db: DatabaseSync) => db.prepare('PRAGMA journal_mode').get()?.['journal_mode'];
 

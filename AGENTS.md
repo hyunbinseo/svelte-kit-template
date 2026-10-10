@@ -19,8 +19,7 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 
 ## Structure
 
-- Route-specific code lives next to its route.
-- Non-route-specific code lives in `src/*/` (e.g. test helpers in `src/tests/`).
+- Route-specific code lives next to its route; shared code lives in `src/*/`.
 - `cli/` may import Node-compatible `src/` code, but not vice versa. `check:cli` blocks:
   - `$app/*`, `@sveltejs/kit` (e.g. via `@sentry/sveltekit` — use `@sentry/node`)
   - Vite-only `import.meta` properties (e.g. `env`, `glob` — also via `@sveltejs/kit`)
@@ -59,11 +58,18 @@ fetch(url); // TODO handle retries
 
 ### Unit
 
-Run with `vp test`. Import test APIs from `vite-plus/test`, and assertions from `node:assert/strict`.
+Import test APIs from `vite-plus/test`, and assertions from `node:assert/strict`.
+
+- Group by unit with `describe` when a file tests several.
+- Use a fresh `:memory:` database per test (e.g. `createAppDb()`) if possible.
+- Seed with shared helpers (e.g. `seedUser`) — add one instead of inserting inline.
+- Put repeated setup in a local `setup()` that returns what tests destructure.
+- Create temporary files in `createTemporaryDir()` — it cleans up after the file.
 
 ### E2E
 
 - Use the custom `test` fixture for a worker-scoped `db`.
+- Assert with `expect` — narrow types with `node:assert/strict`.
 - Hardcode root-relative paths (e.g. `/login`) — `paths.base` is unset.
 - Don't select elements by UI text — use roles, attributes, or actual values.
 

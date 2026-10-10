@@ -1,22 +1,13 @@
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
 import { DrizzleQueryError, eq, sql } from 'drizzle-orm';
 import { drizzle, type NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite';
-import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { describe, test } from 'vite-plus/test';
-import { relations } from '#database/app/relations.ts';
 import { userTable } from '#database/app/schema.ts';
-import { DB_AUDIT_MIGRATIONS_DIR } from '#database/config.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
-import { root } from '#tests/utilities.ts';
+import { createAppDb } from '#tests/database/app.ts';
+import { createAuditDb } from '#tests/database/audit.ts';
 import { AuditWriteError, type AuditScope, createAuditLogger, SELECT_REGEX } from './logger.ts';
 import { logTable, queryTable } from './schema.ts';
-
-const appDb = drizzle({
-	...drizzleOptions,
-	client: openDatabase(':memory:'),
-	relations,
-});
 
 const createTable = 'CREATE TABLE t (v INTEGER)';
 const insert = 'INSERT INTO t (v) VALUES (1)';
@@ -34,8 +25,7 @@ const isAuditError = (query: string) => (error: unknown) =>
 	error instanceof AuditWriteError && error.query === query;
 
 const setup = () => {
-	const auditDb = drizzle({ ...drizzleOptions, client: openDatabase(':memory:') });
-	migrate(auditDb, { migrationsFolder: resolve(root, DB_AUDIT_MIGRATIONS_DIR) });
+	const auditDb = createAuditDb();
 
 	const client = openDatabase(':memory:');
 	client.exec(createTable);
@@ -71,8 +61,9 @@ const setup = () => {
 	};
 };
 
-describe('select pattern', () => {
+describe('SELECT_REGEX', () => {
 	test('select queries match the select pattern', () => {
+		const appDb = createAppDb();
 		const queries = [
 			appDb.select().from(userTable),
 			appDb.select({ id: userTable.id }).from(userTable).where(eq(userTable.id, '')),
@@ -84,6 +75,7 @@ describe('select pattern', () => {
 	});
 
 	test('write queries do not match the select pattern', () => {
+		const appDb = createAppDb();
 		const queries = [
 			appDb.insert(userTable).values({ contact: '' }).returning(),
 			appDb.update(userTable).set({ contact: '' }).where(eq(userTable.id, '')).returning(),
@@ -108,145 +100,147 @@ describe('select pattern', () => {
 	});
 });
 
-describe('transaction logging', () => {
-	test('db.transaction() logs writes only', () => {
-		const { db, loggedSql, rollbackErrors } = setup();
+describe('createAuditLogger', () => {
+	describe('transaction logging', () => {
+		test('db.transaction() logs writes only', () => {
+			const { db, loggedSql, rollbackErrors } = setup();
 
-		db.transaction(insertAndSelect);
+			db.transaction(insertAndSelect);
 
-		assert.deepEqual(rollbackErrors, []);
-		assert.deepEqual(loggedSql(), ['begin', insert, 'commit']);
-	});
+			assert.deepEqual(rollbackErrors, []);
+			assert.deepEqual(loggedSql(), ['begin', insert, 'commit']);
+		});
 
-	test('fullyAuditedDb.transaction() also logs selects', () => {
-		const { fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+		test('fullyAuditedDb.transaction() also logs selects', () => {
+			const { fullyAuditedDb, loggedSql, rollbackErrors } = setup();
 
-		fullyAuditedDb.transaction(insertAndSelect);
+			fullyAuditedDb.transaction(insertAndSelect);
 
-		assert.deepEqual(rollbackErrors, []);
-		assert.deepEqual(loggedSql(), ['begin', insert, select, 'commit']);
-	});
+			assert.deepEqual(rollbackErrors, []);
+			assert.deepEqual(loggedSql(), ['begin', insert, select, 'commit']);
+		});
 
-	test('nesting transactions across instances throws', () => {
-		const { db, fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+		test('nesting transactions across instances throws', () => {
+			const { db, fullyAuditedDb, loggedSql, rollbackErrors } = setup();
 
-		assert.throws(
-			() =>
-				db.transaction(() => {
-					fullyAuditedDb.transaction(() => {});
+			assert.throws(
+				() =>
+					db.transaction(() => {
+						fullyAuditedDb.transaction(() => {});
+					}),
+				isNestedError,
+			);
+			assert(!db.$client.isTransaction);
+
+			assert.throws(
+				() =>
+					fullyAuditedDb.transaction(() => {
+						db.transaction(() => {});
+					}),
+				isNestedError,
+			);
+			assert(!db.$client.isTransaction);
+
+			assert.deepEqual(rollbackErrors, []);
+			assert.deepEqual(loggedSql(), ['begin', 'begin', 'rollback', 'begin', 'begin', 'rollback']);
+		});
+
+		test('fullyAuditedDb rollback reverts data, but audit entries remain', () => {
+			const { db, fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+
+			assert.throws(() =>
+				fullyAuditedDb.transaction((tx) => {
+					insertAndSelect(tx);
+					throw new Error('rollback');
 				}),
-			isNestedError,
-		);
-		assert(!db.$client.isTransaction);
+			);
 
-		assert.throws(
-			() =>
-				fullyAuditedDb.transaction(() => {
-					db.transaction(() => {});
-				}),
-			isNestedError,
-		);
-		assert(!db.$client.isTransaction);
-
-		assert.deepEqual(rollbackErrors, []);
-		assert.deepEqual(loggedSql(), ['begin', 'begin', 'rollback', 'begin', 'begin', 'rollback']);
+			assert.equal(db.$client.prepare(select).all().length, 0);
+			assert.deepEqual(rollbackErrors, []);
+			assert.deepEqual(loggedSql(), ['begin', insert, select, 'rollback']);
+		});
 	});
 
-	test('fullyAuditedDb rollback reverts data, but audit entries remain', () => {
-		const { db, fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+	describe('audit write errors', () => {
+		test('block the query before it executes', () => {
+			const { db, rollbackErrors, fail, queryCount } = setup();
 
-		assert.throws(() =>
-			fullyAuditedDb.transaction((tx) => {
-				insertAndSelect(tx);
-				throw new Error('rollback');
-			}),
-		);
+			fail();
+			assert.throws(() => db.run(sql.raw(insert)), isAuditError(insert));
 
-		assert.equal(db.$client.prepare(select).all().length, 0);
-		assert.deepEqual(rollbackErrors, []);
-		assert.deepEqual(loggedSql(), ['begin', insert, select, 'rollback']);
-	});
-});
+			assert.equal(db.$client.prepare(select).all().length, 0);
+			assert.equal(queryCount(), 0);
+			assert.deepEqual(rollbackErrors, []);
+		});
 
-describe('audit write errors', () => {
-	test('block the query before it executes', () => {
-		const { db, rollbackErrors, fail, queryCount } = setup();
+		test('block reads only on fullyAuditedDb', () => {
+			const { db, fullyAuditedDb, rollbackErrors, fail } = setup();
 
-		fail();
-		assert.throws(() => db.run(sql.raw(insert)), isAuditError(insert));
+			fail();
+			assert.throws(() => fullyAuditedDb.all(sql.raw(select)), isAuditError(select));
+			assert.deepEqual(db.all(sql.raw(select)), []);
 
-		assert.equal(db.$client.prepare(select).all().length, 0);
-		assert.equal(queryCount(), 0);
-		assert.deepEqual(rollbackErrors, []);
-	});
+			assert.deepEqual(rollbackErrors, []);
+		});
 
-	test('block reads only on fullyAuditedDb', () => {
-		const { db, fullyAuditedDb, rollbackErrors, fail } = setup();
+		test('do not block rollback', () => {
+			const { db, rollbackErrors, fail } = setup();
 
-		fail();
-		assert.throws(() => fullyAuditedDb.all(sql.raw(select)), isAuditError(select));
-		assert.deepEqual(db.all(sql.raw(select)), []);
+			assert.throws(
+				() =>
+					db.transaction((tx) => {
+						fail();
+						tx.run(sql.raw(insert));
+					}),
+				isAuditError(insert),
+			);
 
-		assert.deepEqual(rollbackErrors, []);
-	});
+			assert(!db.$client.isTransaction);
+			assert.equal(rollbackErrors.length, 1);
+		});
 
-	test('do not block rollback', () => {
-		const { db, rollbackErrors, fail } = setup();
+		test('on commit roll back the transaction', () => {
+			const { db, rollbackErrors, fail } = setup();
 
-		assert.throws(
-			() =>
-				db.transaction((tx) => {
-					fail();
-					tx.run(sql.raw(insert));
-				}),
-			isAuditError(insert),
-		);
+			assert.throws(
+				() =>
+					db.transaction((tx) => {
+						tx.run(sql.raw(insert));
+						fail();
+					}),
+				isAuditError('commit'),
+			);
 
-		assert(!db.$client.isTransaction);
-		assert.equal(rollbackErrors.length, 1);
-	});
+			assert(!db.$client.isTransaction);
+			assert.equal(db.$client.prepare(select).all().length, 0);
+			assert.equal(rollbackErrors.length, 1);
+		});
 
-	test('on commit roll back the transaction', () => {
-		const { db, rollbackErrors, fail } = setup();
+		test('do not block rollback to savepoint', () => {
+			const { db, rollbackErrors, fail } = setup();
 
-		assert.throws(
-			() =>
-				db.transaction((tx) => {
-					tx.run(sql.raw(insert));
-					fail();
-				}),
-			isAuditError('commit'),
-		);
+			assert.throws(
+				() =>
+					db.transaction((tx) => {
+						assert.throws(
+							() =>
+								tx.transaction((sp) => {
+									sp.run(sql.raw(insert));
+									fail();
+									sp.run(sql.raw(insert));
+								}),
+							isAuditError(insert),
+						);
 
-		assert(!db.$client.isTransaction);
-		assert.equal(db.$client.prepare(select).all().length, 0);
-		assert.equal(rollbackErrors.length, 1);
-	});
+						assert(db.$client.isTransaction);
+						assert.equal(db.$client.prepare(select).all().length, 0);
+						assert.equal(rollbackErrors.length, 1);
+					}),
+				isAuditError('commit'),
+			);
 
-	test('do not block rollback to savepoint', () => {
-		const { db, rollbackErrors, fail } = setup();
-
-		assert.throws(
-			() =>
-				db.transaction((tx) => {
-					assert.throws(
-						() =>
-							tx.transaction((sp) => {
-								sp.run(sql.raw(insert));
-								fail();
-								sp.run(sql.raw(insert));
-							}),
-						isAuditError(insert),
-					);
-
-					assert(db.$client.isTransaction);
-					assert.equal(db.$client.prepare(select).all().length, 0);
-					assert.equal(rollbackErrors.length, 1);
-				}),
-			isAuditError('commit'),
-		);
-
-		assert(!db.$client.isTransaction);
-		assert.equal(rollbackErrors.length, 2);
+			assert(!db.$client.isTransaction);
+			assert.equal(rollbackErrors.length, 2);
+		});
 	});
 });

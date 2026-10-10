@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { rmSync } from 'node:fs';
 import { env } from 'node:process';
 import { createAppDb } from '#tests/database/app.ts';
+import { removeDatabase } from './database.ts';
 
 assert(env.DATABASE_APP_URL);
-for (const suffix of ['', '-wal', '-shm']) rmSync(env.DATABASE_APP_URL + suffix, { force: true });
+removeDatabase(env.DATABASE_APP_URL);
 createAppDb(env.DATABASE_APP_URL);

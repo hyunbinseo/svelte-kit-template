@@ -1,21 +1,17 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { Worker } from 'node:worker_threads';
-import { afterAll, describe, test } from 'vite-plus/test';
+import { describe, test } from 'vite-plus/test';
 import { databaseOptions } from '#database/connection.ts';
+import { sqliteBusyError, sqliteBusySnapshotError } from '#tests/database/sqlite.ts';
+import { createTemporaryDir } from '#tests/temporary.ts';
 
 const HOLD_MS = 1000;
 assert(HOLD_MS < databaseOptions.timeout);
 
-const SQLITE_BUSY = { code: 'ERR_SQLITE_ERROR', errcode: 5 } as const;
-const SQLITE_BUSY_SNAPSHOT = { code: 'ERR_SQLITE_ERROR', errcode: 517 } as const;
-
-const dir = mkdtempSync(join(tmpdir(), 'busy-timeout-'));
-afterAll(() => rmSync(dir, { recursive: true, force: true }));
+const dir = createTemporaryDir('busy-timeout-');
 
 let count = 0;
 const createFile = (journalMode: 'DELETE' | 'WAL') => {
@@ -106,7 +102,7 @@ for (const journalMode of ['DELETE', 'WAL'] as const) {
 			db.exec('SELECT * FROM t');
 
 			const ms = elapsed(() =>
-				assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), SQLITE_BUSY),
+				assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), sqliteBusyError),
 			);
 
 			assert(ms < databaseOptions.timeout, `${ms}ms`);
@@ -124,7 +120,7 @@ test('deferred read → write, stale snapshot (WAL), throws immediately', () => 
 	other.exec('INSERT INTO t (v) VALUES (0)');
 
 	const ms = elapsed(() =>
-		assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), SQLITE_BUSY_SNAPSHOT),
+		assert.throws(() => db.exec('INSERT INTO t (v) VALUES (1)'), sqliteBusySnapshotError),
 	);
 
 	assert(ms < databaseOptions.timeout, `${ms}ms`);

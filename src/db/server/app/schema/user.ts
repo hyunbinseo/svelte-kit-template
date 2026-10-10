@@ -27,10 +27,7 @@ export const userTable = snakeCase.table(
 	},
 	(table) => [
 		uniqueIndex('active_user_contact_idx').on(table.contact).where(isNull(table.deactivatedAt)),
-		check(
-			'user_deactivate_info_pair',
-			eq(isNull(table.deactivatedAt), isNull(table.deactivatedBy)),
-		),
+		check('user_deactivate_check', eq(isNull(table.deactivatedAt), isNull(table.deactivatedBy))),
 	],
 );
 
@@ -62,7 +59,7 @@ export const userRoleTable = snakeCase.table(
 			.on(table.userId, table.role)
 			.where(isNull(table.revokedAt)),
 		check(
-			'user_role_revoke_info_group',
+			'user_role_revoke_check',
 			and(
 				eq(isNull(table.revokedAt), isNull(table.revokedBy)),
 				eq(isNull(table.revokedBy), isNull(table.revokeReason)),

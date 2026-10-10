@@ -201,6 +201,20 @@ Each group declares, in order:
 
 Soft-delete instead of `DELETE` by default, using nullable columns (e.g. `deactivatedAt`/`deactivatedBy`).
 
+#### Constraints
+
+Keep related nullable columns in sync with a `CHECK` constraint, named `<table>_<action>_check`:
+
+```ts
+check(
+	'user_deactivate_check',
+	eq(
+		isNull(table.deactivatedAt), //
+		isNull(table.deactivatedBy),
+	),
+);
+```
+
 #### Indexes
 
 Index foreign key columns used in lookups or triggers.

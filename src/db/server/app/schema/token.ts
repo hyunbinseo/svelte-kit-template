@@ -33,7 +33,7 @@ export const tokenTable = snakeCase.table(
 	},
 	(table) => [
 		index('token_user_id_idx').on(table.userId),
-		check('token_refresh_info_pair', eq(isNull(table.refreshedFrom), isNull(table.refreshReason))),
+		check('token_refresh_check', eq(isNull(table.refreshedFrom), isNull(table.refreshReason))),
 	],
 );
 

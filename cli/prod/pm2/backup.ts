@@ -5,11 +5,13 @@ import { exit } from 'node:process';
 import { backup } from 'node:sqlite';
 import { captureException as _captureException } from '@sentry/node';
 import { lte, max } from 'drizzle-orm';
-import { DB_APP_BACKUP_RETENTION, DB_AUDIT_BACKUP_RETENTION } from '#cli/lib/config.ts';
-import { appDb } from '#cli/lib/database/app.ts';
-import { auditDb } from '#cli/lib/database/audit.ts';
+import { appDb, auditDb } from '#cli/database/clients.ts';
 import { root } from '#cli/lib/utilities.ts';
 import { logTable } from '#database/audit/schema.ts';
+import { DAY } from '#lib/time.ts';
+
+const DB_APP_BACKUP_RETENTION = 90 * DAY;
+const DB_AUDIT_BACKUP_RETENTION = 365 * DAY;
 
 let failed = false;
 

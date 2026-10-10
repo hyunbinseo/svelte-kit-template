@@ -9,7 +9,7 @@ module.exports = {
 		{
 			name: '<name>', // e.g. server, example.com
 			cwd: __dirname,
-			script: './cli/scripts/start.ts',
+			script: './cli/prod/pm2/start.ts',
 			exec_mode: 'cluster', // uses the PM2 daemon's runtime (ignores `interpreter`, `devEngines.runtime`)
 			interpreter_args: [
 				`--env-file=${resolve(__dirname, '.env.production')}`,
@@ -22,9 +22,9 @@ module.exports = {
 		{
 			name: '<name>:backup',
 			cwd: __dirname,
-			script: './cli/scripts/backup.ts',
+			script: './cli/prod/pm2/backup.ts',
 			interpreter: 'node',
-			interpreter_args: '--env-file=.env.production --import ./cli/preload/sentry.ts',
+			interpreter_args: '--env-file=.env.production --import ./cli/instrumentation.ts',
 			time: true,
 			autorestart: false,
 			cron: '0 0 * * *',

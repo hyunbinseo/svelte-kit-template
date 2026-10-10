@@ -16,10 +16,7 @@ export const loginTable = snakeCase.table(
 			.$default(() => new Date(Date.now() + AUTH_CODE_EXPIRES_IN)),
 		ip: text().notNull(),
 	},
-	(table) => [
-		index('login_contact_idx').on(table.contact),
-		index('login_user_id_idx').on(table.userId),
-	],
+	(table) => [index('login_contact_idx').on(table.contact)],
 );
 
 export const loginAttemptTable = snakeCase.table(

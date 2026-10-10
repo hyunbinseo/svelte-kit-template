@@ -7,6 +7,7 @@ import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { relations } from '#database/app/relations.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#database/app/schema.ts';
+import type { AppDb } from '#database/app/types.ts';
 import { DB_APP_MIGRATIONS_DIR } from '#database/config.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { root } from '#tests/utilities.ts';
@@ -20,18 +21,18 @@ export const createAppDb = (filename = ':memory:') => {
 	return db;
 };
 
-export const seedUser = (db: ReturnType<typeof createAppDb>) =>
+export const seedUser = (db: AppDb) =>
 	db.insert(userTable).values({ contact: randomUUID() }).returning().all()[0]!.id;
 
-export const seedToken = (db: ReturnType<typeof createAppDb>, userId: string, expiresAt: number) =>
+export const seedToken = (db: AppDb, userId: string, expiresAt: number) =>
 	db
 		.insert(tokenTable)
 		.values({ userId, expiresAt: new Date(expiresAt), ip: '' })
 		.returning()
 		.all()[0]!.id;
 
-export const seedRole = (db: ReturnType<typeof createAppDb>, userId: string, assignedBy: string) =>
+export const seedRole = (db: AppDb, userId: string, assignedBy: string) =>
 	db.insert(userRoleTable).values({ userId, role: 'admin', assignedBy }).returning().all()[0]!;
 
-export const banFor = (db: ReturnType<typeof createAppDb>, tokenId: string) =>
+export const banFor = (db: AppDb, tokenId: string) =>
 	db.select().from(tokenBanTable).where(eq(tokenBanTable.tokenId, tokenId)).get();

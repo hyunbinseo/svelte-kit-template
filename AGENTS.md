@@ -142,14 +142,23 @@ If a `PRAGMA` matters, verify it against the runtime in `pragmas/` tests and lis
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `app/` — application data, with schema, relations, and clients:
-  - `db` — logs writes only (plus CTEs)
-  - `fullyAuditedDb` — logs every query, including reads
+- `app/` — application data, with schema, relations, clients, and types
 - `audit/` — query log, with schema and logger:
   - Logging is off unless `DATABASE_AUDIT_URL` is set.
   - If logging fails, `AuditWriteError` is thrown before the query runs.
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
+
+### Clients
+
+Import from `#database/app/`:
+
+- `client.ts` — SvelteKit clients:
+  - `db` — logs writes only (plus CTEs)
+  - `fullyAuditedDb` — logs every query, including reads
+- `types.ts` — `AppDb` (client) and `AppTx` (transaction)
+
+### Queries
 
 Use the sync API instead of `await`:
 

@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { env } from 'node:process';
 // eslint-disable-next-line no-restricted-imports
 import { test as base } from '@playwright/test';
+import type { AppDb } from '#database/app/types.ts';
 import { createAppDb } from '#tests/database/app.ts';
 
-export const test = base.extend<object, { db: ReturnType<typeof createAppDb> }>({
+export const test = base.extend<object, { db: AppDb }>({
 	db: [
 		// eslint-disable-next-line no-empty-pattern
 		async ({}, use) => {

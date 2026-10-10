@@ -70,10 +70,10 @@ export const deliverCode = async (delivery: { loginId: string; contact: string; 
 	let sendId: string;
 
 	try {
-		// TODO implement actual send logic
+		// TODO Implement actual send logic
 		sendId = await Promise.resolve(randomUUID());
-	} catch (e) {
-		captureException(e);
+	} catch (error) {
+		captureException(error);
 		return false;
 	}
 

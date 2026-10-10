@@ -8,5 +8,5 @@ import { test } from 'vite-plus/test';
 test('DrizzleQueryError omits params', () => {
 	const error = new DrizzleQueryError('select ?', ['secret'], new Error());
 	assert.equal(error.message, 'Failed query: select ?');
-	assert.ok(!inspect(error).includes('secret'));
+	assert(!inspect(error).includes('secret'));
 });

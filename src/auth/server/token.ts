@@ -152,8 +152,8 @@ export const rotateToken = async (
 const verifyWithSecretFallback = async (jwt: string) => {
 	try {
 		return await jwtVerify<Payload>(jwt, SECRET_NEW);
-	} catch (e) {
-		if (!SECRET_OLD || !(e instanceof JWSSignatureVerificationFailed)) throw e;
+	} catch (error) {
+		if (!SECRET_OLD || !(error instanceof JWSSignatureVerificationFailed)) throw error;
 		return await jwtVerify<Payload>(jwt, SECRET_OLD);
 	}
 };
@@ -161,10 +161,10 @@ const verifyWithSecretFallback = async (jwt: string) => {
 export const verifyToken = async (jwt: string) => {
 	try {
 		return await verifyWithSecretFallback(jwt);
-	} catch (e) {
-		if (e instanceof JWTExpired) return undefined;
-		if (e instanceof JOSEError) logger.warn('Invalid JWT', { 'error.type': e.code });
-		else captureException(e);
+	} catch (error) {
+		if (error instanceof JWTExpired) return undefined;
+		if (error instanceof JOSEError) logger.warn('Invalid JWT', { 'error.type': error.code });
+		else captureException(error);
 		return undefined;
 	}
 };

@@ -33,6 +33,7 @@ const pruneBackups = async (cwd: string, retention: number) => {
 {
 	const dir = resolve(root, 'backups/app');
 	mkdirSync(dir, { recursive: true });
+
 	await Promise.all([
 		pruneBackups(dir, DB_APP_BACKUP_RETENTION),
 		backup(appDb.$client, resolve(dir, dateToFilename()))

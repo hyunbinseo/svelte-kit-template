@@ -1,4 +1,4 @@
 import '@valibot/i18n/ko';
-import { setGlobalConfig } from 'valibot';
+import * as v from 'valibot';
 
-setGlobalConfig({ lang: 'ko' });
+v.setGlobalConfig({ lang: 'ko' });

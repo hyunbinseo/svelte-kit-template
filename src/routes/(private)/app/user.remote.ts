@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import { requireOnboarded } from '#auth/server/session.ts';
 import { db } from '#database/app/client.ts';
 
-export const getCurrentUser = query(async () => {
+export const getCurrentUser = query(() => {
 	const session = requireOnboarded();
 	const user = db.query.userTable
 		.findFirst({

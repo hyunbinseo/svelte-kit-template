@@ -2,13 +2,13 @@ import { form } from '$app/server';
 import { invalid, redirect } from '@sveltejs/kit';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { issueToken } from '#auth/server/token.ts';
-import { getRedirectDestination, verifyLogin } from './server.ts';
+import { getRedirectDestination, validateLogin } from './server.ts';
 import { validateErrors, ValidateCodeSchema } from './shared.ts';
 
 export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
-	const result = verifyLogin(data);
+	const result = validateLogin(data);
 
 	if (result.errorCode === 'CODE_INVALID') {
 		invalid(issue.code(validateErrors[result.errorCode]));

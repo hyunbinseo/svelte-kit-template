@@ -6,7 +6,7 @@ import { rotateToken, verifyToken } from './token.ts';
 
 type Session = NonNullable<App.Locals['session']>;
 
-export const handleJWT: Handle = async ({ event, resolve }) => {
+export const handleToken: Handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
 	if (!jwt) return resolve(event);
 

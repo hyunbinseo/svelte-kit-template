@@ -1,3 +1,3 @@
 import { resolve } from '$app/paths';
 
-export const LOGIN_REDIRECT = resolve('app');
+export const AUTH_LOGIN_REDIRECT = resolve('app');

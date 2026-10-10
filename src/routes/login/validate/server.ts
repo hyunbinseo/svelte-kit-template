@@ -4,7 +4,7 @@ import { getRequestEvent } from '$app/server';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { check, fallback, type InferOutput, parse, pipe } from 'valibot';
-import { LOGIN_REDIRECT } from '#auth/config.svelte.ts';
+import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import {
 	AUTH_ALLOW_UNREGISTERED,
 	AUTH_CODE_MAX_ATTEMPTS,
@@ -15,7 +15,7 @@ import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.t
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import type { ValidateCodeSchema, ValidateErrorCode } from './shared.ts';
 
-export const verifyLogin = (data: InferOutput<typeof ValidateCodeSchema>) => {
+export const validateLogin = (data: InferOutput<typeof ValidateCodeSchema>) => {
 	const ip = getRequestEvent().getClientAddress();
 
 	return db.transaction(
@@ -110,7 +110,7 @@ export const getRedirectDestination = () => {
 				InternalAbsolutePathSchema,
 				check((v) => new URL(v, url).pathname !== resolve('login')),
 			),
-			LOGIN_REDIRECT,
+			AUTH_LOGIN_REDIRECT,
 		),
 		url.searchParams.get(AUTH_REDIRECT_PARAM),
 	);

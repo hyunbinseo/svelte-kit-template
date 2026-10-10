@@ -119,21 +119,18 @@ Enum types, values, and label maps (not TypeScript's `enum`) live in `src/lib/en
 
 ## SQLite
 
-If a `PRAGMA` matters, verify it against runtime in `src/db/server/pragmas/<pragma>.test.ts` and document it:
+Open connections with the shared options or factory in `#database/connection.ts`, which set:
 
-```ts
-import { DatabaseSync } from 'node:sqlite';
-import { databaseOptions } from '#database/connection.ts';
-
-new DatabaseSync(':memory:', databaseOptions).prepare('PRAGMA recursive_triggers').get();
-```
-
-- `PRAGMA busy_timeout` (0 by default, overridden via `databaseOptions`)
-- `PRAGMA journal_mode` (`delete` by default, `wal` via `openDatabase()`)
-- `PRAGMA recursive_triggers` (off by default)
+- `PRAGMA busy_timeout` (0 → positive)
+  - Only one writer is allowed at a time, even in WAL mode
+  - Makes writers wait instead of throwing `SQLITE_BUSY`
+- `PRAGMA journal_mode` (`delete` → `wal`, factory only)
+- `PRAGMA recursive_triggers` (off, unchanged)
   - Direct (`A -> A`) — blocked
   - Cycle (`A -> B -> A`) — blocked
   - Unrelated cascade (`A -> B -> C`) — not blocked
+
+If a `PRAGMA` matters, verify it against the runtime in `pragmas/` tests and list it above.
 
 ## Drizzle ORM
 
@@ -269,34 +266,27 @@ Run these tests only after `*-triggers.staged.sql` is flushed into a migration.
 
 ### Transactions
 
-See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275). Don't pass async callbacks to `db.transaction()`:
+Pass sync callbacks. See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275).
 
-```ts
-db.transaction((tx) => {
-	tx.insert(userTable).values(data).run();
-	tx.update(postTable).set(data).where(eq(postTable.id, id)).run();
-});
-```
-
-If the transaction can't be made sync, leave a comment instead:
+If a transaction can't be made sync, leave a comment instead:
 
 ```ts
 // BLOCKED Use transaction for <a> + <b>
 ```
 
-Transactions are deferred by default. If a transaction reads before writing, use `immediate` to wait on locks instead of throwing (see `src/db/server/pragmas/busy_timeout.test.ts`):
+Always wrap read-then-write in a transaction for isolation. Set `behavior` to `immediate` so the write can't fail on a stale read:
 
 ```ts
 db.transaction(
 	(tx) => {
-		const post = tx.select().from(postTable).where(eq(postTable.id, id)).get();
-		tx.update(postTable).set(data).where(eq(postTable.id, id)).run();
+		const post = tx.query.postTable.findFirst(/* ... */).sync();
+		tx.update(postTable).set(/* ... */).run();
 	},
 	{ behavior: 'immediate' },
 );
 ```
 
-If a transaction has reads that must be logged, run all of it on `fullyAuditedDb` — don't nest different clients.
+To log a transaction's reads, run all of it on `fullyAuditedDb` — don't mix clients.
 
 ## SvelteKit
 

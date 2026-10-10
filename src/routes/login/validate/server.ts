@@ -13,7 +13,8 @@ import {
 import { db } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
-import type { ValidateCodeSchema, ValidateErrorCode } from './shared.ts';
+import type { ValidateErrorCode } from './enums.ts';
+import type { ValidateCodeSchema } from './shared.ts';
 
 export const validateLogin = (data: InferOutput<typeof ValidateCodeSchema>) => {
 	const ip = getRequestEvent().getClientAddress();
@@ -39,11 +40,11 @@ export const validateLogin = (data: InferOutput<typeof ValidateCodeSchema>) => {
 
 			if (!login) error(400);
 
-			if (login.expiresAt < new Date()) return { errorCode: 'CODE_EXPIRED' };
-			if (login.attempts.some((attempt) => attempt.isSuccessful)) return { errorCode: 'CODE_USED' };
+			if (login.expiresAt < new Date()) return { errorCode: 'codeExpired' };
+			if (login.attempts.some((attempt) => attempt.isSuccessful)) return { errorCode: 'codeUsed' };
 
-			if (login.ip !== ip) return { errorCode: 'IP_MISMATCH' };
-			if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS) return { errorCode: 'CODE_EXHAUSTED' };
+			if (login.ip !== ip) return { errorCode: 'ipMismatch' };
+			if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS) return { errorCode: 'codeExhausted' };
 
 			const isCorrect = timingSafeEqual(
 				Buffer.from(login.code), //
@@ -60,12 +61,12 @@ export const validateLogin = (data: InferOutput<typeof ValidateCodeSchema>) => {
 
 			if (!isCorrect) {
 				const isLastAttempt = login.attempts.length + 1 >= AUTH_CODE_MAX_ATTEMPTS;
-				return { errorCode: isLastAttempt ? 'CODE_EXHAUSTED' : 'CODE_INVALID' };
+				return { errorCode: isLastAttempt ? 'codeExhausted' : 'codeInvalid' };
 			}
 
 			let user = login.activeUserByContact;
 
-			if (login.userId && login.userId !== user?.id) return { errorCode: 'USER_DEACTIVATED' };
+			if (login.userId && login.userId !== user?.id) return { errorCode: 'userDeactivated' };
 
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);

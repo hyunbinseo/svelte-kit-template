@@ -6,8 +6,9 @@
 	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
 	import { sendCode as _sendCode } from './send/remote.ts';
 	import { SendCodeSchema } from './send/shared.ts';
+	import { validateErrorCodeToMessage } from './validate/enums.ts';
 	import { validateCode as _validateCode } from './validate/remote.ts';
-	import { validateErrors, ValidateCodeSchema } from './validate/shared.ts';
+	import { ValidateCodeSchema } from './validate/shared.ts';
 
 	let { data } = $props();
 	const uid = $props.id();
@@ -32,7 +33,7 @@
 			{#if !sendCode.result || validateFailure}
 				{#if validateFailure}
 					<p class="mt-1 text-red-600">
-						{validateErrors[validateFailure.errorCode]}
+						{validateErrorCodeToMessage[validateFailure.errorCode]}
 					</p>
 				{/if}
 				<form

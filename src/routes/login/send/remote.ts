@@ -2,14 +2,15 @@ import { dev } from '$app/env';
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
 import { requireLoggedOut } from '#auth/server/session.ts';
+import { sendErrorCodeToMessage } from './enums.ts';
 import { createLogin, deliverCode, discardLogin } from './server.ts';
-import { SendCodeSchema, sendErrors } from './shared.ts';
+import { SendCodeSchema } from './shared.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
 	const result = createLogin(data);
-	if (result.errorCode) invalid(issue.contact(sendErrors[result.errorCode]));
+	if (result.errorCode) invalid(issue.contact(sendErrorCodeToMessage[result.errorCode]));
 
 	if (dev) console.table({ contact: data.contact, code: result.code });
 
@@ -21,7 +22,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 
 	if (!isDelivered) {
 		discardLogin(result.login.id);
-		invalid(issue.contact(sendErrors.SEND_FAILED));
+		invalid(issue.contact(sendErrorCodeToMessage.sendFailed));
 	}
 
 	return {

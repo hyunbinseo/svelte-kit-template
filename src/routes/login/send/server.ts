@@ -6,7 +6,8 @@ import type { InferOutput } from 'valibot';
 import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
 import { db } from '#database/app/client.ts';
 import { loginTable } from '#database/app/schema.ts';
-import type { SendCodeSchema, SendErrorCode } from './shared.ts';
+import type { SendErrorCode } from './enums.ts';
+import type { SendCodeSchema } from './shared.ts';
 
 const generateCode = () =>
 	randomInt(0, Math.pow(10, AUTH_CODE_LENGTH)).toString().padStart(AUTH_CODE_LENGTH, '0');
@@ -27,7 +28,7 @@ export const createLogin = (data: InferOutput<typeof SendCodeSchema>) => {
 				})
 				.sync();
 
-			if (!user && !AUTH_ALLOW_UNREGISTERED) return { errorCode: 'UNREGISTERED' };
+			if (!user && !AUTH_ALLOW_UNREGISTERED) return { errorCode: 'unregistered' };
 
 			const existingLogin = tx.query.loginTable
 				.findFirst({
@@ -46,7 +47,7 @@ export const createLogin = (data: InferOutput<typeof SendCodeSchema>) => {
 				.sync();
 
 			if (existingLogin && !existingLogin.successfulAttempts.length) {
-				return { errorCode: 'RATE_LIMITED' };
+				return { errorCode: 'rateLimited' };
 			}
 
 			const login = tx

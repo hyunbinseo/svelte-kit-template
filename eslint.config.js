@@ -1,10 +1,29 @@
 import { resolve } from 'node:path';
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
+import perfectionist from 'eslint-plugin-perfectionist';
 import svelte from 'eslint-plugin-svelte';
 import { defineConfig, includeIgnoreFile } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
+
+const drizzleKeys = [
+	'orderBy',
+	'limit',
+	'offset',
+	'from',
+	'to',
+	'target',
+	'where',
+	'targetWhere',
+	'set',
+	'setWhere',
+	'optional',
+	'alias',
+	'columns',
+	'extras',
+	'with',
+];
 
 export default defineConfig(
 	includeIgnoreFile(resolve(import.meta.dirname, '.gitignore')),
@@ -54,6 +73,31 @@ export default defineConfig(
 					message:
 						'Rename to `server.ts` or `*.server.ts` — `server/` is not server-only in `src/routes/`.',
 				},
+			],
+		},
+	},
+	{
+		plugins: { perfectionist },
+		rules: {
+			'perfectionist/sort-objects': [
+				'error',
+				{
+					useConfigurationIf: {
+						matchesAstSelector: [
+							'CallExpression[callee.property.name=/^(findMany|findFirst|onConflictDoNothing|onConflictDoUpdate)$/] > ObjectExpression',
+							'CallExpression[callee.name="defineRelations"] CallExpression[callee.object.property.name=/^(one|many)$/] > ObjectExpression',
+							'CallExpression[callee.name="defineRelations"] CallExpression[callee.object.name=/^(one|many)$/] > ObjectExpression',
+							'CallExpression[callee.property.name=/^(findMany|findFirst)$/] Property[key.name="with"] > ObjectExpression > Property > ObjectExpression',
+						].join(', '),
+					},
+					type: 'unsorted',
+					customGroups: drizzleKeys.map((key) => ({
+						groupName: key,
+						elementNamePattern: `^${key}$`,
+					})),
+					groups: drizzleKeys,
+				},
+				{ type: 'unsorted' },
 			],
 		},
 	},

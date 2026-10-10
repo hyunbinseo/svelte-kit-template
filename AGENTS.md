@@ -184,7 +184,6 @@ Use Relational Queries v2:
 ```ts
 const users = db.query.userTable
 	.findMany({
-		// Sort keys in this order: orderBy, offset, where, columns, extras, with.
 		orderBy: { id: 'asc' },
 		where: {
 			contact: '010', // same as `eq`

@@ -1,24 +1,15 @@
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
-import { db } from '#database/app/client.ts';
+import { db } from './queries.ts';
 import { rotateToken, verifyToken } from './token.ts';
-
-const findToken = (id: string) =>
-	db.query.tokenTable
-		.findFirst({
-			where: { id },
-			columns: { id: true },
-			with: { bans: { columns: { reason: true, effectiveAt: true } } },
-		})
-		.sync();
 
 export const handleToken: Handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
 	if (!jwt) return resolve(event);
 
 	const payload = (await verifyToken(jwt))?.payload;
-	const token = payload && findToken(payload.jti);
+	const token = payload && db.findTokenBans(payload.jti);
 
 	const now = new Date();
 

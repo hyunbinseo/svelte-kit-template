@@ -153,7 +153,48 @@ Import from `#database/app/`:
 - `client.ts` — SvelteKit clients:
   - `db` — logs writes only (plus CTEs)
   - `fullyAuditedDb` — logs every query, including reads
-- `types.ts` — `AppDb` (client) and `AppTx` (transaction)
+  - `createLocalClient()` — wraps either in a [local client](#local-clients)
+- `types.ts` — `AppDb` (client), `AppTx` (transaction), and `AppDbOrTx` (either)
+
+### Local Clients
+
+Each `server.ts` exports a local client — a `db` exposing only its own queries:
+
+```ts
+// src/routes/posts/new/create-post/server.ts
+import { eq } from 'drizzle-orm';
+import { createLocalClient, db as client } from '#database/app/client.ts';
+import { postTable } from '#database/app/schema.ts';
+import { picked } from '#database/pick.ts';
+
+export const db = createLocalClient(client, (db) => ({
+	// One input — type it by its column.
+	findPost: (slug: typeof postTable.$inferSelect.slug) =>
+		db.query.postTable.findFirst({ where: { slug } }).sync(),
+	// Several — list the keys once; `data` is typed and filtered to them.
+	insertPost: picked<typeof postTable.$inferInsert>()(
+		['title', 'content'],
+		// Insertion is guaranteed to return exactly one row.
+		(data) => db.insert(postTable).values(data).returning().all()[0]!,
+	),
+	// Destructure keys that aren't values (e.g. `where` targets).
+	updatePost: picked<typeof postTable.$inferSelect>()(['slug', 'title'], ({ slug, ...data }) => {
+		db.update(postTable).set(data).where(eq(postTable.slug, slug)).run();
+	}),
+}));
+```
+
+```ts
+db.findPost(slug); // runs on `client`
+db.transaction((tx) => tx.findPost(slug)); // runs on the transaction
+db.insertPost({ title: data.title, content: data.content }); // not the whole form data
+```
+
+`picked()` drops unlisted keys at runtime — TypeScript allows extra properties on non-literal arguments.
+
+- Pass `fullyAuditedDb` instead of `db` to log reads.
+- Share queries as an exported factory spread into each local client (e.g. `...authQueries(db)` from `#auth/server/queries.ts`).
+- Shared modules outside `src/routes/` may also export their own local client next to the factory (e.g. `db` from `#auth/server/queries.ts`).
 
 ### Queries
 
@@ -275,14 +316,14 @@ Always wrap read-then-write in a transaction for isolation. Set `behavior` to `i
 ```ts
 db.transaction(
 	(tx) => {
-		const post = tx.query.postTable.findFirst(/* ... */).sync();
-		tx.update(postTable).set(/* ... */).run();
+		const post = tx.findPost(/* ... */);
+		tx.updatePost(/* ... */);
 	},
 	{ behavior: 'immediate' },
 );
 ```
 
-To log a transaction's reads, run all of it on `fullyAuditedDb` — don't mix clients.
+To log a transaction's reads, create the local client from `fullyAuditedDb` — don't mix clients.
 
 ## SvelteKit
 
@@ -328,6 +369,8 @@ src/routes/posts/new/
     └── shared.ts # isomorphic (e.g. schemas)
 ```
 
+Remote functions run guards, business checks, transactions, and responses. Queries live in the adjacent `server.ts` as a [local client](#local-clients) — remote modules don't import `#database/*`.
+
 Inside remote functions (via `getRequestEvent()`):
 
 - `event.request.url` is the remote endpoint (`/_app/remote/<id>`).
@@ -357,15 +400,14 @@ export const CreatePostSchema = object({
 // src/routes/posts/new/create-post/remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from '#database/app/client.ts';
+import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
 	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-	// Insertion is guaranteed to return exactly one row.
-	const newPost = db.insert(postTable).values(data).returning().all()[0]!;
+	const newPost = db.insertPost({ title: data.title, content: data.content });
 
 	return { slug: newPost.slug }; // populates `createPost.result` in Svelte
 });
@@ -400,12 +442,12 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
-import { db } from '#database/app/client.ts';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
+import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
-	const post = db.insert(postTable).values(data).returning().all()[0]!;
+	const post = db.insertPost({ title: data.title, content: data.content });
 
 	// Unknown args — the client must request it.
 	await requested(getPosts, 2).refreshAll(); // max 2 instances

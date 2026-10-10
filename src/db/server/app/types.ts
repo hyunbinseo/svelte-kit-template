@@ -3,3 +3,5 @@ import type { relations } from './relations.ts';
 
 export type AppDb = NodeSQLiteDatabase<typeof relations>;
 export type AppTx = NodeSQLiteTransaction<typeof relations>;
+
+export type AppDbOrTx = AppDb | AppTx;

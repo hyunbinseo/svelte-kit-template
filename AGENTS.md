@@ -206,10 +206,13 @@ Import tables from `#database/<db>/schema.ts`. Group tables by owner:
 Each group declares, in order:
 
 - `<owner>` — owner table (e.g. `userTable`)
-- `<owner><Attribute>` — 1:N tables, no `To` (e.g. `userRoleTable`)
+- `<owner><Attribute>` — 1:1 and 1:N tables (e.g. `userRoleTable`)
 - `<owner>To<Other>` — M:N join tables (e.g. `userToTeamTable`)
 
-Soft-delete instead of `DELETE` by default, using nullable columns (e.g. `deactivatedAt`/`deactivatedBy`).
+Delete rows by:
+
+- Soft-deleting — by default, using nullable columns (e.g. `deactivatedAt`/`deactivatedBy`)
+- Hard-deleting — only rows that never took effect (e.g. a login whose code failed to send)
 
 #### Constraints
 

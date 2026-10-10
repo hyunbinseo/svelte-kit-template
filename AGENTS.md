@@ -20,6 +20,7 @@ vp fmt --write --no-error-on-unmatched-pattern <files>
 ## Structure
 
 - Route-specific code lives next to its route; shared code lives in `src/*/`.
+- Avoid top-level files in `src/lib/` — extend a module or folder (e.g. `enums/`).
 - `cli/` may import Node-compatible `src/` code, but not vice versa. `check:cli` blocks:
   - `$app/*`, `@sveltejs/kit` (e.g. via `@sentry/sveltekit` — use `@sentry/node`)
   - Vite-only `import.meta` properties (e.g. `env`, `glob` — also via `@sveltejs/kit`)

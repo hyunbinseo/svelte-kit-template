@@ -1,15 +1,18 @@
 import { check, email, isoDate, pipe, startsWith, string, transform } from 'valibot';
-import type { ISODateString } from './types.ts';
-
-const EXAMPLE_ORIGIN = 'https://example.com';
 
 export const EmailSchema = pipe(string(), email());
+
+// Valibot's `isoDate` action output is plain string.
+// See https://github.com/open-circle/valibot/issues/945
+export type ISODateString = `${number}-${number}-${number}`;
 
 export const ISODateSchema = pipe(
 	string(),
 	isoDate(),
 	transform((v) => v as ISODateString),
 );
+
+const EXAMPLE_ORIGIN = 'https://example.com';
 
 export const InternalAbsolutePathSchema = pipe(
 	string(),

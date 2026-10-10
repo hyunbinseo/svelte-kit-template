@@ -3,7 +3,6 @@
 	import { AUTH_CODE_LENGTH } from '#auth/config.ts';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
-	import { PLACEHOLDER_EMAIL } from '#lib/placeholders.ts';
 	import { sendCode as _sendCode } from './send/remote.ts';
 	import { SendCodeSchema } from './send/shared.ts';
 	import { validateErrorCodeToMessage } from './validate/enums.ts';
@@ -54,7 +53,7 @@
 								{...sendCode.fields.contact.as('email')}
 								autocomplete="email"
 								autofocus
-								placeholder={PLACEHOLDER_EMAIL}
+								placeholder="username@example.com"
 							/>
 							{@render formIssues(sendCode.fields.contact.issues())}
 						</label>

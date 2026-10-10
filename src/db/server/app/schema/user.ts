@@ -10,7 +10,7 @@ import {
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import type { UserRole, UserRoleRevokeReason } from '#lib/enums/user.ts';
-import type { ISODateString } from '#lib/types.ts';
+import type { ISODateString } from '#lib/valibot.ts';
 
 export const userTable = snakeCase.table(
 	'user',

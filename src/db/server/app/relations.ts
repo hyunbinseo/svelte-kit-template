@@ -30,7 +30,7 @@ export const relations = defineRelations(schema, (r) => ({
 		}),
 	},
 	tokenTable: {
-		ban: r.one.tokenBanTable({
+		bans: r.many.tokenBanTable({
 			from: r.tokenTable.id,
 			to: r.tokenBanTable.tokenId,
 		}),

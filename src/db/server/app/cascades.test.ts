@@ -99,7 +99,27 @@ describe('deactivateUser', () => {
 
 		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
 
-		assert.equal(getSoleTokenBan(db, token.id).reason, 'logout');
+		assert.deepEqual(
+			findTokenBans(db, token.id).map((ban) => ban.reason),
+			['logout', 'deactivate'],
+		);
+	});
+
+	test('adds an immediate ban before a deferred one', () => {
+		const { db, adminId, userId } = setup();
+		const token = seedToken(db, userId, 999_999_000);
+		const role = seedUserRole(db, userId, adminId);
+		revokeEarlier(db, role.id, adminId);
+
+		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+
+		const bans = findTokenBans(db, token.id);
+		assert.equal(bans.length, 2);
+		const [first, second] = bans;
+		assert.equal(first?.reason, 'deactivate');
+		assert.equal(first?.effectiveAt.getTime(), at.getTime());
+		assert.equal(second?.reason, 'stale');
+		assert.equal(second?.bannedAt.getTime(), 50_000);
 	});
 
 	test('does nothing if already deactivated', () => {

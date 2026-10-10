@@ -156,6 +156,8 @@ Import from `#database/app/`:
 
 ### Queries
 
+Use Drizzle ORM APIs instead of `` sql`...` ``. If an API is missing or broken, use `` sql`...` `` with a `BLOCKED` comment.
+
 Use the sync API instead of `await`:
 
 ```ts
@@ -230,14 +232,16 @@ Index foreign key columns used in lookups or cascades.
 Index names follow 2 conventions:
 
 - `<table>_<columns>_idx` (e.g. `token_user_id_idx`)
-- `active_<table>_<columns>_idx` — filtered on soft-delete (e.g. `active_user_contact_idx`)
+- `<filter>_<table>_<columns>_idx` — filtered (e.g. `active_user_contact_idx` on soft-delete)
 
-Use a `UNIQUE INDEX` to avoid duplicate records (e.g. a user's active role should be unique):
+Use a `UNIQUE INDEX` to avoid duplicate records (e.g. one rotation per token). Write value filters with `` sql`...` ``:
 
 ```ts
-uniqueIndex('active_user_role_user_id_role_idx')
-	.on(table.userId, table.role)
-	.where(isNull(table.revokedAt));
+uniqueIndex('rotate_token_ban_token_id_idx')
+	.on(table.tokenId)
+	// BLOCKED Use eq()
+	// See https://github.com/drizzle-team/drizzle-orm/issues/4790
+	.where(sql`${table.reason} = 'rotate'`);
 ```
 
 ### Relations

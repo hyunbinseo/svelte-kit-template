@@ -1,11 +1,12 @@
 import { randomUUIDv7 } from 'node:crypto';
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, sql } from 'drizzle-orm';
 import {
 	check,
 	index,
 	integer,
 	snakeCase,
 	text,
+	uniqueIndex,
 	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import { AUTH_TOKEN_EXPIRES_IN } from '#auth/config.ts';
@@ -37,17 +38,29 @@ export const tokenTable = snakeCase.table(
 	],
 );
 
-export const tokenBanTable = snakeCase.table('token_ban', {
-	tokenId: text()
-		.primaryKey()
-		.references(() => tokenTable.id),
-	reason: text().$type<TokenBanReason>().notNull(),
-	effectiveAt: integer({ mode: 'timestamp' }).notNull(),
-	bannedAt: integer({ mode: 'timestamp' })
-		.notNull()
-		.$default(() => new Date()),
-	bannedBy: text()
-		.notNull()
-		.references(() => userTable.id),
-	ip: text().notNull(),
-});
+export const tokenBanTable = snakeCase.table(
+	'token_ban',
+	{
+		id: integer().primaryKey(),
+		tokenId: text()
+			.notNull()
+			.references(() => tokenTable.id),
+		reason: text().$type<TokenBanReason>().notNull(),
+		effectiveAt: integer({ mode: 'timestamp' }).notNull(),
+		bannedAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date()),
+		bannedBy: text()
+			.notNull()
+			.references(() => userTable.id),
+		ip: text().notNull(),
+	},
+	(table) => [
+		index('token_ban_token_id_idx').on(table.tokenId),
+		uniqueIndex('rotate_token_ban_token_id_idx')
+			.on(table.tokenId)
+			// BLOCKED Use eq()
+			// See https://github.com/drizzle-team/drizzle-orm/issues/4790
+			.where(sql`${table.reason} = 'rotate'`),
+	],
+);

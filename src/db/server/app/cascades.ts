@@ -33,7 +33,6 @@ const banLiveTokens = (
 				ip: ban.ip,
 			})),
 		)
-		.onConflictDoNothing()
 		.run();
 };
 

@@ -53,7 +53,7 @@ export const findTokenBans = (db: AppDb, tokenId: string) =>
 		.select()
 		.from(tokenBanTable)
 		.where(eq(tokenBanTable.tokenId, tokenId))
-		.orderBy(tokenBanTable.effectiveAt)
+		.orderBy(tokenBanTable.effectiveAt, tokenBanTable.id)
 		.all();
 
 export const getSoleTokenBan = (db: AppDb, tokenId: string) => {

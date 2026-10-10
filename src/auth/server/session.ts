@@ -1,7 +1,6 @@
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
-import { gt } from 'drizzle-orm';
 import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
@@ -46,17 +45,6 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 			bannedAt,
 			bannedBy: event.locals.session.sub,
 			ip,
-		})
-		.onConflictDoUpdate({
-			target: tokenBanTable.tokenId,
-			set: {
-				reason,
-				effectiveAt: bannedAt,
-				bannedAt,
-				bannedBy: event.locals.session.sub,
-				ip,
-			},
-			setWhere: gt(tokenBanTable.effectiveAt, bannedAt),
 		})
 		.run();
 

@@ -18,11 +18,13 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 			.findFirst({
 				where: { id: verified.payload.jti },
 				columns: { id: true },
-				with: { ban: { columns: { reason: true, effectiveAt: true } } },
+				with: { bans: { columns: { reason: true, effectiveAt: true } } },
 			})
 			.sync();
 
-	if (!token || (token.ban && token.ban.effectiveAt <= new Date())) {
+	const now = new Date();
+
+	if (!token || token.bans.some((ban) => ban.effectiveAt <= now)) {
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		return resolve(event);
 	}
@@ -34,15 +36,15 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 		roles: new Set(verified.payload.roles),
 	};
 
-	if (token.ban?.reason === 'stale') {
+	if (token.bans.some((ban) => ban.reason === 'stale')) {
 		// Old token's claims are outdated; proceed logged out.
 		await rotateToken(session, 'stale').catch(captureException);
 	} else {
 		event.locals.session = session;
 	}
 
-	if (!token.ban) {
-		const expiresIn = verified.payload.exp * 1000 - Date.now();
+	if (!token.bans.length) {
+		const expiresIn = verified.payload.exp * 1000 - now.getTime();
 		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
 			// Old token is still valid; proceed with the current session.
 			await rotateToken(session, 'threshold').catch(captureException);

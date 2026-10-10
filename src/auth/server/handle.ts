@@ -4,23 +4,21 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
 import { db } from '#database/app/client.ts';
 import { rotateToken, verifyToken } from './token.ts';
 
-type Session = NonNullable<App.Locals['session']>;
+const findToken = (id: string) =>
+	db.query.tokenTable
+		.findFirst({
+			where: { id },
+			columns: { id: true },
+			with: { bans: { columns: { reason: true, effectiveAt: true } } },
+		})
+		.sync();
 
 export const handleToken: Handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
 	if (!jwt) return resolve(event);
 
-	const verified = await verifyToken(jwt);
-
-	const token =
-		verified &&
-		db.query.tokenTable
-			.findFirst({
-				where: { id: verified.payload.jti },
-				columns: { id: true },
-				with: { bans: { columns: { reason: true, effectiveAt: true } } },
-			})
-			.sync();
+	const payload = (await verifyToken(jwt))?.payload;
+	const token = payload && findToken(payload.jti);
 
 	const now = new Date();
 
@@ -29,30 +27,31 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	const session: Session = {
-		jti: verified.payload.jti,
-		sub: verified.payload.sub,
-		profile: verified.payload.profile !== null,
-		roles: new Set(verified.payload.roles),
-	};
+	const pending = new Set(token.bans.map((ban) => ban.reason));
 
-	if (token.bans.some((ban) => ban.reason === 'stale')) {
-		// Old token's claims are outdated; proceed logged out.
-		await rotateToken(session, 'stale').catch(captureException);
-	} else {
-		event.locals.session = session;
+	if (!pending.has('stale')) {
+		event.locals.session = {
+			jti: payload.jti,
+			sub: payload.sub,
+			profile: payload.profile !== null,
+			roles: new Set(payload.roles),
+		};
 	}
 
-	if (!token.bans.length) {
-		const expiresIn = verified.payload.exp * 1000 - now.getTime();
-		if (expiresIn <= AUTH_TOKEN_ROTATE_THRESHOLD) {
-			// Old token is still valid; proceed with the current session.
-			await rotateToken(session, 'threshold').catch(captureException);
+	if (pending.has('stale')) {
+		if (!pending.has('rotate')) {
+			await rotateToken(payload, 'stale').catch(captureException);
 		}
+	} else if (
+		pending.has('rotate') ||
+		payload.exp * 1000 - now.getTime() <= AUTH_TOKEN_ROTATE_THRESHOLD
+	) {
+		// Re-signs the existing child if a previous rotation response was lost.
+		await rotateToken(payload, 'threshold').catch(captureException);
 	}
 
-	const userId = event.locals.session?.sub;
-	if (userId) {
+	if (event.locals.session) {
+		const { sub: userId } = event.locals.session;
 		setUser({ id: userId });
 		event.tracing.root.setAttribute('userId', userId);
 	}

@@ -7,6 +7,7 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from 
 import type { TokenRefreshReason } from '#auth/enums.ts';
 import { db } from '#database/app/client.ts';
 import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
+import type { AppTx } from '#database/app/types.ts';
 import type { UserRole } from '#lib/enums/user.ts';
 
 const encoder = new TextEncoder();
@@ -46,17 +47,20 @@ type TokenInput = Pick<
 		  }
 	);
 
-// BLOCKED Use transaction for atomic ban + token issuing.
-export const issueToken = async (input: TokenInput) => {
-	const event = getRequestEvent();
+type IssuedToken = Pick<NonNullable<App.Locals['session']>, 'sub' | 'profile' | 'roles'> & {
+	id: string;
+	issuedAt: Date;
+	expiresAt: Date;
+};
 
-	const token = db
+export const issueToken = (tx: AppTx, input: TokenInput): IssuedToken => {
+	const token = tx
 		.insert(tokenTable)
 		.values({
 			userId: input.sub,
 			refreshedFrom: input.refreshedFrom,
 			refreshReason: input.refreshReason,
-			ip: event.getClientAddress(),
+			ip: getRequestEvent().getClientAddress(),
 		})
 		// Returns existing row.
 		.onConflictDoUpdate({
@@ -70,20 +74,26 @@ export const issueToken = async (input: TokenInput) => {
 		})
 		.all()[0]!;
 
-	const roles = input.roles.size
-		? (Array.from(input.roles) as [UserRole, ...UserRole[]])
+	return { ...token, sub: input.sub, profile: input.profile, roles: input.roles };
+};
+
+export const signToken = async (token: IssuedToken) => {
+	const event = getRequestEvent();
+
+	const roles = token.roles.size
+		? (Array.from(token.roles) as [UserRole, ...UserRole[]])
 		: undefined;
 
 	const privateClaims: PrivateClaims = {
 		...(roles && { roles }),
-		...(!input.profile && { profile: null }),
+		...(!token.profile && { profile: null }),
 	};
 
 	const jwt = await new SignJWT(privateClaims)
 		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })
 		// Must match the ReservedClaims type.
 		.setJti(token.id)
-		.setSubject(input.sub)
+		.setSubject(token.sub)
 		.setExpirationTime(token.expiresAt)
 		.setIssuedAt(token.issuedAt)
 		.sign(SECRET_NEW);
@@ -92,9 +102,9 @@ export const issueToken = async (input: TokenInput) => {
 
 	event.locals.session = {
 		jti: token.id,
-		sub: input.sub,
-		profile: input.profile,
-		roles: input.roles,
+		sub: token.sub,
+		profile: token.profile,
+		roles: token.roles,
 	};
 };
 
@@ -104,49 +114,54 @@ export const rotateToken = async (
 ) => {
 	const event = getRequestEvent();
 
-	if (reason !== 'stale') {
-		const claimed = db
-			.insert(tokenBanTable)
-			.values({
-				tokenId: session.jti,
-				reason: 'rotate',
-				effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
-				bannedBy: session.sub,
-				ip: event.getClientAddress(),
-			})
-			.onConflictDoNothing()
-			.returning({ tokenId: tokenBanTable.tokenId })
-			.all();
+	const token = db.transaction(
+		(tx) => {
+			if (reason !== 'stale') {
+				tx.insert(tokenBanTable)
+					.values({
+						tokenId: session.jti,
+						reason: 'rotate',
+						effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
+						bannedBy: session.sub,
+						ip: event.getClientAddress(),
+					})
+					.onConflictDoNothing()
+					.run();
+			}
 
-		if (!claimed.length) return;
-	}
+			const user = tx.query.userTable
+				.findFirst({
+					where: {
+						id: session.sub,
+						deactivatedAt: { isNull: true },
+					},
+					with: {
+						profile: { columns: { id: true } },
+						activeRoles: { columns: { role: true } },
+					},
+				})
+				.sync();
 
-	const user = db.query.userTable
-		.findFirst({
-			where: {
-				id: session.sub,
-				deactivatedAt: { isNull: true },
-			},
-			with: {
-				profile: { columns: { id: true } },
-				activeRoles: { columns: { role: true } },
-			},
-		})
-		.sync();
+			if (!user) return 'deactivated';
 
-	if (!user) {
+			return issueToken(tx, {
+				sub: session.sub,
+				profile: !!user.profile,
+				roles: new Set(user.activeRoles.map((row) => row.role)),
+				refreshedFrom: session.jti,
+				refreshReason: reason,
+			});
+		},
+		{ behavior: 'immediate' },
+	);
+
+	if (token === 'deactivated') {
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		delete event.locals.session;
 		return;
 	}
 
-	await issueToken({
-		sub: session.sub,
-		profile: !!user.profile,
-		roles: new Set(user.activeRoles.map((r) => r.role)),
-		refreshedFrom: session.jti,
-		refreshReason: reason,
-	});
+	await signToken(token);
 };
 
 const verifyWithSecretFallback = async (jwt: string) => {

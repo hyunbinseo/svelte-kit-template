@@ -268,13 +268,7 @@ Test each cascade function in `cascades.test.ts`, including each guard (e.g. alr
 
 ### Transactions
 
-Pass sync callbacks. See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275).
-
-If a transaction can't be made sync, leave a comment instead:
-
-```ts
-// BLOCKED Use transaction for <a> + <b>
-```
+Pass sync callbacks, or leave a `BLOCKED` comment if impossible. See [drizzle-team/drizzle-orm#2275](https://github.com/drizzle-team/drizzle-orm/issues/2275).
 
 Always wrap read-then-write in a transaction for isolation. Set `behavior` to `immediate` so the write can't fail on a stale read:
 

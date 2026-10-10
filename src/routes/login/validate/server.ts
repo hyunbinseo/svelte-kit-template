@@ -10,6 +10,7 @@ import {
 	AUTH_CODE_MAX_ATTEMPTS,
 	AUTH_REDIRECT_PARAM,
 } from '#auth/config.ts';
+import { issueToken } from '#auth/server/token.ts';
 import { db } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
@@ -96,10 +97,16 @@ export const validateLogin = (data: InferOutput<typeof ValidateCodeSchema>) => {
 				tx.update(loginTable).set({ userId: user.id }).where(eq(loginTable.id, data.id)).run();
 			}
 
-			return { user };
+			const token = issueToken(tx, {
+				sub: user.id,
+				roles: new Set(user.activeRoles.map((row) => row.role)),
+				profile: !!user.profile,
+			});
+
+			return { token };
 		},
 		{ behavior: 'immediate' },
-	) satisfies { user: unknown } | { errorCode: ValidateErrorCode };
+	) satisfies { token: unknown } | { errorCode: ValidateErrorCode };
 };
 
 export const getRedirectDestination = () => {

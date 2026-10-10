@@ -10,7 +10,7 @@ import {
 	seedTokenBan,
 	seedUser,
 } from '#tests/database/app.ts';
-import { deactivateUser, revokeUserRole } from './cascades.ts';
+import { deactivateUser, revokeToken, revokeUserRole } from './cascades.ts';
 import { userRoleTable, userTable } from './schema.ts';
 import type { AppDb } from './types.ts';
 
@@ -172,5 +172,69 @@ describe('revokeUserRole', () => {
 		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' }), false);
 
 		assert.deepEqual(findTokenBans(db, token.id), []);
+	});
+});
+
+describe('revokeToken', () => {
+	const logout = { reason: 'logout', ip: '' } as const;
+
+	test('bans the token immediately (reason: logout)', () => {
+		const { db, userId } = setup();
+		const token = seedToken(db, userId, 999_999_000);
+
+		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
+
+		const ban = getSoleTokenBan(db, token.id);
+		assert.equal(ban.reason, 'logout');
+		assert.equal(ban.effectiveAt.getTime(), at.getTime());
+	});
+
+	test('bans live ancestors and descendants', () => {
+		const { db, userId } = setup();
+		const expired = seedToken(db, userId, 50_000);
+		const parent = seedToken(db, userId, 999_998_000, expired.id);
+		const token = seedToken(db, userId, 999_999_000, parent.id);
+		const child = seedToken(db, userId, 1_000_000_000, token.id);
+		const other = seedToken(db, userId, 999_999_000);
+
+		revokeToken(db, token.id, { ...logout, bannedBy: userId });
+
+		assert.deepEqual(findTokenBans(db, expired.id), []);
+		assert.equal(getSoleTokenBan(db, parent.id).reason, 'logout');
+		assert.equal(getSoleTokenBan(db, token.id).reason, 'logout');
+		assert.equal(getSoleTokenBan(db, child.id).reason, 'logout');
+		assert.deepEqual(findTokenBans(db, other.id), []);
+	});
+
+	test('bans despite a deferred ban', () => {
+		const { db, adminId, userId } = setup();
+		const token = seedToken(db, userId, 999_999_000);
+		const role = seedUserRole(db, userId, adminId);
+		revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' });
+
+		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
+
+		assert.deepEqual(
+			findTokenBans(db, token.id).map((ban) => ban.reason),
+			['logout', 'stale'],
+		);
+	});
+
+	test('does nothing if already banned', () => {
+		const { db, userId } = setup();
+		const token = seedToken(db, userId, 999_999_000);
+		seedTokenBan(db, token.id, userId, 'logout', 1_000);
+		const child = seedToken(db, userId, 1_000_000_000, token.id);
+
+		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), false);
+
+		assert.equal(findTokenBans(db, token.id).length, 1);
+		assert.deepEqual(findTokenBans(db, child.id), []);
+	});
+
+	test('does nothing if the token does not exist', () => {
+		const { db, userId } = setup();
+
+		assert.equal(revokeToken(db, 'missing', { ...logout, bannedBy: userId }), false);
 	});
 });

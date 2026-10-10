@@ -25,10 +25,15 @@ export const createAppDb = (filename = ':memory:') => {
 export const seedUser = (db: AppDb) =>
 	db.insert(userTable).values({ contact: randomUUID() }).returning().all()[0]!;
 
-export const seedToken = (db: AppDb, userId: string, expiresAt: number) =>
+export const seedToken = (db: AppDb, userId: string, expiresAt: number, refreshedFrom?: string) =>
 	db
 		.insert(tokenTable)
-		.values({ userId, expiresAt: new Date(expiresAt), ip: '' })
+		.values({
+			userId,
+			expiresAt: new Date(expiresAt),
+			...(refreshedFrom && { refreshedFrom, refreshReason: 'threshold' }),
+			ip: '',
+		})
 		.returning()
 		.all()[0]!;
 

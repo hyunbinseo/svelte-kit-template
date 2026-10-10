@@ -4,8 +4,8 @@ import { error, redirect } from '@sveltejs/kit';
 import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
+import { revokeToken } from '#database/app/cascades.ts';
 import { db } from '#database/app/client.ts';
-import { tokenBanTable } from '#database/app/schema.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();
@@ -34,19 +34,11 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	const ip = event.getClientAddress();
-	const bannedAt = new Date();
-
-	db.insert(tokenBanTable)
-		.values({
-			tokenId: event.locals.session.jti,
-			reason,
-			effectiveAt: bannedAt,
-			bannedAt,
-			bannedBy: event.locals.session.sub,
-			ip,
-		})
-		.run();
+	revokeToken(db, event.locals.session.jti, {
+		reason,
+		bannedBy: event.locals.session.sub,
+		ip: event.getClientAddress(),
+	});
 
 	event.cookies.delete(AUTH_COOKIE_NAME);
 	delete event.locals.session;

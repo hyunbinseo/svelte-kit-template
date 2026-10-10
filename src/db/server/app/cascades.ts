@@ -1,5 +1,5 @@
-import { and, eq, gt, isNull } from 'drizzle-orm';
-import type { TokenBanReason } from '#auth/enums.ts';
+import { and, eq, gt, isNull, lte } from 'drizzle-orm';
+import type { TokenBanReason, TokenRevokeReason } from '#auth/enums.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from './schema.ts';
 import type { AppDb, AppTx } from './types.ts';
 
@@ -94,6 +94,78 @@ export const revokeUserRole = (
 				bannedBy: revocation.revokedBy,
 				ip: revocation.ip,
 			});
+			return true;
+		},
+		{ behavior: 'immediate' },
+	);
+
+const getLiveTokenFamily = (tx: AppTx, tokenId: string, at: Date) => {
+	const ids: string[] = [];
+
+	// Ancestors expire before descendants, so stop at the first expired one.
+	for (let id: string | null = tokenId; id;) {
+		const token = tx
+			.select({ refreshedFrom: tokenTable.refreshedFrom, expiresAt: tokenTable.expiresAt })
+			.from(tokenTable)
+			.where(eq(tokenTable.id, id))
+			.get();
+
+		if (!token || token.expiresAt <= at) break;
+
+		ids.push(id);
+		id = token.refreshedFrom;
+	}
+
+	for (let id = tokenId; ;) {
+		const child = tx
+			.select({ id: tokenTable.id })
+			.from(tokenTable)
+			.where(eq(tokenTable.refreshedFrom, id))
+			.get();
+
+		if (!child) break;
+
+		ids.push(child.id);
+		id = child.id;
+	}
+
+	return ids;
+};
+
+export const revokeToken = (
+	db: AppDb,
+	tokenId: string,
+	ban: { reason: TokenRevokeReason; bannedBy: string; ip: string },
+) =>
+	db.transaction(
+		(tx) => {
+			const at = new Date();
+
+			const banned = tx
+				.select({ tokenId: tokenBanTable.tokenId })
+				.from(tokenBanTable)
+				.where(and(eq(tokenBanTable.tokenId, tokenId), lte(tokenBanTable.effectiveAt, at)))
+				.get();
+
+			if (banned) return false;
+
+			const ids = getLiveTokenFamily(tx, tokenId, at);
+
+			if (!ids.length) return false;
+
+			tx.insert(tokenBanTable)
+				.values(
+					ids.map((id) => ({
+						tokenId: id,
+						reason: ban.reason,
+						effectiveAt: at,
+						bannedAt: at,
+						bannedBy: ban.bannedBy,
+						ip: ban.ip,
+					})),
+				)
+				.run();
+
 			return true;
 		},
 		{ behavior: 'immediate' },

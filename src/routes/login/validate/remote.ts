@@ -75,7 +75,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!login.userId) tx.linkLoginToUser({ id: data.id, userId: user.id });
 
-			const token = tx.createToken({ userId: user.id, ip });
+			const token = tx.createOrFindToken({ userId: user.id, ip });
 
 			return { token: toIssuedToken(token, user) };
 		},

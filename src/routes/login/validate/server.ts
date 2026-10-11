@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
-import { findActiveUserById, createToken } from '#auth/server/queries.ts';
+import { findActiveUserById, createOrFindToken } from '#auth/server/queries.ts';
 import { defineQueries } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
 import type { AppInsert, AppSelect } from '#database/app/types.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserById: findActiveUserById(db),
-	createToken: createToken(db),
+	createOrFindToken: createOrFindToken(db),
 
 	findLoginByIdAndContact: ({ id, contact }: AppSelect<'loginTable', 'id' | 'contact'>) =>
 		db.query.loginTable

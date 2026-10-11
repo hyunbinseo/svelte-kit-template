@@ -10,7 +10,7 @@ export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
 		})
 		.sync();
 
-export const createToken =
+export const createOrFindToken =
 	(db: AppDb | AppTx) =>
 	({
 		userId,

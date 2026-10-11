@@ -110,7 +110,7 @@ export const rotateToken = async (
 				effectiveAt: new Date(now.getTime() + AUTH_TOKEN_ROTATE_GRACE),
 			});
 
-			const token = tx.createToken({
+			const token = tx.createOrFindToken({
 				userId: session.sub,
 				refreshedFrom: latest.id,
 				refreshReason: isStale ? 'stale' : reason,

@@ -42,7 +42,7 @@ const createRequestAuditLogger = (options?: AuditLoggerOptions) => {
 	);
 };
 
-export const db = drizzle({
+const db = drizzle({
 	...drizzleOptions,
 	client: appClient,
 	logger: createRequestAuditLogger(),
@@ -64,6 +64,8 @@ const localClientFactory =
 			callback: (tx: T) => ReturnType<Parameters<typeof client.transaction<R>>[0]>,
 			config?: SQLiteTransactionConfig,
 		) => client.transaction<R>((tx) => callback(queries(tx)), config),
+		runCascade: <A extends unknown[], R>(cascade: (db: AppDb, ...args: A) => R, ...args: A) =>
+			cascade(client, ...args),
 	});
 
 export const createLocalClient = localClientFactory(db);

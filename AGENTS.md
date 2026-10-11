@@ -153,13 +153,14 @@ Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapp
 
 ### Clients
 
-Import from `#database/app/`:
+Each runtime has its own client, logging writes only by default:
 
-- `client.ts` — SvelteKit clients:
-  - `db` — logs writes only (plus CTEs)
-  - `createLocalClient()` — creates a [local client](#local-clients) on `db`
-  - `createReadAuditedLocalClient()` — same, but also logs reads
-- `types.ts` — `AppDb` (client), `AppTx` (transaction), and `AppDbOrTx` (either)
+- SvelteKit — [local client](#local-clients) factories from `#database/app/client.ts`:
+  - `createLocalClient()` — logs writes only (plus CTEs)
+  - `createReadAuditedLocalClient()` — also logs reads
+- `cli/` — `appDb` from `cli/database/clients.ts`, without request context (`sub`, `ip`, `pathname`)
+
+Type clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts` — `AppDbOrTx` for either (e.g. `authQueries`).
 
 ### Local Clients
 
@@ -193,6 +194,7 @@ export const db = createLocalClient((db) => ({
 db.findPost(slug); // runs outside a transaction
 db.transaction((tx) => tx.findPost(slug)); // runs on the transaction
 db.insertPost({ title: data.title, content: data.content }); // not the whole form data
+db.runCascade(revokeToken, tokenId, ban); // runs a cascade on the same client
 ```
 
 `picked()` drops unlisted keys at runtime — TypeScript allows extra properties on non-literal arguments.
@@ -305,7 +307,7 @@ Don't use `TRIGGER`s — they are invisible to the audit logger and need raw SQL
 
 Write cascades (e.g. deactivating a user revokes all active roles) as functions in `src/db/server/app/cascades.ts`, so both `cli/` and SvelteKit can call them:
 
-- Take the client (`AppDb`) as the first parameter.
+- Take the client (`AppDb`) as the first parameter — call via a local client's `runCascade()` in SvelteKit.
 - Run the whole cascade in one transaction — read the clock inside it.
 - Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
 - Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.

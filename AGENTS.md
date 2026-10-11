@@ -151,57 +151,29 @@ Database code lives in `src/db/server/`, imported as `#database/*`:
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
-### Clients
+### App Clients
 
-Each runtime has its own client, logging writes only by default:
+Each runtime has its own client, typed as `AppDb` (transactions as `AppTx`) from `#database/app/types.ts`:
 
 - SvelteKit — [local client](#local-clients) factories from `#database/app/client.ts`:
   - `createLocalClient()` — logs writes only (plus CTEs)
   - `createReadAuditedLocalClient()` — also logs reads
-- `cli/` — `appDb` from `cli/database/clients.ts`, without request context (`sub`, `ip`, `pathname`)
+- CLI — `appDb` from `cli/database/clients.ts`, logs writes only without request context
 
-Type clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts` — `AppDb | AppTx` for either (e.g. `authQueries`).
+#### Local Clients
 
-### Local Clients
-
-Each `server.ts` exports a local client — a `db` exposing only its own queries:
+Each `server.ts` exports a local client — a `db` exposing only its own queries (e.g. `src/routes/login/send/server.ts`). Type one input by its column; wrap several in `picked()`, destructuring non-value keys (e.g. `where` targets):
 
 ```ts
-// src/routes/posts/new/create-post/server.ts
-import { eq } from 'drizzle-orm';
-import { createLocalClient } from '#database/app/client.ts';
-import { postTable } from '#database/app/schema.ts';
-import { picked } from '#database/pick.ts';
-
-export const db = createLocalClient((db) => ({
-	// One input — type it by its column.
-	findPost: (slug: typeof postTable.$inferSelect.slug) =>
-		db.query.postTable.findFirst({ where: { slug } }).sync(),
-	// Several — list the keys once; `data` is typed and filtered to them.
-	insertPost: picked<typeof postTable.$inferInsert>()(
-		['title', 'content'],
-		// Insertion is guaranteed to return exactly one row.
-		(data) => db.insert(postTable).values(data).returning().all()[0]!,
-	),
-	// Destructure keys that aren't values (e.g. `where` targets).
-	updatePost: picked<typeof postTable.$inferSelect>()(['slug', 'title'], ({ slug, ...data }) => {
-		db.update(postTable).set(data).where(eq(postTable.slug, slug)).run();
-	}),
-}));
+db.findActiveUserByContact(contact); // outside a transaction
+db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transaction
+db.insertLogin({ contact, userId, code, ip }); // not the whole form data
+db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
 ```
 
-```ts
-db.findPost(slug); // runs outside a transaction
-db.transaction((tx) => tx.findPost(slug)); // runs on the transaction
-db.insertPost({ title: data.title, content: data.content }); // not the whole form data
-db.runCascade(revokeToken, tokenId, ban); // runs a cascade on the same client
-```
+`picked()` drops unlisted keys at runtime, since TypeScript allows extra properties on non-literal arguments.
 
-`picked()` drops unlisted keys at runtime — TypeScript allows extra properties on non-literal arguments.
-
-- Use `createReadAuditedLocalClient()` instead to log reads.
-- Share queries as an exported factory spread into each local client (e.g. `...authQueries(db)` from `#auth/server/queries.ts`).
-- Shared modules outside `src/routes/` may also export their own local client next to the factory (e.g. `db` from `#auth/server/queries.ts`).
+Share queries as a factory spread into local clients (e.g. `...authQueries(db)`). Outside `src/routes/`, a module may also export a local client next to it (e.g. `db` in `#auth/server/queries.ts`).
 
 ### Queries
 

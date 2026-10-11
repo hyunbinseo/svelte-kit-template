@@ -153,16 +153,16 @@ Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapp
 
 ### Clients
 
-- SvelteKit — local client factories from `#database/app/client.ts`:
-  - `createLocalClient()` — logs writes only (plus CTEs)
-  - `createReadAuditedLocalClient()` — also logs reads
+- SvelteKit — query definers from `#database/app/client.ts`:
+  - `defineQueries()` — logs writes only (plus CTEs)
+  - `defineReadAuditedQueries()` — also logs reads
 - CLI — from `#cli/database/clients.ts`:
   - `appDb` — logs writes only, without request context
   - `auditDb` — `undefined` unless `DATABASE_AUDIT_URL` is set
 
 Type Drizzle clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts`.
 
-In SvelteKit, put queries in an adjacent server-only module and export them as `db`, a local client exposing only those queries (e.g. `src/routes/login/send/server.ts`):
+In SvelteKit, put queries in an adjacent server-only module and export them as `db` via `defineQueries()`, exposing only those queries (e.g. `src/routes/login/send/server.ts`):
 
 - Wrap multiple parameters in `picked()`, which drops unlisted keys — still pass them explicitly, not the whole form data.
 - Destructure keys that aren't values (e.g. `where` targets).
@@ -278,7 +278,7 @@ Don't use `TRIGGER`s — they are invisible to the audit logger and need raw SQL
 
 Write cascades (e.g. deactivating a user revokes all active roles) as functions in `src/db/server/app/cascades.ts`, so both `cli/` and SvelteKit can call them:
 
-- Take the client (`AppDb`) as the first parameter — call via a local client's `runCascade()` in SvelteKit.
+- Take the client (`AppDb`) as the first parameter — call via `db.runCascade()` in SvelteKit.
 - Run the whole cascade in one transaction — read the clock inside it.
 - Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
 - Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.
@@ -301,7 +301,7 @@ db.transaction(
 );
 ```
 
-To log a transaction's reads, use `createReadAuditedLocalClient()` — don't mix local clients.
+To log a transaction's reads, use `defineReadAuditedQueries()` — don't mix definers.
 
 ## SvelteKit
 
@@ -314,7 +314,7 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
   - `server.ts` or `*.server.ts` — anywhere
   - `server/` directories — outside `src/routes/`
 
-Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via a [local client](#clients).
+Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#clients).
 
 ### Remote Functions (RPC)
 

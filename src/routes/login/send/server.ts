@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
-import { createLocalClient } from '#database/app/client.ts';
+import { defineQueries } from '#database/app/client.ts';
 import { loginTable } from '#database/app/schema.ts';
 import { picked } from '#database/pick.ts';
 
-export const db = createLocalClient((db) => ({
+export const db = defineQueries((db) => ({
 	findActiveUserByContact: (contact: string) =>
 		db.query.userTable
 			.findFirst({

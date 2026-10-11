@@ -1,6 +1,6 @@
-import { createReadAuditedLocalClient } from '#database/app/client.ts';
+import { defineReadAuditedQueries } from '#database/app/client.ts';
 
-export const db = createReadAuditedLocalClient((db) => ({
+export const db = defineReadAuditedQueries((db) => ({
 	findCurrentUser: (id: string) =>
 		db.query.userTable
 			.findFirst({

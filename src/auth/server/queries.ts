@@ -1,4 +1,4 @@
-import { createLocalClient } from '#database/app/client.ts';
+import { defineQueries } from '#database/app/client.ts';
 import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
 import type { AppDb, AppTx } from '#database/app/types.ts';
 import { picked } from '#database/pick.ts';
@@ -33,7 +33,7 @@ export const authQueries = (db: AppDb | AppTx) => ({
 	),
 });
 
-export const db = createLocalClient((db) => ({
+export const db = defineQueries((db) => ({
 	...authQueries(db),
 
 	claimTokenRotation: picked<typeof tokenBanTable.$inferInsert>()(

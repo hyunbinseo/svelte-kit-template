@@ -10,7 +10,7 @@ import {
 	seedUser,
 	seedUserRole,
 } from '#tests/database/app.ts';
-import { deactivateUser, revokeToken, revokeUserRole } from './cascades.ts';
+import { deactivateUser, grantUserRole, revokeToken, revokeUserRole } from './procedures.ts';
 import { userRoleTable, userTable } from './schema.ts';
 import type { AppDb } from './types.ts';
 
@@ -135,6 +135,48 @@ describe('deactivateUser', () => {
 		const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
 		assert.equal(after?.revokedAt, null);
 		assert.deepEqual(findTokenBans(db, token.id), []);
+	});
+});
+
+describe('grantUserRole', () => {
+	test('grants the role', () => {
+		const { db, adminId, userId } = setup();
+
+		const roleId = grantUserRole(db, userId, { role: 'admin', assignedBy: adminId });
+
+		assert(roleId);
+		const role = db.select().from(userRoleTable).where(eq(userRoleTable.id, roleId)).get();
+		assert.equal(role?.userId, userId);
+		assert.equal(role?.role, 'admin');
+		assert.equal(role?.assignedBy, adminId);
+	});
+
+	test('grants again after revocation', () => {
+		const { db, adminId, userId } = setup();
+		const role = seedUserRole(db, userId, adminId);
+		revokeEarlier(db, role.id, adminId);
+
+		assert(grantUserRole(db, userId, { role: 'admin', assignedBy: adminId }));
+	});
+
+	test('does nothing if the role is already active', () => {
+		const { db, adminId, userId } = setup();
+		seedUserRole(db, userId, adminId);
+
+		assert.equal(grantUserRole(db, userId, { role: 'admin', assignedBy: adminId }), undefined);
+
+		const roles = db.select().from(userRoleTable).where(eq(userRoleTable.userId, userId)).all();
+		assert.equal(roles.length, 1);
+	});
+
+	test('does nothing if the user is deactivated', () => {
+		const { db, adminId, userId } = setup();
+		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+
+		assert.equal(grantUserRole(db, userId, { role: 'admin', assignedBy: adminId }), undefined);
+
+		const roles = db.select().from(userRoleTable).where(eq(userRoleTable.userId, userId)).all();
+		assert.deepEqual(roles, []);
 	});
 });
 

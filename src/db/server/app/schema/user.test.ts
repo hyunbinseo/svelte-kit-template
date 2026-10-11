@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { describe, test } from 'vite-plus/test';
 import { createAppDb, seedUser, seedUserRole } from '#tests/database/app.ts';
 import { drizzleQueryErrorCausedBy, sqliteConstraintUniqueError } from '#tests/database/sqlite.ts';
-import { deactivateUser, revokeUserRole } from '../cascades.ts';
+import { deactivateUser, revokeUserRole } from '../procedures.ts';
 import { userTable } from './user.ts';
 
 const setup = () => {

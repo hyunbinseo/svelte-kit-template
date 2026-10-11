@@ -1,7 +1,7 @@
 import type { SQLiteTransactionConfig } from 'drizzle-orm/sqlite-core';
 import type { AppDb, AppTx } from './types.ts';
 
-type Reserved<T> = { [K in keyof T]: K extends 'transaction' | 'runCascade' ? never : unknown };
+type Reserved<T> = { [K in keyof T]: K extends 'transaction' | 'runProcedure' ? never : unknown };
 
 export const bindQueries =
 	(baseDb: AppDb) =>
@@ -19,6 +19,6 @@ export const bindQueries =
 				}
 				return result;
 			}, config),
-		runCascade: <A extends unknown[], R>(cascade: (db: AppDb, ...args: A) => R, ...args: A) =>
-			cascade(baseDb, ...args),
+		runProcedure: <A extends unknown[], R>(procedure: (db: AppDb, ...args: A) => R, ...args: A) =>
+			procedure(baseDb, ...args),
 	});

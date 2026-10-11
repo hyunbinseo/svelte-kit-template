@@ -144,10 +144,12 @@ If a `PRAGMA` matters, verify it against the runtime in `pragmas/` tests and lis
 
 Database code lives in `src/db/server/`, imported as `#database/*`:
 
-- `app/` — application data, with schema, relations, cascades, clients, and types
+- `app/` — application data, with schema, relations, procedures, clients, and types
 - `audit/` — query log, with schema and logger:
   - Logging is off unless `DATABASE_AUDIT_URL` is set.
   - If logging fails, `AuditWriteError` is thrown before the query runs.
+
+Use [procedures](#procedures), not `TRIGGER`s — they bypass the audit logger and need raw SQL migrations.
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
@@ -179,12 +181,12 @@ Call them on `db` or its transaction:
 ```ts
 db.findActiveUserByContact(contact); // outside a transaction
 db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transaction
-db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
+db.runProcedure(revokeToken, tokenId, ban); // a procedure on the same client
 ```
 
 ##### Naming
 
-Name queries and cascades `<verb><Entity>`, using domain verbs instead of SQL operations:
+Name queries and procedures `<verb><Entity>`, using domain verbs instead of SQL operations:
 
 - `find` — select rows, prefixed with any filter (e.g. `findActiveUserById`)
 - `create` — insert a row
@@ -192,7 +194,8 @@ Name queries and cascades `<verb><Entity>`, using domain verbs instead of SQL op
 - `mark` — update a status or timestamp, as `mark<Entity><State>`
 - `link` — set a foreign key, as `link<Entity>To<Target>`
 - `discard` — hard-delete a row that never took effect
-- `revoke`/`deactivate` — soft-delete, cascades only
+- `grant` — guarded insert, procedures only (e.g. `grantUserRole`)
+- `revoke`/`deactivate` — soft-delete, procedures only
 
 ### Queries
 
@@ -294,18 +297,23 @@ uniqueIndex('rotate_token_ban_token_id_idx')
 - Soft-deleted tables can use filtered relations (`where`) to drop inactive rows.
 - Name filtered relations after their filter (e.g. `activeUserByContact`, `successfulAttempts`).
 
-### Cascades
+### Procedures
 
-Don't use `TRIGGER`s — they are invisible to the audit logger and need raw SQL migrations.
+Procedures live in `#database/app/procedures.ts`, shared by `cli/` and SvelteKit. For example:
 
-Write cascades (e.g. deactivating a user revokes all active roles) as functions in `src/db/server/app/cascades.ts`, so both `cli/` and SvelteKit can call them:
+- Cascades — propagate a change (e.g. deactivating a user revokes their roles)
+- Guarded inserts — insert only if other rows allow it (e.g. a ban for an unbanned token)
 
-- Take the client (`AppDb`) first, so SvelteKit can call it via `db.runCascade()`.
-- Run the whole cascade in one transaction — read the clock inside it.
-- Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
-- Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.
+Each procedure must:
 
-Test each cascade function in `cascades.test.ts`, including each guard (e.g. already revoked).
+- Take the client (`AppDb`) first, for `db.runProcedure()`.
+- Run in one transaction, reading the clock inside it.
+- Guard on every row it depends on, across tables (e.g. `isNull(revokedAt)`, an active user).
+- Return a falsy value on no-op (e.g. `false`, or `undefined` instead of a new ID).
+
+Write guarded columns and rows (e.g. `revokedAt`, `userRole` rows) only via procedures. Test each guard in `procedures.test.ts`.
+
+A `claim` query guarded only by a `UNIQUE INDEX` (e.g. `claimTokenRotation`) doesn't need a procedure.
 
 ### Transactions
 

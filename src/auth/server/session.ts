@@ -4,7 +4,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
-import { revokeToken } from '#database/app/cascades.ts';
+import { revokeToken } from '#database/app/procedures.ts';
 import { db } from './db.ts';
 
 export const requireSession = () => {
@@ -34,7 +34,7 @@ export const revokeSession = (reason: TokenRevokeReason) => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	db.runCascade(revokeToken, event.locals.session.jti, {
+	db.runProcedure(revokeToken, event.locals.session.jti, {
 		reason,
 		bannedBy: event.locals.session.sub,
 		ip: event.getClientAddress(),

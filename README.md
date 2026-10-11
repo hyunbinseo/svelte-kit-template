@@ -6,7 +6,7 @@ An opinionated SvelteKit template for agent-assisted development — best practi
 
 - `AGENTS.md` — plus `CLAUDE.md` and `.mcp.json` for Claude Code
 - Audit logs — all writes, opt-in reads, query blocking on failure
-- Database cascades — TypeScript functions, not SQL triggers
+- Database procedures — TypeScript functions, not SQL triggers
 - Custom auth — JWT revocation, ban tracking, onboarding flows
 - Unit, E2E tests — SQLite pragmas, auth cookie rotation
 

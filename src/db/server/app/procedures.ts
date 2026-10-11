@@ -1,5 +1,6 @@
 import { and, eq, gt, isNull, lte, ne } from 'drizzle-orm';
 import type { TokenBanReason, TokenRevokeReason } from '#auth/enums.ts';
+import type { UserRole } from '#lib/enums/user.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from './schema.ts';
 import type { AppDb, AppTx } from './types.ts';
 
@@ -66,6 +67,32 @@ export const deactivateUser = (
 				ip: deactivation.ip,
 			});
 			return true;
+		},
+		{ behavior: 'immediate' },
+	);
+
+export const grantUserRole = (
+	db: AppDb,
+	userId: string,
+	grant: { role: UserRole; assignedBy: string },
+) =>
+	db.transaction(
+		(tx) => {
+			const user = tx.query.userTable
+				.findFirst({
+					where: { id: userId, deactivatedAt: { isNull: true } },
+					columns: { id: true },
+					with: { activeRoles: { where: { role: grant.role }, columns: { id: true } } },
+				})
+				.sync();
+
+			if (!user || user.activeRoles.length) return undefined;
+
+			return tx
+				.insert(userRoleTable)
+				.values({ userId, role: grant.role, assignedBy: grant.assignedBy })
+				.returning({ id: userRoleTable.id })
+				.all()[0]!.id;
 		},
 		{ behavior: 'immediate' },
 	);

@@ -24,3 +24,18 @@ test('binds queries to the transaction', () => {
 	assert.equal(clients.length, 2);
 	assert.notEqual(clients[1], baseDb);
 });
+
+test('rejects async transaction callbacks', () => {
+	const db = bindQueries(createAppDb())(() => ({}));
+
+	assert.throws(
+		// @ts-expect-error async callbacks are not allowed
+		() => db.transaction(async () => 1),
+		TypeError,
+	);
+});
+
+test('reserves transaction and runCascade names', () => {
+	// @ts-expect-error reserved name
+	bindQueries(createAppDb())(() => ({ transaction: () => 1 }));
+});

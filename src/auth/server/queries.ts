@@ -1,5 +1,5 @@
 import { tokenTable } from '#database/app/schema.ts';
-import type { AppDb, AppTx } from '#database/app/types.ts';
+import type { AppDb, AppInsert, AppTx } from '#database/app/types.ts';
 
 export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
 	db.query.userTable
@@ -17,7 +17,7 @@ export const insertToken =
 		refreshedFrom,
 		refreshReason,
 		ip,
-	}: Pick<typeof tokenTable.$inferInsert, 'userId' | 'refreshedFrom' | 'refreshReason' | 'ip'>) =>
+	}: AppInsert<'tokenTable', 'userId' | 'refreshedFrom' | 'refreshReason' | 'ip'>) =>
 		db
 			.insert(tokenTable)
 			.values({ userId, refreshedFrom, refreshReason, ip })

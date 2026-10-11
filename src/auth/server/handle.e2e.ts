@@ -9,7 +9,7 @@ import {
 	AUTH_TOKEN_ROTATE_GRACE,
 	AUTH_TOKEN_ROTATE_THRESHOLD,
 } from '#auth/config.ts';
-import type { tokenTable } from '#database/app/schema.ts';
+import type { AppSelect } from '#database/app/types.ts';
 import { seedToken, seedTokenBan, seedUser } from '#tests/database/app.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
@@ -18,7 +18,7 @@ const secret = new TextEncoder().encode(env.JWT_SECRET_NEW);
 
 const addAuthCookie = async (
 	context: BrowserContext,
-	token: Pick<typeof tokenTable.$inferSelect, 'id' | 'userId' | 'expiresAt'>,
+	token: AppSelect<'tokenTable', 'id' | 'userId' | 'expiresAt'>,
 ) => {
 	const jwt = await new SignJWT({})
 		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })

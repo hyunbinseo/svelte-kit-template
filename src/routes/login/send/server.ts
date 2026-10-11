@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { defineQueries } from '#database/app/client.ts';
 import { loginTable } from '#database/app/schema.ts';
+import type { AppInsert, AppSelect } from '#database/app/types.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserByContact: (contact: string) =>
@@ -26,14 +27,14 @@ export const db = defineQueries((db) => ({
 		userId,
 		code,
 		ip,
-	}: Pick<typeof loginTable.$inferInsert, 'contact' | 'userId' | 'code' | 'ip'>) =>
+	}: AppInsert<'loginTable', 'contact' | 'userId' | 'code' | 'ip'>) =>
 		db
 			.insert(loginTable)
 			.values({ contact, userId, code, ip })
 			.returning({ id: loginTable.id })
 			.all()[0]!,
 
-	markDelivered: (id: string, { sendId }: Pick<typeof loginTable.$inferSelect, 'sendId'>) => {
+	markDelivered: (id: string, { sendId }: AppSelect<'loginTable', 'sendId'>) => {
 		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, id)).run();
 	},
 

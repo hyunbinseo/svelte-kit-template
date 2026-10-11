@@ -1,5 +1,6 @@
 import { defineQueries } from '#database/app/client.ts';
 import { tokenBanTable } from '#database/app/schema.ts';
+import type { AppInsert } from '#database/app/types.ts';
 import { findActiveUserById, insertToken } from './queries.ts';
 
 export const db = defineQueries((db) => ({
@@ -11,7 +12,7 @@ export const db = defineQueries((db) => ({
 		bannedBy,
 		ip,
 		effectiveAt,
-	}: Pick<typeof tokenBanTable.$inferInsert, 'tokenId' | 'bannedBy' | 'ip' | 'effectiveAt'>) => {
+	}: AppInsert<'tokenBanTable', 'tokenId' | 'bannedBy' | 'ip' | 'effectiveAt'>) => {
 		db.insert(tokenBanTable)
 			.values({ tokenId, bannedBy, ip, effectiveAt, reason: 'rotate' })
 			.onConflictDoNothing()

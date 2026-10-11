@@ -6,7 +6,7 @@ import { userTable } from '#database/app/schema.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { createAppDb } from '#tests/database/app.ts';
 import { createAuditDb } from '#tests/database/audit.ts';
-import { AuditWriteError, type AuditScope, createAuditLogger, SELECT_REGEX } from './logger.ts';
+import { type AuditScope, AuditWriteError, createAuditLogger, SELECT_REGEX } from './logger.ts';
 import { logTable, queryTable } from './schema.ts';
 
 const createTable = 'CREATE TABLE t (v INTEGER)';

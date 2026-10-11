@@ -3,7 +3,7 @@
 	import { beforeNavigate } from '$app/navigation';
 	import { page, updated } from '$app/state';
 	import { slide } from 'svelte/transition';
-	import { setClientContext, type Client } from '#lib/context.ts';
+	import { type Client, setClientContext } from '#lib/context.ts';
 	import './layout.css';
 
 	let { children } = $props();

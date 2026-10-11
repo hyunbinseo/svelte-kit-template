@@ -79,6 +79,7 @@ export default defineConfig(
 	{
 		plugins: { perfectionist },
 		rules: {
+			'perfectionist/sort-named-imports': 'error',
 			'perfectionist/sort-objects': [
 				'error',
 				{

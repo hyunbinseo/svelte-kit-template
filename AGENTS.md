@@ -157,8 +157,8 @@ Import from `#database/app/`:
 
 - `client.ts` — SvelteKit clients:
   - `db` — logs writes only (plus CTEs)
-  - `fullyAuditedDb` — logs every query, including reads
-  - `createLocalClient()` — wraps either in a [local client](#local-clients)
+  - `createLocalClient()` — creates a [local client](#local-clients) on `db`
+  - `createReadAuditedLocalClient()` — same, but also logs reads
 - `types.ts` — `AppDb` (client), `AppTx` (transaction), and `AppDbOrTx` (either)
 
 ### Local Clients
@@ -168,11 +168,11 @@ Each `server.ts` exports a local client — a `db` exposing only its own queries
 ```ts
 // src/routes/posts/new/create-post/server.ts
 import { eq } from 'drizzle-orm';
-import { createLocalClient, db as client } from '#database/app/client.ts';
+import { createLocalClient } from '#database/app/client.ts';
 import { postTable } from '#database/app/schema.ts';
 import { picked } from '#database/pick.ts';
 
-export const db = createLocalClient(client, (db) => ({
+export const db = createLocalClient((db) => ({
 	// One input — type it by its column.
 	findPost: (slug: typeof postTable.$inferSelect.slug) =>
 		db.query.postTable.findFirst({ where: { slug } }).sync(),
@@ -190,14 +190,14 @@ export const db = createLocalClient(client, (db) => ({
 ```
 
 ```ts
-db.findPost(slug); // runs on `client`
+db.findPost(slug); // runs outside a transaction
 db.transaction((tx) => tx.findPost(slug)); // runs on the transaction
 db.insertPost({ title: data.title, content: data.content }); // not the whole form data
 ```
 
 `picked()` drops unlisted keys at runtime — TypeScript allows extra properties on non-literal arguments.
 
-- Pass `fullyAuditedDb` instead of `db` to log reads.
+- Use `createReadAuditedLocalClient()` instead to log reads.
 - Share queries as an exported factory spread into each local client (e.g. `...authQueries(db)` from `#auth/server/queries.ts`).
 - Shared modules outside `src/routes/` may also export their own local client next to the factory (e.g. `db` from `#auth/server/queries.ts`).
 
@@ -328,7 +328,7 @@ db.transaction(
 );
 ```
 
-To log a transaction's reads, create the local client from `fullyAuditedDb` — don't mix clients.
+To log a transaction's reads, use `createReadAuditedLocalClient()` — don't mix local clients.
 
 ## SvelteKit
 

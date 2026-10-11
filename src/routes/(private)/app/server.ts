@@ -1,7 +1,7 @@
-import { createLocalClient, fullyAuditedDb } from '#database/app/client.ts';
+import { createReadAuditedLocalClient } from '#database/app/client.ts';
 import type { userTable } from '#database/app/schema.ts';
 
-export const db = createLocalClient(fullyAuditedDb, (db) => ({
+export const db = createReadAuditedLocalClient((db) => ({
 	findCurrentUser: (id: typeof userTable.$inferSelect.id) =>
 		db.query.userTable
 			.findFirst({

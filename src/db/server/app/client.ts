@@ -49,17 +49,22 @@ export const db = drizzle({
 	relations,
 });
 
-export const fullyAuditedDb = drizzle({
+const readAuditedDb = drizzle({
 	...drizzleOptions,
 	client: appClient,
 	logger: createRequestAuditLogger({ reads: true }),
 	relations,
 });
 
-export const createLocalClient = <T>(client: AppDb, queries: (db: AppDbOrTx) => T) => ({
-	...queries(client),
-	transaction: <R>(
-		callback: (tx: T) => ReturnType<Parameters<typeof client.transaction<R>>[0]>,
-		config?: SQLiteTransactionConfig,
-	) => client.transaction<R>((tx) => callback(queries(tx)), config),
-});
+const localClientFactory =
+	(client: AppDb) =>
+	<T>(queries: (db: AppDbOrTx) => T) => ({
+		...queries(client),
+		transaction: <R>(
+			callback: (tx: T) => ReturnType<Parameters<typeof client.transaction<R>>[0]>,
+			config?: SQLiteTransactionConfig,
+		) => client.transaction<R>((tx) => callback(queries(tx)), config),
+	});
+
+export const createLocalClient = localClientFactory(db);
+export const createReadAuditedLocalClient = localClientFactory(readAuditedDb);

@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 import { authQueries } from '#auth/server/queries.ts';
-import { createLocalClient, db as client } from '#database/app/client.ts';
+import { createLocalClient } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
 import { picked } from '#database/pick.ts';
 
-export const db = createLocalClient(client, (db) => ({
+export const db = createLocalClient((db) => ({
 	...authQueries(db),
 
 	findLogin: picked<typeof loginTable.$inferSelect>()(['id', 'contact'], (data) =>

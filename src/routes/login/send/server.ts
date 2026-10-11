@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
-import { createLocalClient, db as client } from '#database/app/client.ts';
+import { createLocalClient } from '#database/app/client.ts';
 import { loginTable, type userTable } from '#database/app/schema.ts';
 import { picked } from '#database/pick.ts';
 
-export const db = createLocalClient(client, (db) => ({
+export const db = createLocalClient((db) => ({
 	findActiveUserByContact: (contact: typeof userTable.$inferSelect.contact) =>
 		db.query.userTable
 			.findFirst({

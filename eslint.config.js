@@ -25,6 +25,13 @@ const drizzleKeys = [
 	'with',
 ];
 
+const drizzleSelector = [
+	'CallExpression[callee.property.name=/^(findMany|findFirst|onConflictDoNothing|onConflictDoUpdate)$/] > ObjectExpression',
+	'CallExpression[callee.name="defineRelations"] CallExpression[callee.object.property.name=/^(one|many)$/] > ObjectExpression',
+	'CallExpression[callee.name="defineRelations"] CallExpression[callee.object.name=/^(one|many)$/] > ObjectExpression',
+	'CallExpression[callee.property.name=/^(findMany|findFirst)$/] Property[key.name="with"] > ObjectExpression > Property > ObjectExpression',
+].join(', ');
+
 export default defineConfig(
 	includeIgnoreFile(resolve(import.meta.dirname, '.gitignore')),
 	js.configs.recommended,
@@ -33,9 +40,23 @@ export default defineConfig(
 	prettier,
 	svelte.configs.prettier,
 	{
+		plugins: { perfectionist },
 		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
 			'no-undef': 'off',
+			'perfectionist/sort-objects': [
+				'error',
+				{
+					useConfigurationIf: { matchesAstSelector: drizzleSelector },
+					type: 'unsorted',
+					customGroups: drizzleKeys.map((key) => ({
+						groupName: key,
+						elementNamePattern: `^${key}$`,
+					})),
+					groups: drizzleKeys,
+				},
+				{ type: 'unsorted' },
+			],
 			'no-restricted-imports': [
 				'error',
 				'assert',
@@ -90,31 +111,6 @@ export default defineConfig(
 					message:
 						'Rename to `server.ts` or `*.server.ts` — `server/` is not server-only in `src/routes/`.',
 				},
-			],
-		},
-	},
-	{
-		plugins: { perfectionist },
-		rules: {
-			'perfectionist/sort-objects': [
-				'error',
-				{
-					useConfigurationIf: {
-						matchesAstSelector: [
-							'CallExpression[callee.property.name=/^(findMany|findFirst|onConflictDoNothing|onConflictDoUpdate)$/] > ObjectExpression',
-							'CallExpression[callee.name="defineRelations"] CallExpression[callee.object.property.name=/^(one|many)$/] > ObjectExpression',
-							'CallExpression[callee.name="defineRelations"] CallExpression[callee.object.name=/^(one|many)$/] > ObjectExpression',
-							'CallExpression[callee.property.name=/^(findMany|findFirst)$/] Property[key.name="with"] > ObjectExpression > Property > ObjectExpression',
-						].join(', '),
-					},
-					type: 'unsorted',
-					customGroups: drizzleKeys.map((key) => ({
-						groupName: key,
-						elementNamePattern: `^${key}$`,
-					})),
-					groups: drizzleKeys,
-				},
-				{ type: 'unsorted' },
 			],
 		},
 	},

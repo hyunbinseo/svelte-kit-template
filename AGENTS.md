@@ -164,6 +164,7 @@ Import these types from `#database/app/types.ts`:
 
 - `AppDb`/`AppTx` — Drizzle clients/transactions
 - `AppInsert`/`AppSelect` — picked table columns
+- `AppRequired` — picked table columns, required and non-null (e.g. a nullable column a query must set)
 
 #### Query Modules
 

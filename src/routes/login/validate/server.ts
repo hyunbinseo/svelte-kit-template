@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { findActiveUserById, createOrFindToken } from '#auth/server/queries.ts';
 import { defineQueries } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
-import type { AppInsert, AppSelect } from '#database/app/types.ts';
+import type { AppInsert, AppRequired, AppSelect } from '#database/app/types.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserById: findActiveUserById(db),
@@ -34,7 +34,7 @@ export const db = defineQueries((db) => ({
 	createUser: ({ contact }: AppInsert<'userTable', 'contact'>) =>
 		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!,
 
-	linkLoginToUser: ({ id, userId }: AppSelect<'loginTable', 'id' | 'userId'>) => {
+	linkLoginToUser: ({ id, userId }: AppRequired<'loginTable', 'id' | 'userId'>) => {
 		db.update(loginTable).set({ userId }).where(eq(loginTable.id, id)).run();
 	},
 }));

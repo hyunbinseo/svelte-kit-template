@@ -8,12 +8,17 @@ export type AppTx = NodeSQLiteTransaction<typeof relations>;
 
 type Schema<T extends Record<string, SQLiteTable> = typeof schema> = T;
 
+export type AppSelect<
+	T extends keyof Schema, //
+	K extends keyof Schema[T]['$inferSelect'],
+> = Pick<Schema[T]['$inferSelect'], K>;
+
 export type AppInsert<
 	T extends keyof Schema, //
 	K extends keyof Schema[T]['$inferInsert'],
 > = Pick<Schema[T]['$inferInsert'], K>;
 
-export type AppSelect<
+export type AppRequired<
 	T extends keyof Schema, //
-	K extends keyof Schema[T]['$inferSelect'],
-> = Pick<Schema[T]['$inferSelect'], K>;
+	K extends keyof Schema[T]['$inferInsert'],
+> = { [P in K]-?: NonNullable<Schema[T]['$inferInsert'][P]> };

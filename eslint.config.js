@@ -51,6 +51,23 @@ export default defineConfig(
 		},
 	},
 	{
+		files: ['**/*.test.ts', '**/*.e2e.ts'],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'ImportSpecifier[imported.name=/^(vi|vitest|jest|mock)$/]',
+					message: 'Use real dependencies for I/O tests and explicit input values for pure tests.',
+				},
+				{
+					selector:
+						'CallExpression[callee.property.name=/^(mock|doMock|spyOn|useFakeTimers|setSystemTime|stubGlobal|stubEnv|route|routeFromHAR)$/]',
+					message: 'Do not replace I/O, clocks, or network responses in tests.',
+				},
+			],
+		},
+	},
+	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {

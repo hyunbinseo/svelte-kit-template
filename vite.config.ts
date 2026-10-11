@@ -18,7 +18,37 @@ export default defineConfig({
 		trailingComma: 'all',
 		useTabs: true,
 	},
-	test: {},
+	test: {
+		projects: [
+			{
+				extends: false,
+				test: {
+					name: 'unit',
+					environment: 'node',
+					include: ['src/**/*.test.ts'],
+					exclude: [
+						'src/**/*.io.test.ts',
+						'src/db/server/app/**/*.test.ts',
+						'src/db/server/audit/**/*.test.ts',
+						'src/db/server/pragmas/**/*.test.ts',
+					],
+				},
+			},
+			{
+				extends: false,
+				test: {
+					name: 'io',
+					environment: 'node',
+					include: [
+						'src/**/*.io.test.ts',
+						'src/db/server/app/**/*.test.ts',
+						'src/db/server/audit/**/*.test.ts',
+						'src/db/server/pragmas/**/*.test.ts',
+					],
+				},
+			},
+		],
+	},
 	plugins:
 		lazyPlugins(async () => {
 			const { default: tailwindcss } = await import('@tailwindcss/vite');

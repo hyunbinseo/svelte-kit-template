@@ -18,6 +18,8 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"test": "vp test",
+		"test:unit": "vp test run --project unit",
+		"test:io": "vp test run --project io",
 		"test:e2e": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && node --run check:cli",
 		"check:cli": "tsc -p cli && ! tsc -p cli --listFilesOnly | grep -F '/@sveltejs/kit/'",

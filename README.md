@@ -8,7 +8,7 @@ An opinionated SvelteKit template for agent-assisted development — best practi
 - Audit logs — all writes, opt-in reads, query blocking on failure
 - Database cascades — TypeScript functions, not SQL triggers
 - Custom auth — JWT revocation, ban tracking, onboarding flows
-- Unit, E2E tests — SQLite pragmas, auth cookie rotation
+- Unit, I/O, and E2E tests — validation, real SQLite, auth cookie rotation
 
 ## Stack
 
@@ -57,6 +57,18 @@ vpr db:app:generate
 vpr db:app:migrate:dev
 vpr dev
 ```
+
+## Testing
+
+```shell
+vpr test:unit
+vpr test:io
+vpr test:e2e
+```
+
+The unit project runs pure tests; the I/O project runs database tests and `*.io.test.ts` files. I/O tests use real dependencies without mocks or fake clocks. SQLite runs directly through `node:sqlite`; use Testcontainers for dependencies that require service containers. External delivery tests must use the provider's test mode or sandbox.
+
+Database tests require app migrations in `drizzle/app`. If they are missing, generate them with `vpr db:app:generate` before running I/O or E2E tests. Tests apply them only to test databases.
 
 ## Production Setup
 

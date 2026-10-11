@@ -57,7 +57,15 @@ fetch(url); // TODO handle retries
 
 ## Testing
 
-### Unit
+### Unit And I/O
+
+- Run pure tests with `vpr test:unit` and I/O tests with `vpr test:io`.
+- Pure tests use explicit data and avoid databases, files, networks, and clock reads.
+- Name new I/O tests `*.io.test.ts`. Existing app, audit, and pragma tests run in the `io` project.
+- I/O tests use real SQLite and service test environments. Never mock dependencies, intercept responses, replace clocks, or inject fake I/O failures.
+- Use Testcontainers when a dependency requires a local service container. Missing dependencies must fail tests, not skip them or substitute a fake.
+- External delivery tests require the provider's test mode or sandbox, never production delivery.
+- Preserve application APIs and module structure when adding tests. Propose any required application changes separately.
 
 Import test APIs from `vite-plus/test`, and assertions from `node:assert/strict`.
 
@@ -305,7 +313,7 @@ Write cascades (e.g. deactivating a user revokes all active roles) as functions 
 - Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
 - Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.
 
-Test each cascade function in `cascades.test.ts`, including each guard (e.g. already revoked).
+Test each cascade function in `cascades.test.ts` using real SQLite and real time, including each guard (e.g. already revoked).
 
 ### Transactions
 

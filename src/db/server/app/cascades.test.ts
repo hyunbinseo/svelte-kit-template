@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
-import { afterEach, beforeEach, describe, test, vi } from 'vite-plus/test';
+import { afterEach, describe, test } from 'vite-plus/test';
 import {
 	createAppDb,
 	findTokenBans,
@@ -11,28 +11,37 @@ import {
 	seedUser,
 } from '#tests/database/app.ts';
 import { deactivateUser, revokeToken, revokeUserRole } from './cascades.ts';
-import { userRoleTable, userTable } from './schema.ts';
+import { tokenBanTable, userRoleTable, userTable } from './schema.ts';
 import type { AppDb } from './types.ts';
 
-const at = new Date(100_000);
-
-beforeEach(() => {
-	vi.useFakeTimers({ toFake: ['Date'] });
-	vi.setSystemTime(at);
-});
+const at = Math.floor(Date.now() / 1000) * 1000;
+const future = at + 86_400_000;
+const databases: ReturnType<typeof createAppDb>[] = [];
 
 afterEach(() => {
-	vi.useRealTimers();
+	for (const db of databases.splice(0)) db.$client.close();
 });
 
+const assertCurrentTime = (value: number | undefined) => {
+	assert(value !== undefined);
+	assert(value >= at && value <= Date.now());
+};
+
 const revokeEarlier = (db: AppDb, roleId: string, revokedBy: string) => {
-	vi.setSystemTime(50_000);
-	revokeUserRole(db, roleId, { revokedBy: revokedBy, ip: '' });
-	vi.setSystemTime(at);
+	revokeUserRole(db, roleId, { revokedBy, ip: '' });
+	db.update(userRoleTable)
+		.set({ revokedAt: new Date(50_000) })
+		.where(eq(userRoleTable.id, roleId))
+		.run();
+	db.update(tokenBanTable)
+		.set({ bannedAt: new Date(50_000) })
+		.where(eq(tokenBanTable.reason, 'stale'))
+		.run();
 };
 
 const setup = () => {
 	const db = createAppDb();
+	databases.push(db);
 	return { db, adminId: seedUser(db).id, userId: seedUser(db).id };
 };
 
@@ -43,7 +52,7 @@ describe('deactivateUser', () => {
 		assert.equal(deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' }), true);
 
 		const row = db.select().from(userTable).where(eq(userTable.id, userId)).get();
-		assert.equal(row?.deactivatedAt?.getTime(), at.getTime());
+		assertCurrentTime(row?.deactivatedAt?.getTime());
 		assert.equal(row?.deactivatedBy, adminId);
 	});
 
@@ -54,20 +63,20 @@ describe('deactivateUser', () => {
 		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
 
 		const role = db.select().from(userRoleTable).where(eq(userRoleTable.userId, userId)).get();
-		assert.equal(role?.revokedAt?.getTime(), at.getTime());
+		assertCurrentTime(role?.revokedAt?.getTime());
 		assert.equal(role?.revokedBy, adminId);
 		assert.equal(role?.revokeReason, 'deactivate');
 	});
 
 	test('bans live token immediately (reason: deactivate)', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 
 		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '127.0.0.1' });
 
 		const ban = getSoleTokenBan(db, token.id);
 		assert.equal(ban.reason, 'deactivate');
-		assert.equal(ban.effectiveAt.getTime(), at.getTime());
+		assertCurrentTime(ban.effectiveAt.getTime());
 		assert.equal(ban.ip, '127.0.0.1');
 	});
 
@@ -94,7 +103,7 @@ describe('deactivateUser', () => {
 
 	test('keeps an existing ban', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 		seedTokenBan(db, token.id, userId, 'logout', 1_000);
 
 		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
@@ -107,7 +116,7 @@ describe('deactivateUser', () => {
 
 	test('adds an immediate ban before a deferred one', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 		const role = seedUserRole(db, userId, adminId);
 		revokeEarlier(db, role.id, adminId);
 
@@ -117,7 +126,7 @@ describe('deactivateUser', () => {
 		assert.equal(bans.length, 2);
 		const [first, second] = bans;
 		assert.equal(first?.reason, 'deactivate');
-		assert.equal(first?.effectiveAt.getTime(), at.getTime());
+		assertCurrentTime(first?.effectiveAt.getTime());
 		assert.equal(second?.reason, 'stale');
 		assert.equal(second?.bannedAt.getTime(), 50_000);
 	});
@@ -128,7 +137,7 @@ describe('deactivateUser', () => {
 
 		// Added after the first deactivation, so a repeat would revoke/ban them.
 		const role = seedUserRole(db, userId, adminId);
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 
 		assert.equal(deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' }), false);
 
@@ -146,20 +155,20 @@ describe('revokeUserRole', () => {
 		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' }), true);
 
 		const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
-		assert.equal(after?.revokedAt?.getTime(), at.getTime());
+		assertCurrentTime(after?.revokedAt?.getTime());
 		assert.equal(after?.revokeReason, 'manual');
 	});
 
 	test('defers token ban until expiry (reason: stale)', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 		const role = seedUserRole(db, userId, adminId);
 
 		revokeUserRole(db, role.id, { revokedBy: adminId, ip: '127.0.0.1' });
 
 		const ban = getSoleTokenBan(db, token.id);
 		assert.equal(ban.reason, 'stale');
-		assert.equal(ban.effectiveAt.getTime(), 999_999_000);
+		assert.equal(ban.effectiveAt.getTime(), future);
 		assert.equal(ban.ip, '127.0.0.1');
 	});
 
@@ -167,7 +176,7 @@ describe('revokeUserRole', () => {
 		const { db, adminId, userId } = setup();
 		const role = seedUserRole(db, userId, adminId);
 		revokeEarlier(db, role.id, adminId);
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 
 		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' }), false);
 
@@ -180,22 +189,22 @@ describe('revokeToken', () => {
 
 	test('bans the token immediately (reason: logout)', () => {
 		const { db, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 
 		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
 
 		const ban = getSoleTokenBan(db, token.id);
 		assert.equal(ban.reason, 'logout');
-		assert.equal(ban.effectiveAt.getTime(), at.getTime());
+		assertCurrentTime(ban.effectiveAt.getTime());
 	});
 
 	test('bans live ancestors and descendants', () => {
 		const { db, userId } = setup();
 		const expired = seedToken(db, userId, 50_000);
-		const parent = seedToken(db, userId, 999_998_000, expired.id);
-		const token = seedToken(db, userId, 999_999_000, parent.id);
-		const child = seedToken(db, userId, 1_000_000_000, token.id);
-		const other = seedToken(db, userId, 999_999_000);
+		const parent = seedToken(db, userId, future - 1000, expired.id);
+		const token = seedToken(db, userId, future, parent.id);
+		const child = seedToken(db, userId, future + 1000, token.id);
+		const other = seedToken(db, userId, future);
 
 		revokeToken(db, token.id, { ...logout, bannedBy: userId });
 
@@ -208,7 +217,7 @@ describe('revokeToken', () => {
 
 	test('bans despite a deferred ban', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 		const role = seedUserRole(db, userId, adminId);
 		revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' });
 
@@ -222,9 +231,9 @@ describe('revokeToken', () => {
 
 	test('does nothing if already banned', () => {
 		const { db, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const token = seedToken(db, userId, future);
 		seedTokenBan(db, token.id, userId, 'logout', 1_000);
-		const child = seedToken(db, userId, 1_000_000_000, token.id);
+		const child = seedToken(db, userId, future + 1000, token.id);
 
 		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), false);
 

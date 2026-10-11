@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { DrizzleQueryError, eq, sql } from 'drizzle-orm';
 import { drizzle, type NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite';
-import { describe, test } from 'vite-plus/test';
+import { afterEach, describe, test } from 'vite-plus/test';
 import { userTable } from '#database/app/schema.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { createAppDb } from '#tests/database/app.ts';
@@ -9,7 +9,12 @@ import { createAuditDb } from '#tests/database/audit.ts';
 import { AuditWriteError, type AuditScope, createAuditLogger, SELECT_REGEX } from './logger.ts';
 import { logTable, queryTable } from './schema.ts';
 
-const createTable = 'CREATE TABLE t (v INTEGER)';
+const connections: { close: () => void }[] = [];
+afterEach(() => {
+	for (const client of connections.splice(0)) client.close();
+});
+
+const createTable = 'CREATE TABLE t (v INTEGER UNIQUE)';
 const insert = 'INSERT INTO t (v) VALUES (1)';
 const select = 'SELECT * FROM t';
 
@@ -28,19 +33,16 @@ const setup = () => {
 	const auditDb = createAuditDb();
 
 	const client = openDatabase(':memory:');
+	connections.push(auditDb.$client, client);
 	client.exec(createTable);
 
 	const rollbackErrors: AuditWriteError[] = [];
-	let failing = false;
 
 	const createLogger = (scope: AuditScope) =>
 		createAuditLogger(
 			auditDb,
 			(error) => rollbackErrors.push(error),
-			() => {
-				if (failing) throw new Error('audit failure');
-				return { sub: null, ip: '', pathname: null };
-			},
+			() => ({ sub: null, ip: '', pathname: null }),
 			{ scope },
 		);
 
@@ -48,7 +50,7 @@ const setup = () => {
 		db: drizzle({ ...drizzleOptions, client, logger: createLogger('writes') }),
 		fullyAuditedDb: drizzle({ ...drizzleOptions, client, logger: createLogger('all') }),
 		rollbackErrors,
-		fail: () => void (failing = true),
+		fail: () => auditDb.$client.exec('PRAGMA query_only = ON'),
 		queryCount: () => auditDb.select().from(queryTable).all().length,
 		loggedSql: () =>
 			auditDb
@@ -64,6 +66,7 @@ const setup = () => {
 describe('SELECT_REGEX', () => {
 	test('select queries match the select pattern', () => {
 		const appDb = createAppDb();
+		connections.push(appDb.$client);
 		const queries = [
 			appDb.select().from(userTable),
 			appDb.select({ id: userTable.id }).from(userTable).where(eq(userTable.id, '')),
@@ -76,6 +79,7 @@ describe('SELECT_REGEX', () => {
 
 	test('write queries do not match the select pattern', () => {
 		const appDb = createAppDb();
+		connections.push(appDb.$client);
 		const queries = [
 			appDb.insert(userTable).values({ contact: '' }).returning(),
 			appDb.update(userTable).set({ contact: '' }).where(eq(userTable.id, '')).returning(),
@@ -151,13 +155,13 @@ describe('createAuditLogger', () => {
 			assert.throws(() =>
 				fullyAuditedDb.transaction((tx) => {
 					insertAndSelect(tx);
-					throw new Error('rollback');
+					tx.run(sql.raw(insert));
 				}),
 			);
 
 			assert.equal(db.$client.prepare(select).all().length, 0);
 			assert.deepEqual(rollbackErrors, []);
-			assert.deepEqual(loggedSql(), ['begin', insert, select, 'rollback']);
+			assert.deepEqual(loggedSql(), ['begin', insert, select, insert, 'rollback']);
 		});
 	});
 

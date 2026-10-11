@@ -73,7 +73,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				if (!user) error(500);
 			}
 
-			if (!login.userId) tx.linkUser(data.id, { userId: user.id });
+			if (!login.userId) tx.linkUser({ id: data.id, userId: user.id });
 
 			const token = tx.insertToken({ userId: user.id, ip });
 

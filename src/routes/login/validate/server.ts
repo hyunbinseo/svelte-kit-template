@@ -34,7 +34,7 @@ export const db = defineQueries((db) => ({
 	insertUser: (contact: string) =>
 		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!,
 
-	linkUser: (id: string, { userId }: AppSelect<'loginTable', 'userId'>) => {
+	linkUser: ({ id, userId }: AppSelect<'loginTable', 'id' | 'userId'>) => {
 		db.update(loginTable).set({ userId }).where(eq(loginTable.id, id)).run();
 	},
 }));

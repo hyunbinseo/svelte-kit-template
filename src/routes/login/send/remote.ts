@@ -55,7 +55,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		invalid(issue.contact(sendErrorCodeToMessage.sendFailed));
 	}
 
-	db.markDelivered(result.login.id, { sendId });
+	db.markDelivered({ id: result.login.id, sendId });
 
 	return {
 		id: result.login.id,

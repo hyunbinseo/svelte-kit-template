@@ -34,7 +34,7 @@ export const db = defineQueries((db) => ({
 			.returning({ id: loginTable.id })
 			.all()[0]!,
 
-	markDelivered: (id: string, { sendId }: AppSelect<'loginTable', 'sendId'>) => {
+	markDelivered: ({ id, sendId }: AppSelect<'loginTable', 'id' | 'sendId'>) => {
 		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, id)).run();
 	},
 

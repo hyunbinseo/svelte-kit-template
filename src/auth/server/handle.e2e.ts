@@ -9,8 +9,8 @@ import {
 	AUTH_TOKEN_ROTATE_GRACE,
 	AUTH_TOKEN_ROTATE_THRESHOLD,
 } from '#auth/config.ts';
-import type { tokenTable } from '#database/app/schema.ts';
-import { seedToken, seedTokenBan, seedUser } from '#tests/database/app.ts';
+import type { AppSelect } from '#database/app/types.ts';
+import { findTokenBans, seedToken, seedTokenBan, seedUser } from '#tests/database/app.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
 assert(env.JWT_SECRET_NEW);
@@ -18,7 +18,7 @@ const secret = new TextEncoder().encode(env.JWT_SECRET_NEW);
 
 const addAuthCookie = async (
 	context: BrowserContext,
-	token: Pick<typeof tokenTable.$inferSelect, 'id' | 'userId' | 'expiresAt'>,
+	token: AppSelect<'tokenTable', 'id' | 'userId' | 'expiresAt'>,
 ) => {
 	const jwt = await new SignJWT({})
 		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })
@@ -114,7 +114,53 @@ test('re-signs the rotated token for a token far from expiry', async ({ page, co
 	expect(decodeJwt(cookie.value).jti).toBe(child.id);
 });
 
-test('proceeds logged out without re-rotating a rotated stale JWT', async ({
+test('rotates a stale JWT and bans it after the grace period', async ({ page, context, db }) => {
+	const userId = seedUser(db).id;
+
+	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
+	const jwt = await addAuthCookie(context, token);
+
+	seedTokenBan(db, token.id, userId, 'stale', token.expiresAt.getTime());
+
+	const requestedAt = Date.now();
+	await page.request.get('/login', { maxRedirects: 0 });
+
+	const cookie = await findAuthCookie(context);
+	assert(cookie);
+	expect(cookie.value).not.toBe(jwt);
+
+	const bans = findTokenBans(db, token.id);
+	const rotateBan = bans.find((ban) => ban.reason === 'rotate');
+	assert(rotateBan);
+	expect(rotateBan.effectiveAt.getTime()).toBeGreaterThan(requestedAt);
+	expect(rotateBan.effectiveAt.getTime()).toBeLessThanOrEqual(Date.now() + AUTH_TOKEN_ROTATE_GRACE);
+});
+
+test('rotates a stale JWT that was already rotated', async ({ page, context, db }) => {
+	const userId = seedUser(db).id;
+
+	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
+	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
+	const jwt = await addAuthCookie(context, token);
+
+	seedTokenBan(db, token.id, userId, 'rotate', Date.now() + AUTH_TOKEN_ROTATE_GRACE);
+	seedTokenBan(db, token.id, userId, 'stale', token.expiresAt.getTime());
+	seedTokenBan(db, child.id, userId, 'stale', child.expiresAt.getTime());
+
+	const response = await page.request.get('/login', { maxRedirects: 0 });
+	expect(response.status()).toBe(303);
+
+	const cookie = await findAuthCookie(context);
+	assert(cookie);
+	expect(cookie.value).not.toBe(jwt);
+
+	const latest = db.query.tokenTable.findFirst({ where: { refreshedFrom: child.id } }).sync();
+	assert(latest);
+	expect(decodeJwt(cookie.value).jti).toBe(latest.id);
+	expect(latest.refreshReason).toBe('stale');
+});
+
+test('revokes the family when a JWT is reused after the grace period', async ({
 	page,
 	context,
 	db,
@@ -122,14 +168,32 @@ test('proceeds logged out without re-rotating a rotated stale JWT', async ({
 	const userId = seedUser(db).id;
 
 	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
-	const jwt = await addAuthCookie(context, token);
+	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
+	await addAuthCookie(context, token);
 
-	seedTokenBan(db, token.id, userId, 'rotate', token.expiresAt.getTime());
-	seedTokenBan(db, token.id, userId, 'stale', token.expiresAt.getTime());
+	seedTokenBan(db, token.id, userId, 'rotate', Date.now() - 1);
 
 	const response = await page.request.get('/login', { maxRedirects: 0 });
 	expect(response.status()).toBe(200);
 
+	expect(await findAuthCookie(context)).toBeUndefined();
+	expect(findTokenBans(db, child.id).map((ban) => ban.reason)).toEqual(['reuse']);
+});
+
+test('re-signs the latest descendant for a replayed ancestor', async ({ page, context, db }) => {
+	const userId = seedUser(db).id;
+
+	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
+	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
+	const grandchild = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, child.id);
+	await addAuthCookie(context, token);
+
+	seedTokenBan(db, token.id, userId, 'rotate', Date.now() + AUTH_TOKEN_ROTATE_GRACE);
+	seedTokenBan(db, child.id, userId, 'rotate', Date.now() - 1);
+
+	await page.request.get('/login', { maxRedirects: 0 });
+
 	const cookie = await findAuthCookie(context);
-	expect(cookie?.value).toBe(jwt);
+	assert(cookie);
+	expect(decodeJwt(cookie.value).jti).toBe(grandchild.id);
 });

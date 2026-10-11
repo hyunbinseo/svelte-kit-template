@@ -1,35 +1,40 @@
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
-import { db } from '#database/app/client.ts';
+import { revokeToken } from '#database/app/cascades.ts';
+import { db } from './db.ts';
 import { rotateToken, verifyToken } from './token.ts';
-
-const findToken = (id: string) =>
-	db.query.tokenTable
-		.findFirst({
-			where: { id },
-			columns: { id: true },
-			with: { bans: { columns: { reason: true, effectiveAt: true } } },
-		})
-		.sync();
 
 export const handleToken: Handle = async ({ event, resolve }) => {
 	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
 	if (!jwt) return resolve(event);
 
 	const payload = (await verifyToken(jwt))?.payload;
-	const token = payload && findToken(payload.jti);
+	const token = payload && db.findTokenWithBans(payload.jti);
 
 	const now = new Date();
 
 	if (!token || token.bans.some((ban) => ban.effectiveAt <= now)) {
+		if (payload && token?.bans.some((ban) => ban.reason === 'rotate' && ban.effectiveAt <= now)) {
+			try {
+				db.runCascade(revokeToken, token.id, {
+					reason: 'reuse',
+					bannedBy: payload.sub,
+					ip: event.getClientAddress(),
+				});
+			} catch (error) {
+				captureException(error);
+			}
+		}
+
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		return resolve(event);
 	}
 
 	const pending = new Set(token.bans.map((ban) => ban.reason));
+	const isStale = pending.has('stale');
 
-	if (!pending.has('stale')) {
+	if (!isStale) {
 		event.locals.session = {
 			jti: payload.jti,
 			sub: payload.sub,
@@ -38,15 +43,12 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 		};
 	}
 
-	if (pending.has('stale')) {
-		if (!pending.has('rotate')) {
-			await rotateToken(payload, 'stale').catch(captureException);
-		}
-	} else if (
+	if (
+		isStale ||
 		pending.has('rotate') ||
 		payload.exp * 1000 - now.getTime() <= AUTH_TOKEN_ROTATE_THRESHOLD
 	) {
-		// Re-signs the existing child if a previous rotation response was lost.
+		// Re-signs the latest descendant if a previous rotation response was lost.
 		await rotateToken(payload, 'threshold').catch(captureException);
 	}
 

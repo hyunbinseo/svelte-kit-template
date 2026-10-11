@@ -2,8 +2,9 @@ import { DATABASE_APP_URL, DATABASE_AUDIT_URL } from '$app/env/private';
 import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { drizzle } from 'drizzle-orm/node-sqlite';
-import { type AuditScope, createAuditLogger } from '#database/audit/logger.ts';
+import { type AuditLoggerOptions, createAuditLogger } from '#database/audit/logger.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
+import { bindQueries } from './queries.ts';
 import { relations } from './relations.ts';
 
 const appClient = openDatabase(DATABASE_APP_URL);
@@ -18,7 +19,7 @@ process.on('sveltekit:shutdown', () => {
 
 const auditDb = auditClient ? drizzle({ ...drizzleOptions, client: auditClient }) : undefined;
 
-const createLogger = (scope: AuditScope) => {
+const createRequestAuditLogger = (options?: AuditLoggerOptions) => {
 	if (!auditDb) return;
 
 	return createAuditLogger(
@@ -36,20 +37,23 @@ const createLogger = (scope: AuditScope) => {
 				return { sub: null, ip: '', pathname: null };
 			}
 		},
-		{ scope },
+		options,
 	);
 };
 
-export const db = drizzle({
+const appDb = drizzle({
 	...drizzleOptions,
 	client: appClient,
-	logger: createLogger('writes'),
+	logger: createRequestAuditLogger(),
 	relations,
 });
 
-export const fullyAuditedDb = drizzle({
+const readAuditedAppDb = drizzle({
 	...drizzleOptions,
 	client: appClient,
-	logger: createLogger('all'),
+	logger: createRequestAuditLogger({ reads: true }),
 	relations,
 });
+
+export const defineQueries = bindQueries(appDb);
+export const defineReadAuditedQueries = bindQueries(readAuditedAppDb);

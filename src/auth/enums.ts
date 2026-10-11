@@ -1,6 +1,7 @@
 export type TokenRevokeReason =
 	| 'deactivate' //
-	| 'logout';
+	| 'logout'
+	| 'reuse';
 
 export type TokenBanReason =
 	| TokenRevokeReason //

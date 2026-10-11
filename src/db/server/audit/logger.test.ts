@@ -6,7 +6,12 @@ import { userTable } from '#database/app/schema.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { createAppDb } from '#tests/database/app.ts';
 import { createAuditDb } from '#tests/database/audit.ts';
-import { type AuditScope, AuditWriteError, createAuditLogger, SELECT_REGEX } from './logger.ts';
+import {
+	type AuditLoggerOptions,
+	AuditWriteError,
+	createAuditLogger,
+	SELECT_REGEX,
+} from './logger.ts';
 import { logTable, queryTable } from './schema.ts';
 
 const createTable = 'CREATE TABLE t (v INTEGER)';
@@ -33,7 +38,7 @@ const setup = () => {
 	const rollbackErrors: AuditWriteError[] = [];
 	let failing = false;
 
-	const createLogger = (scope: AuditScope) =>
+	const createLogger = (options?: AuditLoggerOptions) =>
 		createAuditLogger(
 			auditDb,
 			(error) => rollbackErrors.push(error),
@@ -41,12 +46,12 @@ const setup = () => {
 				if (failing) throw new Error('audit failure');
 				return { sub: null, ip: '', pathname: null };
 			},
-			{ scope },
+			options,
 		);
 
 	return {
-		db: drizzle({ ...drizzleOptions, client, logger: createLogger('writes') }),
-		fullyAuditedDb: drizzle({ ...drizzleOptions, client, logger: createLogger('all') }),
+		db: drizzle({ ...drizzleOptions, client, logger: createLogger() }),
+		readAuditedDb: drizzle({ ...drizzleOptions, client, logger: createLogger({ reads: true }) }),
 		rollbackErrors,
 		fail: () => void (failing = true),
 		queryCount: () => auditDb.select().from(queryTable).all().length,
@@ -111,22 +116,22 @@ describe('createAuditLogger', () => {
 			assert.deepEqual(loggedSql(), ['begin', insert, 'commit']);
 		});
 
-		test('fullyAuditedDb.transaction() also logs selects', () => {
-			const { fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+		test('readAuditedDb.transaction() also logs selects', () => {
+			const { readAuditedDb, loggedSql, rollbackErrors } = setup();
 
-			fullyAuditedDb.transaction(insertAndSelect);
+			readAuditedDb.transaction(insertAndSelect);
 
 			assert.deepEqual(rollbackErrors, []);
 			assert.deepEqual(loggedSql(), ['begin', insert, select, 'commit']);
 		});
 
 		test('nesting transactions across instances throws', () => {
-			const { db, fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+			const { db, readAuditedDb, loggedSql, rollbackErrors } = setup();
 
 			assert.throws(
 				() =>
 					db.transaction(() => {
-						fullyAuditedDb.transaction(() => {});
+						readAuditedDb.transaction(() => {});
 					}),
 				isNestedError,
 			);
@@ -134,7 +139,7 @@ describe('createAuditLogger', () => {
 
 			assert.throws(
 				() =>
-					fullyAuditedDb.transaction(() => {
+					readAuditedDb.transaction(() => {
 						db.transaction(() => {});
 					}),
 				isNestedError,
@@ -145,11 +150,11 @@ describe('createAuditLogger', () => {
 			assert.deepEqual(loggedSql(), ['begin', 'begin', 'rollback', 'begin', 'begin', 'rollback']);
 		});
 
-		test('fullyAuditedDb rollback reverts data, but audit entries remain', () => {
-			const { db, fullyAuditedDb, loggedSql, rollbackErrors } = setup();
+		test('readAuditedDb rollback reverts data, but audit entries remain', () => {
+			const { db, readAuditedDb, loggedSql, rollbackErrors } = setup();
 
 			assert.throws(() =>
-				fullyAuditedDb.transaction((tx) => {
+				readAuditedDb.transaction((tx) => {
 					insertAndSelect(tx);
 					throw new Error('rollback');
 				}),
@@ -173,11 +178,11 @@ describe('createAuditLogger', () => {
 			assert.deepEqual(rollbackErrors, []);
 		});
 
-		test('block reads only on fullyAuditedDb', () => {
-			const { db, fullyAuditedDb, rollbackErrors, fail } = setup();
+		test('block reads only on readAuditedDb', () => {
+			const { db, readAuditedDb, rollbackErrors, fail } = setup();
 
 			fail();
-			assert.throws(() => fullyAuditedDb.all(sql.raw(select)), isAuditError(select));
+			assert.throws(() => readAuditedDb.all(sql.raw(select)), isAuditError(select));
 			assert.deepEqual(db.all(sql.raw(select)), []);
 
 			assert.deepEqual(rollbackErrors, []);

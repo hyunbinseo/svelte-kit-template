@@ -5,10 +5,8 @@ import { jwtVerify, SignJWT } from 'jose';
 import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/errors';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#auth/config.ts';
 import type { TokenRefreshReason } from '#auth/enums.ts';
-import { db } from '#database/app/client.ts';
-import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
-import type { AppTx } from '#database/app/types.ts';
 import type { UserRole } from '#lib/enums/user.ts';
+import { db } from './db.ts';
 
 const encoder = new TextEncoder();
 
@@ -30,52 +28,21 @@ type ReservedClaims = {
 
 export type Payload = PrivateClaims & ReservedClaims;
 
-type TokenInput = Pick<
-	NonNullable<App.Locals['session']>,
-	| 'sub' //
-	| 'profile'
-	| 'roles'
-> &
-	(
-		| {
-				refreshedFrom: string;
-				refreshReason: TokenRefreshReason;
-		  }
-		| {
-				refreshedFrom?: never;
-				refreshReason?: never;
-		  }
-	);
-
 type IssuedToken = Pick<NonNullable<App.Locals['session']>, 'sub' | 'profile' | 'roles'> & {
 	id: string;
 	issuedAt: Date;
 	expiresAt: Date;
 };
 
-export const issueToken = (tx: AppTx, input: TokenInput): IssuedToken => {
-	const token = tx
-		.insert(tokenTable)
-		.values({
-			userId: input.sub,
-			refreshedFrom: input.refreshedFrom,
-			refreshReason: input.refreshReason,
-			ip: getRequestEvent().getClientAddress(),
-		})
-		// Returns existing row.
-		.onConflictDoUpdate({
-			target: tokenTable.refreshedFrom,
-			set: { userId: tokenTable.userId },
-		})
-		.returning({
-			id: tokenTable.id,
-			issuedAt: tokenTable.issuedAt,
-			expiresAt: tokenTable.expiresAt,
-		})
-		.all()[0]!;
-
-	return { ...token, sub: input.sub, profile: input.profile, roles: input.roles };
-};
+export const toIssuedToken = (
+	token: Pick<IssuedToken, 'id' | 'issuedAt' | 'expiresAt'>,
+	user: { id: string; profile: unknown; activeRoles: { role: UserRole }[] },
+): IssuedToken => ({
+	...token,
+	sub: user.id,
+	profile: !!user.profile,
+	roles: new Set(user.activeRoles.map((row) => row.role)),
+});
 
 export const signToken = async (token: IssuedToken) => {
 	const event = getRequestEvent();
@@ -114,48 +81,48 @@ export const rotateToken = async (
 ) => {
 	const event = getRequestEvent();
 
+	const ip = event.getClientAddress();
+
 	const token = db.transaction(
 		(tx) => {
-			if (reason !== 'stale') {
-				tx.insert(tokenBanTable)
-					.values({
-						tokenId: session.jti,
-						reason: 'rotate',
-						effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
-						bannedBy: session.sub,
-						ip: event.getClientAddress(),
-					})
-					.onConflictDoNothing()
-					.run();
-			}
+			const user = tx.findActiveUserById(session.sub);
 
-			const user = tx.query.userTable
-				.findFirst({
-					where: {
-						id: session.sub,
-						deactivatedAt: { isNull: true },
-					},
-					with: {
-						profile: { columns: { id: true } },
-						activeRoles: { columns: { role: true } },
-					},
-				})
-				.sync();
+			if (!user) return undefined;
 
-			if (!user) return 'deactivated';
+			const tokens = tx.findLiveTokensByUserId(session.sub);
+			const byParentId = new Map(tokens.map((token) => [token.refreshedFrom, token]));
 
-			return issueToken(tx, {
-				sub: session.sub,
-				profile: !!user.profile,
-				roles: new Set(user.activeRoles.map((row) => row.role)),
-				refreshedFrom: session.jti,
-				refreshReason: reason,
+			let latest = tokens.find((token) => token.id === session.jti);
+			while (latest && byParentId.has(latest.id)) latest = byParentId.get(latest.id);
+
+			const now = new Date();
+
+			if (!latest || latest.bans.some((ban) => ban.effectiveAt <= now)) return undefined;
+
+			const isStale = latest.bans.some((ban) => ban.reason === 'stale');
+
+			if (latest.id !== session.jti && !isStale) return toIssuedToken(latest, user);
+
+			tx.claimTokenRotation({
+				tokenId: latest.id,
+				bannedBy: session.sub,
+				ip,
+				effectiveAt: new Date(now.getTime() + AUTH_TOKEN_ROTATE_GRACE),
 			});
+
+			const token = tx.createOrFindToken({
+				userId: session.sub,
+				refreshedFrom: latest.id,
+				refreshReason: isStale ? 'stale' : reason,
+				ip,
+			});
+
+			return toIssuedToken(token, user);
 		},
 		{ behavior: 'immediate' },
 	);
 
-	if (token === 'deactivated') {
+	if (!token) {
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		delete event.locals.session;
 		return;

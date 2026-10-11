@@ -55,6 +55,11 @@ Consider whether a bug may originate from a library or framework, not just appli
 fetch(url); // TODO handle retries
 ```
 
+### Error Message
+
+- Match related libraries (e.g. `AuditWriteError` follows `DrizzleQueryError`).
+- Otherwise, follow V8's style (e.g. `Cannot redefine property: b`).
+
 ## Testing
 
 ### Unit
@@ -148,16 +153,52 @@ Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapp
 
 ### Clients
 
-Import from `#database/app/`:
+- SvelteKit — query definers from `#database/app/client.ts`:
+  - `defineQueries()` — logs writes only (plus CTEs)
+  - `defineReadAuditedQueries()` — also logs reads
+- CLI — from `#cli/database/clients.ts`:
+  - `appDb` — logs writes only, without request context
+  - `auditDb` — `undefined` unless `DATABASE_AUDIT_URL` is set
 
-- `client.ts` — SvelteKit clients:
-  - `db` — logs writes only (plus CTEs)
-  - `fullyAuditedDb` — logs every query, including reads
-- `types.ts` — `AppDb` (client) and `AppTx` (transaction)
+Import these types from `#database/app/types.ts`:
+
+- `AppDb`/`AppTx` — Drizzle clients/transactions
+- `AppInsert`/`AppSelect` — picked table columns
+- `AppRequired` — picked table columns, required and non-null (e.g. a nullable column a query must set)
+
+#### Query Modules
+
+In SvelteKit:
+
+- Define queries in a definer (e.g. `defineQueries()`).
+- Export the result as `db` from an adjacent server-only module.
+- Share queries as factories (e.g. `#auth/server/queries.ts`).
+
+Call them on `db` or its transaction:
+
+```ts
+db.findActiveUserByContact(contact); // outside a transaction
+db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transaction
+db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
+```
+
+##### Naming
+
+Name queries and cascades `<verb><Entity>`, using domain verbs instead of SQL operations:
+
+- `find` — select rows, prefixed with any filter (e.g. `findActiveUserById`)
+- `create` — insert a row
+- `claim` — insert if absent (e.g. as a lock)
+- `mark` — update a status or timestamp, as `mark<Entity><State>`
+- `link` — set a foreign key, as `link<Entity>To<Target>`
+- `discard` — hard-delete a row that never took effect
+- `revoke`/`deactivate` — soft-delete, cascades only
 
 ### Queries
 
 Use Drizzle ORM APIs instead of `` sql`...` ``. If an API is missing or broken, use `` sql`...` `` with a `BLOCKED` comment.
+
+List each column in `.values()`/`.set()` (e.g. `.set({ sendId })`) — don't pass objects through.
 
 Use the sync API instead of `await`:
 
@@ -259,7 +300,7 @@ Don't use `TRIGGER`s — they are invisible to the audit logger and need raw SQL
 
 Write cascades (e.g. deactivating a user revokes all active roles) as functions in `src/db/server/app/cascades.ts`, so both `cli/` and SvelteKit can call them:
 
-- Take the client (`AppDb`) as the first parameter.
+- Take the client (`AppDb`) first, so SvelteKit can call it via `db.runCascade()`.
 - Run the whole cascade in one transaction — read the clock inside it.
 - Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
 - Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.
@@ -275,14 +316,14 @@ Always wrap read-then-write in a transaction for isolation. Set `behavior` to `i
 ```ts
 db.transaction(
 	(tx) => {
-		const post = tx.query.postTable.findFirst(/* ... */).sync();
-		tx.update(postTable).set(/* ... */).run();
+		const post = tx.findPost(/* ... */);
+		tx.markPostPublished(/* ... */);
 	},
 	{ behavior: 'immediate' },
 );
 ```
 
-To log a transaction's reads, run all of it on `fullyAuditedDb` — don't mix clients.
+Inside the callback, call queries on `tx` only.
 
 ## SvelteKit
 
@@ -294,6 +335,8 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
 - Mark server-only modules by name or location:
   - `server.ts` or `*.server.ts` — anywhere
   - `server/` directories — outside `src/routes/`
+
+Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#query-modules).
 
 ### Remote Functions (RPC)
 
@@ -357,15 +400,14 @@ export const CreatePostSchema = object({
 // src/routes/posts/new/create-post/remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from '#database/app/client.ts';
+import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
 	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-	// Insertion is guaranteed to return exactly one row.
-	const newPost = db.insert(postTable).values(data).returning().all()[0]!;
+	const newPost = db.createPost({ title: data.title, content: data.content });
 
 	return { slug: newPost.slug }; // populates `createPost.result` in Svelte
 });
@@ -400,12 +442,12 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
-import { db } from '#database/app/client.ts';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
+import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
-	const post = db.insert(postTable).values(data).returning().all()[0]!;
+	const post = db.createPost({ title: data.title, content: data.content });
 
 	// Unknown args — the client must request it.
 	await requested(getPosts, 2).refreshAll(); // max 2 instances

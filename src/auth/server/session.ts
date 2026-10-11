@@ -5,7 +5,7 @@ import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { AUTH_COOKIE_NAME } from '#auth/config.ts';
 import type { TokenRevokeReason } from '#auth/enums.ts';
 import { revokeToken } from '#database/app/cascades.ts';
-import { db } from './queries.ts';
+import { db } from './db.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();

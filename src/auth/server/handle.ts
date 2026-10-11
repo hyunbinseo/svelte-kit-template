@@ -1,7 +1,7 @@
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
-import { db } from './queries.ts';
+import { db } from './db.ts';
 import { rotateToken, verifyToken } from './token.ts';
 
 export const handleToken: Handle = async ({ event, resolve }) => {

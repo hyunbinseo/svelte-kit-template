@@ -6,7 +6,7 @@ import { JOSEError, JWSSignatureVerificationFailed, JWTExpired } from 'jose/erro
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ALGORITHM, AUTH_TOKEN_ROTATE_GRACE } from '#auth/config.ts';
 import type { TokenRefreshReason } from '#auth/enums.ts';
 import type { UserRole } from '#lib/enums/user.ts';
-import { db } from './queries.ts';
+import { db } from './db.ts';
 
 const encoder = new TextEncoder();
 

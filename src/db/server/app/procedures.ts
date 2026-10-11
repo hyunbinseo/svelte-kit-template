@@ -1,7 +1,7 @@
-import { and, eq, gt, isNull, lte, ne } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { TokenBanReason, TokenRevokeReason } from '#auth/enums.ts';
 import type { UserRole } from '#lib/enums/user.ts';
-import { tokenBanTable, tokenTable, userRoleTable, userTable } from './schema.ts';
+import { tokenBanTable, userRoleTable, userTable } from './schema.ts';
 import type { AppDb, AppTx } from './types.ts';
 
 const banLiveTokens = (
@@ -14,11 +14,12 @@ const banLiveTokens = (
 		ip: string;
 	},
 ) => {
-	const tokens = tx
-		.select({ id: tokenTable.id, expiresAt: tokenTable.expiresAt })
-		.from(tokenTable)
-		.where(and(eq(tokenTable.userId, userId), gt(tokenTable.expiresAt, ban.at)))
-		.all();
+	const tokens = tx.query.tokenTable
+		.findMany({
+			where: { userId, expiresAt: { gt: ban.at } },
+			columns: { id: true, expiresAt: true },
+		})
+		.sync();
 
 	if (!tokens.length) return;
 
@@ -126,16 +127,10 @@ export const revokeUserRole = (
 		{ behavior: 'immediate' },
 	);
 
-const getLiveTokenFamily = (tx: AppTx, tokenId: string, at: Date) => {
-	const owner = tx.query.tokenTable
-		.findFirst({ where: { id: tokenId }, columns: { userId: true } })
-		.sync();
-
-	if (!owner) return [];
-
+const getLiveTokenFamily = (tx: AppTx, tokenId: string, userId: string, at: Date) => {
 	const tokens = tx.query.tokenTable
 		.findMany({
-			where: { userId: owner.userId, expiresAt: { gt: at } },
+			where: { userId, expiresAt: { gt: at } },
 			columns: { id: true, refreshedFrom: true },
 			with: { bans: { where: { effectiveAt: { lte: at } }, columns: { id: true } } },
 		})
@@ -170,21 +165,22 @@ export const revokeToken = (
 		(tx) => {
 			const at = new Date();
 
-			const banned = tx
-				.select({ tokenId: tokenBanTable.tokenId })
-				.from(tokenBanTable)
-				.where(
-					and(
-						eq(tokenBanTable.tokenId, tokenId),
-						lte(tokenBanTable.effectiveAt, at),
-						ne(tokenBanTable.reason, 'rotate'),
-					),
-				)
-				.get();
+			const token = tx.query.tokenTable
+				.findFirst({
+					where: { id: tokenId },
+					columns: { userId: true },
+					with: {
+						bans: {
+							where: { effectiveAt: { lte: at }, reason: { ne: 'rotate' } },
+							columns: { id: true },
+						},
+					},
+				})
+				.sync();
 
-			if (banned) return false;
+			if (!token || token.bans.length) return false;
 
-			const ids = getLiveTokenFamily(tx, tokenId, at);
+			const ids = getLiveTokenFamily(tx, tokenId, token.userId, at);
 
 			if (!ids.length) return false;
 

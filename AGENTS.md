@@ -169,9 +169,9 @@ Import these types from `#database/app/types.ts`:
 
 In SvelteKit:
 
-- Define queries with `defineQueries()`, which hides the Drizzle client.
-- Export them as `db` from an adjacent server-only module (e.g. `src/routes/login/send/server.ts`).
-- Share queries as individual factories (e.g. `#auth/server/queries.ts`), applied inside each `defineQueries()`.
+- Define queries in a definer (e.g. `defineQueries()`).
+- Export the result as `db` from an adjacent server-only module.
+- Share queries as factories (e.g. `#auth/server/queries.ts`).
 
 Call them on `db` or its transaction:
 
@@ -287,7 +287,7 @@ Don't use `TRIGGER`s — they are invisible to the audit logger and need raw SQL
 
 Write cascades (e.g. deactivating a user revokes all active roles) as functions in `src/db/server/app/cascades.ts`, so both `cli/` and SvelteKit can call them:
 
-- Take the client (`AppDb`) as the first parameter — call via `db.runCascade()` in SvelteKit.
+- Take the client (`AppDb`) first, so SvelteKit can call it via `db.runCascade()`.
 - Run the whole cascade in one transaction — read the clock inside it.
 - Guard (e.g. `isNull(revokedAt)`) and return a boolean — `false` on no-op.
 - Set cascade-starting columns (e.g. `revokedAt`) only via the cascade function.
@@ -310,7 +310,7 @@ db.transaction(
 );
 ```
 
-To log a transaction's reads, use `defineReadAuditedQueries()` — don't mix definers.
+Inside the callback, call queries on `tx` only.
 
 ## SvelteKit
 

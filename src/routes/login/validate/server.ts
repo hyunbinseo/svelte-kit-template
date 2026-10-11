@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { findActiveUserById, createOrFindToken } from '#auth/server/queries.ts';
+import { createOrFindToken, findActiveUserById } from '#auth/server/queries.ts';
 import { defineQueries } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
 import type { AppInsert, AppRequired, AppSelect } from '#database/app/types.ts';

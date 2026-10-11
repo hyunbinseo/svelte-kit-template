@@ -13,7 +13,10 @@ export const bindQueries =
 		) =>
 			baseDb.transaction<R>((tx) => {
 				const result = callback(queries(tx));
-				if (result instanceof Promise) throw new TypeError('Transaction callback must be sync');
+				if (result instanceof Promise) {
+					void result.catch(() => {});
+					throw new TypeError('Transaction callback must be sync');
+				}
 				return result;
 			}, config),
 		runCascade: <A extends unknown[], R>(cascade: (db: AppDb, ...args: A) => R, ...args: A) =>

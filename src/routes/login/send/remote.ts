@@ -9,13 +9,12 @@ import { type SendErrorCode, sendErrorCodeToMessage } from './enums.ts';
 import { db } from './server.ts';
 import { SendCodeSchema } from './shared.ts';
 
-const generateCode = () =>
-	randomInt(0, Math.pow(10, AUTH_CODE_LENGTH)).toString().padStart(AUTH_CODE_LENGTH, '0');
-
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
-	const code = generateCode();
+	const code = randomInt(0, Math.pow(10, AUTH_CODE_LENGTH))
+		.toString()
+		.padStart(AUTH_CODE_LENGTH, '0');
 	const ip = getRequestEvent().getClientAddress();
 
 	const result = db.transaction(

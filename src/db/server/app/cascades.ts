@@ -100,36 +100,38 @@ export const revokeUserRole = (
 	);
 
 const getLiveTokenFamily = (tx: AppTx, tokenId: string, at: Date) => {
-	const ids: string[] = [];
+	const owner = tx.query.tokenTable
+		.findFirst({ where: { id: tokenId }, columns: { userId: true } })
+		.sync();
 
-	// Ancestors expire before descendants, so stop at the first expired one.
-	for (let id: string | null = tokenId; id;) {
-		const token = tx
-			.select({ refreshedFrom: tokenTable.refreshedFrom, expiresAt: tokenTable.expiresAt })
-			.from(tokenTable)
-			.where(eq(tokenTable.id, id))
-			.get();
+	if (!owner) return [];
 
-		if (!token || token.expiresAt <= at) break;
+	const tokens = tx.query.tokenTable
+		.findMany({
+			where: { userId: owner.userId, expiresAt: { gt: at } },
+			columns: { id: true, refreshedFrom: true },
+			with: { bans: { where: { effectiveAt: { lte: at } }, columns: { id: true } } },
+		})
+		.sync();
 
-		ids.push(id);
-		id = token.refreshedFrom;
+	const byId = new Map(tokens.map((token) => [token.id, token]));
+	const byParentId = new Map(tokens.map((token) => [token.refreshedFrom, token]));
+
+	const family = [];
+
+	for (
+		let token = byId.get(tokenId);
+		token;
+		token = token.refreshedFrom ? byId.get(token.refreshedFrom) : undefined
+	) {
+		family.push(token);
 	}
 
-	for (let id = tokenId; ;) {
-		const child = tx
-			.select({ id: tokenTable.id })
-			.from(tokenTable)
-			.where(eq(tokenTable.refreshedFrom, id))
-			.get();
-
-		if (!child) break;
-
-		ids.push(child.id);
-		id = child.id;
+	for (let token = byParentId.get(tokenId); token; token = byParentId.get(token.id)) {
+		family.push(token);
 	}
 
-	return ids;
+	return family.filter((token) => !token.bans.length).map((token) => token.id);
 };
 
 export const revokeToken = (

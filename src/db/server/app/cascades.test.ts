@@ -206,6 +206,18 @@ describe('revokeToken', () => {
 		assert.deepEqual(findTokenBans(db, other.id), []);
 	});
 
+	test('skips family members that are already banned', () => {
+		const { db, userId } = setup();
+		const parent = seedToken(db, userId, 999_998_000);
+		const token = seedToken(db, userId, 999_999_000, parent.id);
+		seedTokenBan(db, parent.id, userId, 'rotate', 1_000);
+
+		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
+
+		assert.equal(getSoleTokenBan(db, parent.id).reason, 'rotate');
+		assert.equal(getSoleTokenBan(db, token.id).reason, 'logout');
+	});
+
 	test('bans despite a deferred ban', () => {
 		const { db, adminId, userId } = setup();
 		const token = seedToken(db, userId, 999_999_000);

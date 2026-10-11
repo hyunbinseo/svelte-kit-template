@@ -9,7 +9,7 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 	if (!jwt) return resolve(event);
 
 	const payload = (await verifyToken(jwt))?.payload;
-	const token = payload && db.findTokenBans(payload.jti);
+	const token = payload && db.findTokenWithBans(payload.jti);
 
 	const now = new Date();
 

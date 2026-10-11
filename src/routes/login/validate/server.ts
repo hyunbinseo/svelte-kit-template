@@ -8,7 +8,7 @@ export const db = defineQueries((db) => ({
 	findActiveUserById: findActiveUserById(db),
 	insertToken: insertToken(db),
 
-	findLogin: ({ id, contact }: AppSelect<'loginTable', 'id' | 'contact'>) =>
+	findLoginByIdAndContact: ({ id, contact }: AppSelect<'loginTable', 'id' | 'contact'>) =>
 		db.query.loginTable
 			.findFirst({
 				where: { id, contact },
@@ -23,7 +23,7 @@ export const db = defineQueries((db) => ({
 			})
 			.sync(),
 
-	recordAttempt: ({
+	insertLoginAttempt: ({
 		loginId,
 		isSuccessful,
 		ip,
@@ -31,7 +31,7 @@ export const db = defineQueries((db) => ({
 		db.insert(loginAttemptTable).values({ loginId, isSuccessful, ip }).run();
 	},
 
-	insertUser: (contact: string) =>
+	insertUserByContact: (contact: string) =>
 		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!,
 
 	linkUser: ({ id, userId }: AppSelect<'loginTable', 'id' | 'userId'>) => {

@@ -19,7 +19,7 @@ export const db = defineQueries((db) => ({
 			.run();
 	},
 
-	findTokenBans: (id: string) =>
+	findTokenWithBans: (id: string) =>
 		db.query.tokenTable
 			.findFirst({
 				where: { id },

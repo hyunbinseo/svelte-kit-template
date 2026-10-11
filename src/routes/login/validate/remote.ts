@@ -38,7 +38,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 	const result = db.transaction(
 		(tx) => {
-			const login = tx.findLogin({ id: data.id, contact: data.contact });
+			const login = tx.findLoginByIdAndContact({ id: data.id, contact: data.contact });
 
 			if (!login) error(400);
 
@@ -53,7 +53,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				Buffer.from(data.code),
 			);
 
-			tx.recordAttempt({ loginId: data.id, isSuccessful: isCorrect, ip });
+			tx.insertLoginAttempt({ loginId: data.id, isSuccessful: isCorrect, ip });
 
 			if (!isCorrect) {
 				const isLastAttempt = login.attempts.length + 1 >= AUTH_CODE_MAX_ATTEMPTS;
@@ -67,7 +67,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);
 
-				const newUser = tx.insertUser(data.contact);
+				const newUser = tx.insertUserByContact(data.contact);
 				user = tx.findActiveUserById(newUser.id) ?? null;
 
 				if (!user) error(500);

@@ -187,7 +187,7 @@ Name queries and cascades `<verb><Entity>`, using domain verbs instead of SQL op
 
 - `find` — select rows, prefixed with any filter (e.g. `findActiveUserById`)
 - `create` — insert a row
-- `claim` — insert if absent, as a lock
+- `claim` — insert if absent (e.g. as a lock)
 - `mark` — update a status or timestamp, as `mark<Entity><State>`
 - `link` — set a foreign key, as `link<Entity>To<Target>`
 - `discard` — hard-delete a row that never took effect

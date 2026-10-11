@@ -9,7 +9,7 @@ import { SetupProfileSchema } from './shared.ts';
 export const setupProfile = form(SetupProfileSchema, async (data) => {
 	const session = requireNotOnboarded();
 
-	db.createProfile({ id: session.sub, birth: data.birth });
+	db.claimProfile({ id: session.sub, birth: data.birth });
 
 	await rotateToken(session, 'profile');
 	redirect(303, AUTH_LOGIN_REDIRECT);

@@ -1,8 +1,7 @@
 import { createReadAuditedLocalClient } from '#database/app/client.ts';
-import type { userTable } from '#database/app/schema.ts';
 
 export const db = createReadAuditedLocalClient((db) => ({
-	findCurrentUser: (id: typeof userTable.$inferSelect.id) =>
+	findCurrentUser: (id: string) =>
 		db.query.userTable
 			.findFirst({
 				where: { id, deactivatedAt: { isNull: true } },

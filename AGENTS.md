@@ -164,7 +164,6 @@ Type Drizzle clients as `AppDb` and transactions as `AppTx` from `#database/app/
 
 In SvelteKit, put queries in an adjacent server-only module and export them as `db`, a local client exposing only those queries (e.g. `src/routes/login/send/server.ts`):
 
-- Type a single parameter by its column (e.g. `typeof userTable.$inferSelect.contact`, not `string`).
 - Wrap multiple parameters in `picked()`, which drops unlisted keys — still pass them explicitly, not the whole form data.
 - Destructure keys that aren't values (e.g. `where` targets).
 - Share queries as a factory spread into each `db` (e.g. `...authQueries(db)`), optionally exported with its own `db` (e.g. `#auth/server/queries.ts`).

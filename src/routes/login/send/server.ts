@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 import { createLocalClient } from '#database/app/client.ts';
-import { loginTable, type userTable } from '#database/app/schema.ts';
+import { loginTable } from '#database/app/schema.ts';
 import { picked } from '#database/pick.ts';
 
 export const db = createLocalClient((db) => ({
-	findActiveUserByContact: (contact: typeof userTable.$inferSelect.contact) =>
+	findActiveUserByContact: (contact: string) =>
 		db.query.userTable
 			.findFirst({
 				where: { contact, deactivatedAt: { isNull: true } },
@@ -12,7 +12,7 @@ export const db = createLocalClient((db) => ({
 			})
 			.sync(),
 
-	findLatestUnexpiredLogin: (contact: typeof loginTable.$inferSelect.contact) =>
+	findLatestUnexpiredLogin: (contact: string) =>
 		db.query.loginTable
 			.findFirst({
 				orderBy: { id: 'desc' },
@@ -31,7 +31,7 @@ export const db = createLocalClient((db) => ({
 		db.update(loginTable).set(data).where(eq(loginTable.id, id)).run();
 	}),
 
-	discardLogin: (id: typeof loginTable.$inferSelect.id) => {
+	discardLogin: (id: string) => {
 		db.delete(loginTable).where(eq(loginTable.id, id)).run();
 	},
 }));

@@ -1,10 +1,10 @@
 import { createLocalClient } from '#database/app/client.ts';
-import { tokenBanTable, tokenTable, type userTable } from '#database/app/schema.ts';
+import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
 import type { AppDb, AppTx } from '#database/app/types.ts';
 import { picked } from '#database/pick.ts';
 
 export const authQueries = (db: AppDb | AppTx) => ({
-	findActiveUserById: (id: typeof userTable.$inferSelect.id) =>
+	findActiveUserById: (id: string) =>
 		db.query.userTable
 			.findFirst({
 				where: { id, deactivatedAt: { isNull: true } },
@@ -46,7 +46,7 @@ export const db = createLocalClient((db) => ({
 		},
 	),
 
-	findTokenBans: (id: typeof tokenTable.$inferSelect.id) =>
+	findTokenBans: (id: string) =>
 		db.query.tokenTable
 			.findFirst({
 				where: { id },

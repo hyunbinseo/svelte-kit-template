@@ -30,7 +30,7 @@ export const db = createLocalClient((db) => ({
 		},
 	),
 
-	insertUser: (contact: typeof userTable.$inferInsert.contact) =>
+	insertUser: (contact: string) =>
 		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!,
 
 	linkUser: picked<typeof loginTable.$inferSelect>()(['id', 'userId'], ({ id, ...data }) => {

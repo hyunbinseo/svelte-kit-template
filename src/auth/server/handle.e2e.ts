@@ -122,6 +122,7 @@ test('rotates a stale JWT and bans it after the grace period', async ({ page, co
 
 	seedTokenBan(db, token.id, userId, 'stale', token.expiresAt.getTime());
 
+	const requestedAt = Date.now();
 	await page.request.get('/login', { maxRedirects: 0 });
 
 	const cookie = await findAuthCookie(context);
@@ -131,6 +132,7 @@ test('rotates a stale JWT and bans it after the grace period', async ({ page, co
 	const bans = findTokenBans(db, token.id);
 	const rotateBan = bans.find((ban) => ban.reason === 'rotate');
 	assert(rotateBan);
+	expect(rotateBan.effectiveAt.getTime()).toBeGreaterThan(requestedAt);
 	expect(rotateBan.effectiveAt.getTime()).toBeLessThanOrEqual(Date.now() + AUTH_TOKEN_ROTATE_GRACE);
 });
 

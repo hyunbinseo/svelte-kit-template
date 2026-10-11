@@ -5,10 +5,10 @@ import {
 	createAppDb,
 	findTokenBans,
 	getSoleTokenBan,
-	seedUserRole,
 	seedToken,
 	seedTokenBan,
 	seedUser,
+	seedUserRole,
 } from '#tests/database/app.ts';
 import { deactivateUser, revokeToken, revokeUserRole } from './cascades.ts';
 import { userRoleTable, userTable } from './schema.ts';

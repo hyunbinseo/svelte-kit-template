@@ -1,13 +1,13 @@
 import { randomUUIDv7 } from 'node:crypto';
 import { eq, isNull, sql } from 'drizzle-orm';
 import {
+	type AnySQLiteColumn,
 	check,
 	index,
 	integer,
 	snakeCase,
 	text,
 	uniqueIndex,
-	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import { AUTH_TOKEN_EXPIRES_IN } from '#auth/config.ts';
 import type { TokenBanReason, TokenRefreshReason } from '#auth/enums.ts';

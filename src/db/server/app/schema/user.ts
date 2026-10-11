@@ -1,13 +1,13 @@
 import { randomUUIDv7 } from 'node:crypto';
 import { and, eq, isNull } from 'drizzle-orm';
 import {
+	type AnySQLiteColumn,
 	check,
 	index,
 	integer,
 	snakeCase,
 	text,
 	uniqueIndex,
-	type AnySQLiteColumn,
 } from 'drizzle-orm/sqlite-core';
 import type { UserRole, UserRoleRevokeReason } from '#lib/enums/user.ts';
 import type { ISODateString } from '#lib/valibot.ts';

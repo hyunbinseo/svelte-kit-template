@@ -5,6 +5,9 @@ const pick = <T extends object, K extends keyof T>(data: T, keys: readonly K[]) 
 
 export const picked =
 	<T extends object>() =>
-	<const K extends keyof T, R>(keys: readonly K[], query: (data: Pick<T, K>) => R) =>
-	(data: Pick<T, K>) =>
-		query(pick(data, keys));
+	<const K extends keyof T, R>(
+		keys: readonly K[], //
+		query: (data: Pick<T, K>) => R,
+	) => {
+		return (data: Pick<T, K>) => query(pick(data, keys));
+	};

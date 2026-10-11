@@ -49,7 +49,7 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 		payload.exp * 1000 - now.getTime() <= AUTH_TOKEN_ROTATE_THRESHOLD
 	) {
 		// Re-signs the latest descendant if a previous rotation response was lost.
-		await rotateToken(payload, isStale ? 'stale' : 'threshold').catch(captureException);
+		await rotateToken(payload, 'threshold').catch(captureException);
 	}
 
 	if (event.locals.session) {

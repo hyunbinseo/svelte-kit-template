@@ -131,9 +131,7 @@ test('rotates a stale JWT and bans it after the grace period', async ({ page, co
 	const bans = findTokenBans(db, token.id);
 	const rotateBan = bans.find((ban) => ban.reason === 'rotate');
 	assert(rotateBan);
-	expect(rotateBan.effectiveAt.getTime()).toBeLessThanOrEqual(
-		Date.now() + AUTH_TOKEN_ROTATE_GRACE,
-	);
+	expect(rotateBan.effectiveAt.getTime()).toBeLessThanOrEqual(Date.now() + AUTH_TOKEN_ROTATE_GRACE);
 });
 
 test('rotates a stale JWT that was already rotated', async ({ page, context, db }) => {
@@ -158,6 +156,26 @@ test('rotates a stale JWT that was already rotated', async ({ page, context, db 
 	assert(latest);
 	expect(decodeJwt(cookie.value).jti).toBe(latest.id);
 	expect(latest.refreshReason).toBe('stale');
+});
+
+test('revokes the family when a JWT is reused after the grace period', async ({
+	page,
+	context,
+	db,
+}) => {
+	const userId = seedUser(db).id;
+
+	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
+	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
+	await addAuthCookie(context, token);
+
+	seedTokenBan(db, token.id, userId, 'rotate', Date.now() - 1);
+
+	const response = await page.request.get('/login', { maxRedirects: 0 });
+	expect(response.status()).toBe(200);
+
+	expect(await findAuthCookie(context)).toBeUndefined();
+	expect(findTokenBans(db, child.id).map((ban) => ban.reason)).toEqual(['reuse']);
 });
 
 test('re-signs the latest descendant for a replayed ancestor', async ({ page, context, db }) => {

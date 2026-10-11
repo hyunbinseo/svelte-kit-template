@@ -218,6 +218,30 @@ describe('revokeToken', () => {
 		assert.equal(getSoleTokenBan(db, token.id).reason, 'logout');
 	});
 
+	test('bans the family of a rotated token (reason: reuse)', () => {
+		const { db, userId } = setup();
+		const token = seedToken(db, userId, 999_998_000);
+		const child = seedToken(db, userId, 999_999_000, token.id);
+		seedTokenBan(db, token.id, userId, 'rotate', 1_000);
+
+		assert.equal(revokeToken(db, token.id, { reason: 'reuse', ip: '', bannedBy: userId }), true);
+
+		assert.equal(getSoleTokenBan(db, token.id).reason, 'rotate');
+		assert.equal(getSoleTokenBan(db, child.id).reason, 'reuse');
+	});
+
+	test('does nothing if the rotated family is already banned', () => {
+		const { db, userId } = setup();
+		const token = seedToken(db, userId, 999_998_000);
+		const child = seedToken(db, userId, 999_999_000, token.id);
+		seedTokenBan(db, token.id, userId, 'rotate', 1_000);
+		seedTokenBan(db, child.id, userId, 'logout', 1_000);
+
+		assert.equal(revokeToken(db, token.id, { reason: 'reuse', ip: '', bannedBy: userId }), false);
+
+		assert.equal(getSoleTokenBan(db, child.id).reason, 'logout');
+	});
+
 	test('bans despite a deferred ban', () => {
 		const { db, adminId, userId } = setup();
 		const token = seedToken(db, userId, 999_999_000);

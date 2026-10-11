@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, lte } from 'drizzle-orm';
+import { and, eq, gt, isNull, lte, ne } from 'drizzle-orm';
 import type { TokenBanReason, TokenRevokeReason } from '#auth/enums.ts';
 import { tokenBanTable, tokenTable, userRoleTable, userTable } from './schema.ts';
 import type { AppDb, AppTx } from './types.ts';
@@ -146,7 +146,13 @@ export const revokeToken = (
 			const banned = tx
 				.select({ tokenId: tokenBanTable.tokenId })
 				.from(tokenBanTable)
-				.where(and(eq(tokenBanTable.tokenId, tokenId), lte(tokenBanTable.effectiveAt, at)))
+				.where(
+					and(
+						eq(tokenBanTable.tokenId, tokenId),
+						lte(tokenBanTable.effectiveAt, at),
+						ne(tokenBanTable.reason, 'rotate'),
+					),
+				)
 				.get();
 
 			if (banned) return false;

@@ -1,6 +1,7 @@
 import { captureException, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
+import { revokeToken } from '#database/app/cascades.ts';
 import { db } from './db.ts';
 import { rotateToken, verifyToken } from './token.ts';
 
@@ -14,6 +15,18 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 	const now = new Date();
 
 	if (!token || token.bans.some((ban) => ban.effectiveAt <= now)) {
+		if (payload && token?.bans.some((ban) => ban.reason === 'rotate' && ban.effectiveAt <= now)) {
+			try {
+				db.runCascade(revokeToken, token.id, {
+					reason: 'reuse',
+					bannedBy: payload.sub,
+					ip: event.getClientAddress(),
+				});
+			} catch (error) {
+				captureException(error);
+			}
+		}
+
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		return resolve(event);
 	}

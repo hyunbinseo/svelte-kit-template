@@ -1,10 +1,11 @@
 import { defineQueries } from '#database/app/client.ts';
 import { tokenBanTable } from '#database/app/schema.ts';
 import { picked } from '#database/pick.ts';
-import { authQueries } from './queries.ts';
+import { findActiveUserById, insertToken } from './queries.ts';
 
 export const db = defineQueries((db) => ({
-	...authQueries(db),
+	findActiveUserById: findActiveUserById(db),
+	insertToken: insertToken(db),
 
 	claimTokenRotation: picked<typeof tokenBanTable.$inferInsert>()(
 		['tokenId', 'bannedBy', 'ip', 'effectiveAt'],

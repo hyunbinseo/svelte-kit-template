@@ -2,17 +2,17 @@ import { tokenTable } from '#database/app/schema.ts';
 import type { AppDb, AppTx } from '#database/app/types.ts';
 import { picked } from '#database/pick.ts';
 
-export const authQueries = (db: AppDb | AppTx) => ({
-	findActiveUserById: (id: string) =>
-		db.query.userTable
-			.findFirst({
-				where: { id, deactivatedAt: { isNull: true } },
-				columns: { id: true },
-				with: { profile: { columns: { id: true } }, activeRoles: { columns: { role: true } } },
-			})
-			.sync(),
+export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
+	db.query.userTable
+		.findFirst({
+			where: { id, deactivatedAt: { isNull: true } },
+			columns: { id: true },
+			with: { profile: { columns: { id: true } }, activeRoles: { columns: { role: true } } },
+		})
+		.sync();
 
-	insertToken: picked<typeof tokenTable.$inferInsert>()(
+export const insertToken = (db: AppDb | AppTx) =>
+	picked<typeof tokenTable.$inferInsert>()(
 		['userId', 'refreshedFrom', 'refreshReason', 'ip'],
 		(data) =>
 			db
@@ -29,5 +29,4 @@ export const authQueries = (db: AppDb | AppTx) => ({
 					expiresAt: tokenTable.expiresAt,
 				})
 				.all()[0]!,
-	),
-});
+	);

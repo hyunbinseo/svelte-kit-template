@@ -168,7 +168,7 @@ In SvelteKit:
 
 - Define queries with `defineQueries()`, which hides the Drizzle client.
 - Export them as `db` from an adjacent server-only module (e.g. `src/routes/login/send/server.ts`).
-- Share queries as a factory (e.g. `#auth/server/queries.ts`), spread inside each `defineQueries()`.
+- Share queries as individual factories (e.g. `#auth/server/queries.ts`), applied inside each `defineQueries()`.
 
 Call them on `db` or its transaction:
 

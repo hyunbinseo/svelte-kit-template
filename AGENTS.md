@@ -55,6 +55,11 @@ Consider whether a bug may originate from a library or framework, not just appli
 fetch(url); // TODO handle retries
 ```
 
+### Error Message
+
+- Match related libraries (e.g. `AuditWriteError` follows `DrizzleQueryError`).
+- Otherwise, follow V8's style (e.g. `Cannot redefine property: b`).
+
 ## Testing
 
 ### Unit

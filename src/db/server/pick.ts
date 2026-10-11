@@ -1,6 +1,12 @@
 const pick = <T extends object, K extends keyof T>(data: T, keys: readonly K[]) =>
 	Object.fromEntries(
-		keys.filter((key) => key in data).map((key) => [key, data[key]]), //
+		keys
+			.filter((key) => {
+				if (Object.hasOwn(data, key)) return true;
+				if (key in data) throw new TypeError(`Cannot pick inherited key: ${String(key)}`);
+				return false;
+			})
+			.map((key) => [key, data[key]]),
 	) as Pick<T, K>;
 
 export const picked =

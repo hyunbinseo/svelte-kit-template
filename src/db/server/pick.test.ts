@@ -17,3 +17,10 @@ test('picked keeps present optional keys', () => {
 
 	assert.deepEqual(query(data), { a: 'a', b: 'b' });
 });
+
+test('picked throws on inherited keys', () => {
+	const query = setup();
+	const data = Object.assign(Object.create({ b: 'inherited' }), { a: 'a', c: 'c' });
+
+	assert.throws(() => query(data), TypeError);
+});

@@ -89,12 +89,12 @@ export const rotateToken = async (
 
 			if (!user) return undefined;
 
-			let latestId = session.jti;
-			for (let child = tx.findTokenChild(latestId); child; child = tx.findTokenChild(latestId)) {
-				latestId = child.id;
-			}
+			const tokens = tx.findLiveTokensByUserId(session.sub);
+			const byParentId = new Map(tokens.map((token) => [token.refreshedFrom, token]));
 
-			const latest = tx.findTokenWithBans(latestId);
+			let latest = tokens.find((token) => token.id === session.jti);
+			while (latest && byParentId.has(latest.id)) latest = byParentId.get(latest.id);
+
 			const now = new Date();
 
 			if (!latest || latest.bans.some((ban) => ban.effectiveAt <= now)) return undefined;

@@ -28,6 +28,12 @@ export const db = defineQueries((db) => ({
 			})
 			.sync(),
 
-	findTokenChild: (refreshedFrom: string) =>
-		db.query.tokenTable.findFirst({ where: { refreshedFrom }, columns: { id: true } }).sync(),
+	findLiveTokensByUserId: (userId: string) =>
+		db.query.tokenTable
+			.findMany({
+				where: { userId, expiresAt: { gt: new Date() } },
+				columns: { id: true, refreshedFrom: true, issuedAt: true, expiresAt: true },
+				with: { bans: { columns: { reason: true, effectiveAt: true } } },
+			})
+			.sync(),
 }));

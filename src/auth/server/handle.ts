@@ -19,8 +19,9 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 	}
 
 	const pending = new Set(token.bans.map((ban) => ban.reason));
+	const isStale = pending.has('stale');
 
-	if (!pending.has('stale')) {
+	if (!isStale) {
 		event.locals.session = {
 			jti: payload.jti,
 			sub: payload.sub,
@@ -29,16 +30,13 @@ export const handleToken: Handle = async ({ event, resolve }) => {
 		};
 	}
 
-	if (pending.has('stale')) {
-		if (!pending.has('rotate')) {
-			await rotateToken(payload, 'stale').catch(captureException);
-		}
-	} else if (
+	if (
+		isStale ||
 		pending.has('rotate') ||
 		payload.exp * 1000 - now.getTime() <= AUTH_TOKEN_ROTATE_THRESHOLD
 	) {
-		// Re-signs the existing child if a previous rotation response was lost.
-		await rotateToken(payload, 'threshold').catch(captureException);
+		// Re-signs the latest descendant if a previous rotation response was lost.
+		await rotateToken(payload, isStale ? 'stale' : 'threshold').catch(captureException);
 	}
 
 	if (event.locals.session) {

@@ -85,23 +85,35 @@ export const rotateToken = async (
 
 	const token = db.transaction(
 		(tx) => {
-			if (reason !== 'stale') {
-				tx.claimTokenRotation({
-					tokenId: session.jti,
-					bannedBy: session.sub,
-					ip,
-					effectiveAt: new Date(Date.now() + AUTH_TOKEN_ROTATE_GRACE),
-				});
-			}
-
 			const user = tx.findActiveUserById(session.sub);
 
-			if (!user) return 'deactivated';
+			if (!user) return undefined;
+
+			let latestId = session.jti;
+			for (let child = tx.findTokenChild(latestId); child; child = tx.findTokenChild(latestId)) {
+				latestId = child.id;
+			}
+
+			const latest = tx.findTokenWithBans(latestId);
+			const now = new Date();
+
+			if (!latest || latest.bans.some((ban) => ban.effectiveAt <= now)) return undefined;
+
+			const isStale = latest.bans.some((ban) => ban.reason === 'stale');
+
+			if (latest.id !== session.jti && !isStale) return toIssuedToken(latest, user);
+
+			tx.claimTokenRotation({
+				tokenId: latest.id,
+				bannedBy: session.sub,
+				ip,
+				effectiveAt: new Date(now.getTime() + AUTH_TOKEN_ROTATE_GRACE),
+			});
 
 			const token = tx.insertToken({
 				userId: session.sub,
-				refreshedFrom: session.jti,
-				refreshReason: reason,
+				refreshedFrom: latest.id,
+				refreshReason: isStale ? 'stale' : reason,
 				ip,
 			});
 
@@ -110,7 +122,7 @@ export const rotateToken = async (
 		{ behavior: 'immediate' },
 	);
 
-	if (token === 'deactivated') {
+	if (!token) {
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		delete event.locals.session;
 		return;

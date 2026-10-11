@@ -23,8 +23,11 @@ export const db = defineQueries((db) => ({
 		db.query.tokenTable
 			.findFirst({
 				where: { id },
-				columns: { id: true },
+				columns: { id: true, issuedAt: true, expiresAt: true },
 				with: { bans: { columns: { reason: true, effectiveAt: true } } },
 			})
 			.sync(),
+
+	findTokenChild: (refreshedFrom: string) =>
+		db.query.tokenTable.findFirst({ where: { refreshedFrom }, columns: { id: true } }).sync(),
 }));

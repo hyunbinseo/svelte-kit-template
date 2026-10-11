@@ -1,21 +1,22 @@
 import { defineQueries } from '#database/app/client.ts';
 import { tokenBanTable } from '#database/app/schema.ts';
-import { picked } from '#database/pick.ts';
 import { findActiveUserById, insertToken } from './queries.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserById: findActiveUserById(db),
 	insertToken: insertToken(db),
 
-	claimTokenRotation: picked<typeof tokenBanTable.$inferInsert>()(
-		['tokenId', 'bannedBy', 'ip', 'effectiveAt'],
-		(data) => {
-			db.insert(tokenBanTable)
-				.values({ ...data, reason: 'rotate' })
-				.onConflictDoNothing()
-				.run();
-		},
-	),
+	claimTokenRotation: ({
+		tokenId,
+		bannedBy,
+		ip,
+		effectiveAt,
+	}: Pick<typeof tokenBanTable.$inferInsert, 'tokenId' | 'bannedBy' | 'ip' | 'effectiveAt'>) => {
+		db.insert(tokenBanTable)
+			.values({ tokenId, bannedBy, ip, effectiveAt, reason: 'rotate' })
+			.onConflictDoNothing()
+			.run();
+	},
 
 	findTokenBans: (id: string) =>
 		db.query.tokenTable

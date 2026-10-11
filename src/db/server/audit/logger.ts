@@ -36,8 +36,10 @@ export const createAuditLogger = (
 			auditDb.transaction((tx) => {
 				tx.insert(queryTable).values({ hash: queryHash, sql: query }).onConflictDoNothing().run();
 
+				const { sub, ip, pathname } = getContext();
+
 				tx.insert(logTable)
-					.values({ ...getContext(), queryHash, params: JSON.stringify(params) })
+					.values({ sub, ip, pathname, queryHash, params: JSON.stringify(params) })
 					.run();
 			});
 		} catch (cause) {

@@ -182,10 +182,7 @@ db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
 
 Use Drizzle ORM APIs instead of `` sql`...` ``. If an API is missing or broken, use `` sql`...` `` with a `BLOCKED` comment.
 
-Wrap multiple parameters in `picked()`, which drops unlisted keys:
-
-- Callers pass each value explicitly (e.g. `{ id: session.sub, birth: data.birth }`).
-- Destructure keys that aren't values (e.g. `where` targets).
+List each column in `.values()`/`.set()` (e.g. `.set({ sendId })`) — don't pass objects through.
 
 Use the sync API instead of `await`:
 

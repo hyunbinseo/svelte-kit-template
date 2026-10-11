@@ -2,16 +2,15 @@ import { eq } from 'drizzle-orm';
 import { findActiveUserById, insertToken } from '#auth/server/queries.ts';
 import { defineQueries } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
-import { picked } from '#database/pick.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserById: findActiveUserById(db),
 	insertToken: insertToken(db),
 
-	findLogin: picked<typeof loginTable.$inferSelect>()(['id', 'contact'], (data) =>
+	findLogin: ({ id, contact }: Pick<typeof loginTable.$inferSelect, 'id' | 'contact'>) =>
 		db.query.loginTable
 			.findFirst({
-				where: data,
+				where: { id, contact },
 				columns: { userId: true, code: true, expiresAt: true, ip: true },
 				with: {
 					attempts: { columns: { isSuccessful: true } },
@@ -22,19 +21,19 @@ export const db = defineQueries((db) => ({
 				},
 			})
 			.sync(),
-	),
 
-	recordAttempt: picked<typeof loginAttemptTable.$inferInsert>()(
-		['loginId', 'isSuccessful', 'ip'],
-		(data) => {
-			db.insert(loginAttemptTable).values(data).run();
-		},
-	),
+	recordAttempt: ({
+		loginId,
+		isSuccessful,
+		ip,
+	}: Pick<typeof loginAttemptTable.$inferInsert, 'loginId' | 'isSuccessful' | 'ip'>) => {
+		db.insert(loginAttemptTable).values({ loginId, isSuccessful, ip }).run();
+	},
 
 	insertUser: (contact: string) =>
 		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!,
 
-	linkUser: picked<typeof loginTable.$inferSelect>()(['id', 'userId'], ({ id, ...data }) => {
-		db.update(loginTable).set(data).where(eq(loginTable.id, id)).run();
-	}),
+	linkUser: (id: string, { userId }: Pick<typeof loginTable.$inferSelect, 'userId'>) => {
+		db.update(loginTable).set({ userId }).where(eq(loginTable.id, id)).run();
+	},
 }));

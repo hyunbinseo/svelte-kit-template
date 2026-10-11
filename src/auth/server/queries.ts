@@ -1,6 +1,5 @@
 import { tokenTable } from '#database/app/schema.ts';
 import type { AppDb, AppTx } from '#database/app/types.ts';
-import { picked } from '#database/pick.ts';
 
 export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
 	db.query.userTable
@@ -11,22 +10,25 @@ export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
 		})
 		.sync();
 
-export const insertToken = (db: AppDb | AppTx) =>
-	picked<typeof tokenTable.$inferInsert>()(
-		['userId', 'refreshedFrom', 'refreshReason', 'ip'],
-		(data) =>
-			db
-				.insert(tokenTable)
-				.values(data)
-				// Returns existing row.
-				.onConflictDoUpdate({
-					target: tokenTable.refreshedFrom,
-					set: { userId: tokenTable.userId },
-				})
-				.returning({
-					id: tokenTable.id,
-					issuedAt: tokenTable.issuedAt,
-					expiresAt: tokenTable.expiresAt,
-				})
-				.all()[0]!,
-	);
+export const insertToken =
+	(db: AppDb | AppTx) =>
+	({
+		userId,
+		refreshedFrom,
+		refreshReason,
+		ip,
+	}: Pick<typeof tokenTable.$inferInsert, 'userId' | 'refreshedFrom' | 'refreshReason' | 'ip'>) =>
+		db
+			.insert(tokenTable)
+			.values({ userId, refreshedFrom, refreshReason, ip })
+			// Returns existing row.
+			.onConflictDoUpdate({
+				target: tokenTable.refreshedFrom,
+				set: { userId: tokenTable.userId },
+			})
+			.returning({
+				id: tokenTable.id,
+				issuedAt: tokenTable.issuedAt,
+				expiresAt: tokenTable.expiresAt,
+			})
+			.all()[0]!;

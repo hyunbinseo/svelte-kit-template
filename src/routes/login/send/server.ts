@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { defineQueries } from '#database/app/client.ts';
 import { loginTable } from '#database/app/schema.ts';
-import { picked } from '#database/pick.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserByContact: (contact: string) =>
@@ -22,14 +21,21 @@ export const db = defineQueries((db) => ({
 			})
 			.sync(),
 
-	insertLogin: picked<typeof loginTable.$inferInsert>()(
-		['contact', 'userId', 'code', 'ip'],
-		(data) => db.insert(loginTable).values(data).returning({ id: loginTable.id }).all()[0]!,
-	),
+	insertLogin: ({
+		contact,
+		userId,
+		code,
+		ip,
+	}: Pick<typeof loginTable.$inferInsert, 'contact' | 'userId' | 'code' | 'ip'>) =>
+		db
+			.insert(loginTable)
+			.values({ contact, userId, code, ip })
+			.returning({ id: loginTable.id })
+			.all()[0]!,
 
-	markDelivered: picked<typeof loginTable.$inferSelect>()(['id', 'sendId'], ({ id, ...data }) => {
-		db.update(loginTable).set(data).where(eq(loginTable.id, id)).run();
-	}),
+	markDelivered: (id: string, { sendId }: Pick<typeof loginTable.$inferSelect, 'sendId'>) => {
+		db.update(loginTable).set({ sendId }).where(eq(loginTable.id, id)).run();
+	},
 
 	discardLogin: (id: string) => {
 		db.delete(loginTable).where(eq(loginTable.id, id)).run();

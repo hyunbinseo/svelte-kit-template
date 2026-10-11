@@ -160,7 +160,7 @@ Each runtime has its own client, logging writes only by default:
   - `createReadAuditedLocalClient()` — also logs reads
 - `cli/` — `appDb` from `cli/database/clients.ts`, without request context (`sub`, `ip`, `pathname`)
 
-Type clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts` — `AppDbOrTx` for either (e.g. `authQueries`).
+Type clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts` — `AppDb | AppTx` for either (e.g. `authQueries`).
 
 ### Local Clients
 

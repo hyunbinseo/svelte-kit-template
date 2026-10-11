@@ -6,7 +6,7 @@ import type { SQLiteTransactionConfig } from 'drizzle-orm/sqlite-core';
 import { type AuditLoggerOptions, createAuditLogger } from '#database/audit/logger.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { relations } from './relations.ts';
-import type { AppDb, AppDbOrTx } from './types.ts';
+import type { AppDb, AppTx } from './types.ts';
 
 const appClient = openDatabase(DATABASE_APP_URL);
 const auditClient = DATABASE_AUDIT_URL ? openDatabase(DATABASE_AUDIT_URL) : undefined;
@@ -58,7 +58,7 @@ const readAuditedDb = drizzle({
 
 const localClientFactory =
 	(client: AppDb) =>
-	<T>(queries: (db: AppDbOrTx) => T) => ({
+	<T>(queries: (db: AppDb | AppTx) => T) => ({
 		...queries(client),
 		transaction: <R>(
 			callback: (tx: T) => ReturnType<Parameters<typeof client.transaction<R>>[0]>,

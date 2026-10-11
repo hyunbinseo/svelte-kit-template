@@ -1,9 +1,9 @@
 import { createLocalClient } from '#database/app/client.ts';
 import { tokenBanTable, tokenTable, type userTable } from '#database/app/schema.ts';
-import type { AppDbOrTx } from '#database/app/types.ts';
+import type { AppDb, AppTx } from '#database/app/types.ts';
 import { picked } from '#database/pick.ts';
 
-export const authQueries = (db: AppDbOrTx) => ({
+export const authQueries = (db: AppDb | AppTx) => ({
 	findActiveUserById: (id: typeof userTable.$inferSelect.id) =>
 		db.query.userTable
 			.findFirst({

@@ -38,4 +38,6 @@ test('rejects async transaction callbacks', () => {
 test('reserves transaction and runCascade names', () => {
 	// @ts-expect-error reserved name
 	bindQueries(createAppDb())(() => ({ transaction: () => 1 }));
+	// @ts-expect-error reserved name
+	bindQueries(createAppDb())(() => ({ runCascade: () => 1 }));
 });

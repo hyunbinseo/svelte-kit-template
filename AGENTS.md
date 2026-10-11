@@ -181,6 +181,18 @@ db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transacti
 db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
 ```
 
+##### Naming
+
+Name queries and cascades `<verb><Entity>`, using domain verbs instead of SQL operations:
+
+- `find` — select rows, prefixed with any filter (e.g. `findActiveUserById`)
+- `create` — insert a row
+- `claim` — insert if absent, as a lock
+- `mark` — update a status or timestamp, as `mark<Entity><State>`
+- `link` — set a foreign key, as `link<Entity>To<Target>`
+- `discard` — hard-delete a row that never took effect
+- `revoke`/`deactivate` — soft-delete, cascades only
+
 ### Queries
 
 Use Drizzle ORM APIs instead of `` sql`...` ``. If an API is missing or broken, use `` sql`...` `` with a `BLOCKED` comment.
@@ -304,7 +316,7 @@ Always wrap read-then-write in a transaction for isolation. Set `behavior` to `i
 db.transaction(
 	(tx) => {
 		const post = tx.findPost(/* ... */);
-		tx.updatePost(/* ... */);
+		tx.markPostPublished(/* ... */);
 	},
 	{ behavior: 'immediate' },
 );
@@ -394,7 +406,7 @@ export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
 	if (businessLogicFails) invalid(issue.title('ERROR_MESSAGE'));
 
-	const newPost = db.insertPost({ title: data.title, content: data.content });
+	const newPost = db.createPost({ title: data.title, content: data.content });
 
 	return { slug: newPost.slug }; // populates `createPost.result` in Svelte
 });
@@ -434,7 +446,7 @@ import { db } from './server.ts';
 import { CreatePostSchema } from './shared.ts';
 
 export const createPost = form(CreatePostSchema, async (data) => {
-	const post = db.insertPost({ title: data.title, content: data.content });
+	const post = db.createPost({ title: data.title, content: data.content });
 
 	// Unknown args — the client must request it.
 	await requested(getPosts, 2).refreshAll(); // max 2 instances

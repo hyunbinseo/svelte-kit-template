@@ -28,7 +28,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 				return { errorCode: 'rateLimited' };
 			}
 
-			const login = tx.insertLogin({
+			const login = tx.createLogin({
 				contact: data.contact,
 				userId: user?.id ?? null,
 				code,
@@ -55,7 +55,7 @@ export const sendCode = form(SendCodeSchema, async (data, issue) => {
 		invalid(issue.contact(sendErrorCodeToMessage.sendFailed));
 	}
 
-	db.markDelivered({ id: result.login.id, sendId });
+	db.markLoginDelivered({ id: result.login.id, sendId });
 
 	return {
 		id: result.login.id,

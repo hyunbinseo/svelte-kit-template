@@ -53,7 +53,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 				Buffer.from(data.code),
 			);
 
-			tx.insertLoginAttempt({ loginId: data.id, isSuccessful: isCorrect, ip });
+			tx.createLoginAttempt({ loginId: data.id, isSuccessful: isCorrect, ip });
 
 			if (!isCorrect) {
 				const isLastAttempt = login.attempts.length + 1 >= AUTH_CODE_MAX_ATTEMPTS;
@@ -67,15 +67,15 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);
 
-				const newUser = tx.insertUserByContact(data.contact);
+				const newUser = tx.createUser({ contact: data.contact });
 				user = tx.findActiveUserById(newUser.id) ?? null;
 
 				if (!user) error(500);
 			}
 
-			if (!login.userId) tx.linkUser({ id: data.id, userId: user.id });
+			if (!login.userId) tx.linkLoginToUser({ id: data.id, userId: user.id });
 
-			const token = tx.insertToken({ userId: user.id, ip });
+			const token = tx.createToken({ userId: user.id, ip });
 
 			return { token: toIssuedToken(token, user) };
 		},

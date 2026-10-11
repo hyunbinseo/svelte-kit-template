@@ -3,7 +3,7 @@ import { userProfileTable } from '#database/app/schema.ts';
 import type { AppInsert } from '#database/app/types.ts';
 
 export const db = defineQueries((db) => ({
-	insertProfile: ({ id, birth }: AppInsert<'userProfileTable', 'id' | 'birth'>) => {
+	createProfile: ({ id, birth }: AppInsert<'userProfileTable', 'id' | 'birth'>) => {
 		db.insert(userProfileTable).values({ id, birth }).onConflictDoNothing().run();
 	},
 }));

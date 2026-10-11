@@ -1,11 +1,11 @@
 import { defineQueries } from '#database/app/client.ts';
 import { tokenBanTable } from '#database/app/schema.ts';
 import type { AppInsert } from '#database/app/types.ts';
-import { findActiveUserById, insertToken } from './queries.ts';
+import { findActiveUserById, createToken } from './queries.ts';
 
 export const db = defineQueries((db) => ({
 	findActiveUserById: findActiveUserById(db),
-	insertToken: insertToken(db),
+	createToken: createToken(db),
 
 	claimTokenRotation: ({
 		tokenId,

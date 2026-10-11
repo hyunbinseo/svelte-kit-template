@@ -151,29 +151,29 @@ Database code lives in `src/db/server/`, imported as `#database/*`:
 
 Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapping them.
 
-### App Clients
+### Clients
 
-Each runtime has its own client, typed as `AppDb` (transactions as `AppTx`) from `#database/app/types.ts`:
-
-- SvelteKit — [local client](#local-clients) factories from `#database/app/client.ts`:
+- SvelteKit — local client factories from `#database/app/client.ts`:
   - `createLocalClient()` — logs writes only (plus CTEs)
   - `createReadAuditedLocalClient()` — also logs reads
-- CLI — `appDb` from `cli/database/clients.ts`, logs writes only without request context
+- CLI — from `#cli/database/clients.ts`:
+  - `appDb` — logs writes only, without request context
+  - `auditDb` — `undefined` unless `DATABASE_AUDIT_URL` is set
 
-#### Local Clients
+Type Drizzle clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts`.
 
-Each `server.ts` exports a local client — a `db` exposing only its own queries (e.g. `src/routes/login/send/server.ts`). Type one input by its column; wrap several in `picked()`, destructuring non-value keys (e.g. `where` targets):
+In SvelteKit, put queries in an adjacent server-only module and export them as `db`, a local client exposing only those queries (e.g. `src/routes/login/send/server.ts`):
+
+- Type a single parameter by its column (e.g. `typeof userTable.$inferSelect.contact`, not `string`).
+- Wrap multiple parameters in `picked()`, which drops unlisted keys — still pass them explicitly, not the whole form data.
+- Destructure keys that aren't values (e.g. `where` targets).
+- Share queries as a factory spread into each `db` (e.g. `...authQueries(db)`), optionally exported with its own `db` (e.g. `#auth/server/queries.ts`).
 
 ```ts
 db.findActiveUserByContact(contact); // outside a transaction
 db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transaction
-db.insertLogin({ contact, userId, code, ip }); // not the whole form data
 db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
 ```
-
-`picked()` drops unlisted keys at runtime, since TypeScript allows extra properties on non-literal arguments.
-
-Share queries as a factory spread into local clients (e.g. `...authQueries(db)`). Outside `src/routes/`, a module may also export a local client next to it (e.g. `db` in `#auth/server/queries.ts`).
 
 ### Queries
 
@@ -315,6 +315,8 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
   - `server.ts` or `*.server.ts` — anywhere
   - `server/` directories — outside `src/routes/`
 
+Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via a [local client](#clients).
+
 ### Remote Functions (RPC)
 
 Requests must be public, or guarded via `session.ts` helpers:
@@ -347,8 +349,6 @@ src/routes/posts/new/
     ├── server.ts # server-only (e.g. db access)
     └── shared.ts # isomorphic (e.g. schemas)
 ```
-
-Remote functions run guards, business checks, transactions, and responses. Queries live in the adjacent `server.ts` as a [local client](#local-clients) — remote modules don't import `#database/*`.
 
 Inside remote functions (via `getRequestEvent()`):
 

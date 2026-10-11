@@ -162,11 +162,15 @@ Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapp
 
 Type Drizzle clients as `AppDb` and transactions as `AppTx` from `#database/app/types.ts`.
 
-In SvelteKit, put queries in an adjacent server-only module and export them as `db` via `defineQueries()`, exposing only those queries (e.g. `src/routes/login/send/server.ts`):
+#### Query Modules
 
-- Wrap multiple parameters in `picked()`, which drops unlisted keys — still pass them explicitly, not the whole form data.
-- Destructure keys that aren't values (e.g. `where` targets).
-- Share queries as a factory spread into each `db` (e.g. `...authQueries(db)`), optionally exported with its own `db` (e.g. `#auth/server/queries.ts`).
+In SvelteKit:
+
+- Define queries with `defineQueries()`, which hides the Drizzle client.
+- Export them as `db` from an adjacent server-only module (e.g. `src/routes/login/send/server.ts`).
+- Share queries as a factory (e.g. `#auth/server/queries.ts`), spread inside each `defineQueries()`.
+
+Call them on `db` or its transaction:
 
 ```ts
 db.findActiveUserByContact(contact); // outside a transaction
@@ -177,6 +181,11 @@ db.runCascade(revokeToken, tokenId, ban); // a cascade on the same client
 ### Queries
 
 Use Drizzle ORM APIs instead of `` sql`...` ``. If an API is missing or broken, use `` sql`...` `` with a `BLOCKED` comment.
+
+Wrap multiple parameters in `picked()`, which drops unlisted keys:
+
+- Callers pass each value explicitly (e.g. `{ id: session.sub, birth: data.birth }`).
+- Destructure keys that aren't values (e.g. `where` targets).
 
 Use the sync API instead of `await`:
 
@@ -314,7 +323,7 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
   - `server.ts` or `*.server.ts` — anywhere
   - `server/` directories — outside `src/routes/`
 
-Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#clients).
+Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#query-modules).
 
 ### Remote Functions (RPC)
 

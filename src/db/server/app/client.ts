@@ -3,7 +3,7 @@ import { getRequestEvent } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import type { SQLiteTransactionConfig } from 'drizzle-orm/sqlite-core';
-import { type AuditScope, createAuditLogger } from '#database/audit/logger.ts';
+import { type AuditLoggerOptions, createAuditLogger } from '#database/audit/logger.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
 import { relations } from './relations.ts';
 import type { AppDb, AppDbOrTx } from './types.ts';
@@ -20,7 +20,7 @@ process.on('sveltekit:shutdown', () => {
 
 const auditDb = auditClient ? drizzle({ ...drizzleOptions, client: auditClient }) : undefined;
 
-const createLogger = (scope: AuditScope) => {
+const createRequestAuditLogger = (options?: AuditLoggerOptions) => {
 	if (!auditDb) return;
 
 	return createAuditLogger(
@@ -38,21 +38,21 @@ const createLogger = (scope: AuditScope) => {
 				return { sub: null, ip: '', pathname: null };
 			}
 		},
-		{ scope },
+		options,
 	);
 };
 
 export const db = drizzle({
 	...drizzleOptions,
 	client: appClient,
-	logger: createLogger('writes'),
+	logger: createRequestAuditLogger(),
 	relations,
 });
 
 export const fullyAuditedDb = drizzle({
 	...drizzleOptions,
 	client: appClient,
-	logger: createLogger('all'),
+	logger: createRequestAuditLogger({ reads: true }),
 	relations,
 });
 

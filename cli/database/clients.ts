@@ -23,7 +23,6 @@ export const appDb = drizzle({
 					captureException(error);
 				},
 				() => ({ sub: null, ip: '', pathname: null }),
-				{ scope: 'writes' },
 			)
 		: undefined,
 	relations,

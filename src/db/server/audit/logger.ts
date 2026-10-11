@@ -7,7 +7,7 @@ import { logTable, queryTable } from './schema.ts';
 export const SELECT_REGEX = /^\s*select\b/i;
 const ROLLBACK_REGEX = /^\s*rollback\b/i;
 
-export type AuditScope = 'all' | 'writes';
+export type AuditLoggerOptions = { reads?: boolean };
 
 export class AuditWriteError extends Error {
 	override readonly name = 'AuditWriteError';
@@ -23,12 +23,12 @@ export const createAuditLogger = (
 	auditDb: NodeSQLiteDatabase,
 	onRollbackError: (error: AuditWriteError) => void,
 	getContext: () => Pick<typeof logTable.$inferInsert, 'sub' | 'ip' | 'pathname'>,
-	{ scope }: { scope: AuditScope },
+	{ reads = false }: AuditLoggerOptions = {},
 ): Logger => ({
 	// BLOCKED Mark failed queries, as logs are written before execution.
 	// See https://github.com/drizzle-team/drizzle-orm/issues/387
 	logQuery: (query, params) => {
-		if (scope === 'writes' && SELECT_REGEX.test(query)) return;
+		if (!reads && SELECT_REGEX.test(query)) return;
 
 		try {
 			const queryHash = hash('sha1', query, 'hex');

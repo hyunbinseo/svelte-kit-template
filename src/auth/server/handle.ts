@@ -1,62 +1,68 @@
-import { captureException, setUser } from '@sentry/sveltekit';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { AUTH_SECRET } from '$app/env/private';
+import { logger, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
-import { revokeToken } from '#database/app/procedures.ts';
+import { getCookies } from 'better-auth/cookies';
+import { AUTH_SESSION_EXPIRES_IN, AUTH_SESSION_UPDATE_AGE } from '#auth/config.ts';
+import { SECOND } from '#lib/time.ts';
+import { auth } from './auth.ts';
 import { db } from './db.ts';
-import { rotateToken, verifyToken } from './token.ts';
 
-export const handleToken: Handle = async ({ event, resolve }) => {
-	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
-	if (!jwt) return resolve(event);
+const { sessionToken } = getCookies(auth.options);
 
-	const payload = (await verifyToken(jwt))?.payload;
-	const token = payload && db.findTokenWithBans(payload.jti);
+// Better Auth signs the cookie as `<token>.<base64 HMAC-SHA256>` (via better-call).
+const verifySessionCookie = (value: string) => {
+	const index = value.lastIndexOf('.');
+	if (index < 1) return undefined;
 
-	const now = new Date();
+	const token = value.slice(0, index);
+	const signature = Buffer.from(value.slice(index + 1));
+	const expected = Buffer.from(createHmac('sha256', AUTH_SECRET).update(token).digest('base64'));
 
-	if (!token || token.bans.some((ban) => ban.effectiveAt <= now)) {
-		if (payload && token?.bans.some((ban) => ban.reason === 'rotate' && ban.effectiveAt <= now)) {
-			try {
-				db.runProcedure(revokeToken, token.id, {
-					reason: 'reuse',
-					bannedBy: payload.sub,
-					ip: event.getClientAddress(),
-				});
-			} catch (error) {
-				captureException(error);
-			}
-		}
+	return signature.length === expected.length && timingSafeEqual(signature, expected)
+		? token
+		: undefined;
+};
 
-		event.cookies.delete(AUTH_COOKIE_NAME);
+export const handleSession: Handle = ({ event, resolve }) => {
+	const value = event.cookies.get(sessionToken.name);
+	if (!value) return resolve(event);
+
+	const token = verifySessionCookie(value);
+	if (!token) logger.warn('Invalid session cookie');
+
+	const session = token && db.findLiveSessionByToken(token);
+	const user = session && session.activeUser;
+
+	if (!session || !user) {
+		event.cookies.delete(sessionToken.name, { path: '/' });
 		return resolve(event);
 	}
 
-	const pending = new Set(token.bans.map((ban) => ban.reason));
-	const isStale = pending.has('stale');
+	event.locals.session = {
+		id: session.id,
+		userId: user.id,
+		profile: !!user.profile,
+		roles: new Set(user.activeRoles.map((row) => row.role)),
+	};
 
-	if (!isStale) {
-		event.locals.session = {
-			jti: payload.jti,
-			sub: payload.sub,
-			profile: payload.profile !== null,
-			roles: new Set(payload.roles),
-		};
-	}
+	const now = new Date();
 
 	if (
-		isStale ||
-		pending.has('rotate') ||
-		payload.exp * 1000 - now.getTime() <= AUTH_TOKEN_ROTATE_THRESHOLD
+		session.expiresAt.getTime() - AUTH_SESSION_EXPIRES_IN + AUTH_SESSION_UPDATE_AGE <=
+		now.getTime()
 	) {
-		// Re-signs the latest descendant if a previous rotation response was lost.
-		await rotateToken(payload, 'threshold').catch(captureException);
+		const expiresAt = new Date(now.getTime() + AUTH_SESSION_EXPIRES_IN);
+		db.markSessionRefreshed({ id: session.id, expiresAt, updatedAt: now });
+		event.cookies.set(sessionToken.name, value, {
+			path: sessionToken.attributes.path,
+			secure: sessionToken.attributes.secure,
+			maxAge: AUTH_SESSION_EXPIRES_IN / SECOND,
+		});
 	}
 
-	if (event.locals.session) {
-		const { sub: userId } = event.locals.session;
-		setUser({ id: userId });
-		event.tracing.root.setAttribute('userId', userId);
-	}
+	setUser({ id: user.id });
+	event.tracing.root.setAttribute('userId', user.id);
 
 	return resolve(event);
 };

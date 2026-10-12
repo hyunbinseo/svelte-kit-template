@@ -71,7 +71,6 @@
 					<!-- BLOCKED Use top-level fieldset to disable form during submission. -->
 					<!-- See https://github.com/sveltejs/kit/issues/15104 -->
 					<fieldset class="contents" disabled={false}>
-						<input {...validateCode.fields.id.as('hidden', sendCode.result.id)} />
 						<input {...validateCode.fields.contact.as('hidden', sendCode.result.contact)} />
 						<label>
 							<span>이메일</span>

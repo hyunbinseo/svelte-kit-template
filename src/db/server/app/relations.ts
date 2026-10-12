@@ -2,26 +2,11 @@ import { defineRelations } from 'drizzle-orm';
 import * as schema from './schema.ts';
 
 export const relations = defineRelations(schema, (r) => ({
-	loginTable: {
-		attempts: r.many.loginAttemptTable({
-			from: r.loginTable.id,
-			to: r.loginAttemptTable.loginId,
-		}),
-		activeUserByContact: r.one.userTable({
-			from: r.loginTable.contact,
-			to: r.userTable.contact,
+	userSessionTable: {
+		activeUser: r.one.userTable({
+			from: r.userSessionTable.userId,
+			to: r.userTable.id,
 			where: { deactivatedAt: { isNull: true } },
-		}),
-		successfulAttempts: r.many.loginAttemptTable({
-			from: r.loginTable.id,
-			to: r.loginAttemptTable.loginId,
-			where: { isSuccessful: true },
-		}),
-	},
-	tokenTable: {
-		bans: r.many.tokenBanTable({
-			from: r.tokenTable.id,
-			to: r.tokenBanTable.tokenId,
 		}),
 	},
 	userTable: {

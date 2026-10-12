@@ -1,6 +1,6 @@
-import { check, email, isoDate, pipe, startsWith, string, transform } from 'valibot';
+import { check, email, isoDate, pipe, startsWith, string, toLowerCase, transform } from 'valibot';
 
-export const EmailSchema = pipe(string(), email());
+export const EmailSchema = pipe(string(), email(), toLowerCase());
 
 // Valibot's `isoDate` action output is plain string.
 // See https://github.com/open-circle/valibot/issues/945

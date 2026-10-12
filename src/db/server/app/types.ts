@@ -6,6 +6,8 @@ import type * as schema from './schema.ts';
 export type AppDb = NodeSQLiteDatabase<typeof relations>;
 export type AppTx = NodeSQLiteTransaction<typeof relations>;
 
+export type AppDbOrTx = AppDb | AppTx;
+
 type Schema<T extends Record<string, SQLiteTable> = typeof schema> = T;
 
 export type AppSelect<

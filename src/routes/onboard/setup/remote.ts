@@ -3,8 +3,11 @@ import { redirect } from '@sveltejs/kit';
 import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
 import { requireNotOnboarded } from '#auth/server/session.ts';
 import { rotateToken } from '#auth/server/token.ts';
-import { db } from './server.ts';
+import { defineQueries } from '#database/app/client.ts';
+import * as queries from './queries.server.ts';
 import { SetupProfileSchema } from './shared.ts';
+
+const db = defineQueries(queries);
 
 export const setupProfile = form(SetupProfileSchema, async (data) => {
 	const session = requireNotOnboarded();

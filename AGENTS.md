@@ -170,11 +170,29 @@ Import these types from `#database/app/types.ts`:
 
 #### Query Modules
 
-In SvelteKit:
+In `src/routes/`, export only query factories from `queries.server.ts`:
 
-- Define queries in a definer (e.g. `defineQueries()`).
-- Export the result as `db` from an adjacent server-only module.
-- Share queries as factories (e.g. `#auth/server/queries.ts`).
+```ts
+// src/routes/posts/new/create-post/queries.server.ts
+export const createPost =
+	(db: AppDbOrTx) =>
+	({ title, content }: AppInsert<'postTable', 'title' | 'content'>) =>
+		db.insert(postTable).values({ title, content }).returning().all()[0]!;
+```
+
+```ts
+// src/routes/posts/new/create-post/remote.ts
+import { findActiveUserById } from '#auth/server/queries.ts';
+import { defineQueries } from '#database/app/client.ts';
+import * as queries from './queries.server.ts';
+
+const db = defineQueries({
+	...queries, // local
+	findActiveUserById, // shared
+});
+
+export const createPost = form(/* uses db */);
+```
 
 Call them on `db` or its transaction:
 
@@ -374,8 +392,8 @@ Name remote modules `remote.ts` or `*.remote.ts`, outside `server/` directories.
 src/routes/posts/new/
 ├── save-draft.remote.ts
 └── create-post/
+    ├── queries.server.ts
     ├── remote.ts
-    ├── server.ts # server-only (e.g. db access)
     └── shared.ts # isomorphic (e.g. schemas)
 ```
 
@@ -408,8 +426,11 @@ export const CreatePostSchema = object({
 // src/routes/posts/new/create-post/remote.ts
 import { form } from '$app/server';
 import { invalid } from '@sveltejs/kit';
-import { db } from './server.ts';
+import { defineQueries } from '#database/app/client.ts';
+import * as queries from './queries.server.ts';
 import { CreatePostSchema } from './shared.ts';
+
+const db = defineQueries(queries);
 
 export const createPost = form(CreatePostSchema, async (data, issue) => {
 	// Form data has already passed schema validation.
@@ -450,9 +471,12 @@ The client names query instances to refresh with `.updates(...)`; the server mus
 import { resolve } from '$app/paths';
 import { form, requested } from '$app/server';
 import { redirect } from '@sveltejs/kit';
+import { defineQueries } from '#database/app/client.ts';
 import { getPost, getPosts } from '#remotes/posts.remote.ts';
-import { db } from './server.ts';
+import * as queries from './queries.server.ts';
 import { CreatePostSchema } from './shared.ts';
+
+const db = defineQueries(queries);
 
 export const createPost = form(CreatePostSchema, async (data) => {
 	const post = db.createPost({ title: data.title, content: data.content });

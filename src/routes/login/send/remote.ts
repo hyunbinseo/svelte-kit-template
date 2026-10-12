@@ -5,9 +5,12 @@ import { captureException } from '@sentry/sveltekit';
 import { invalid } from '@sveltejs/kit';
 import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
+import { defineQueries } from '#database/app/client.ts';
 import { type SendErrorCode, sendErrorCodeToMessage } from './enums.ts';
-import { db } from './server.ts';
+import * as queries from './queries.server.ts';
 import { SendCodeSchema } from './shared.ts';
+
+const db = defineQueries(queries);
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();

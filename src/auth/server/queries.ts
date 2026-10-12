@@ -1,7 +1,7 @@
-import { tokenTable } from '#database/app/schema.ts';
-import type { AppDb, AppInsert, AppTx } from '#database/app/types.ts';
+import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
+import type { AppDbOrTx, AppInsert } from '#database/app/types.ts';
 
-export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
+export const findActiveUserById = (db: AppDbOrTx) => (id: string) =>
 	db.query.userTable
 		.findFirst({
 			where: { id, deactivatedAt: { isNull: true } },
@@ -11,7 +11,7 @@ export const findActiveUserById = (db: AppDb | AppTx) => (id: string) =>
 		.sync();
 
 export const createOrFindToken =
-	(db: AppDb | AppTx) =>
+	(db: AppDbOrTx) =>
 	({
 		userId,
 		refreshedFrom,
@@ -32,3 +32,35 @@ export const createOrFindToken =
 				expiresAt: tokenTable.expiresAt,
 			})
 			.all()[0]!;
+
+export const claimTokenRotation =
+	(db: AppDbOrTx) =>
+	({
+		tokenId,
+		bannedBy,
+		ip,
+		effectiveAt,
+	}: AppInsert<'tokenBanTable', 'tokenId' | 'bannedBy' | 'ip' | 'effectiveAt'>) => {
+		db.insert(tokenBanTable)
+			.values({ tokenId, bannedBy, ip, effectiveAt, reason: 'rotate' })
+			.onConflictDoNothing()
+			.run();
+	};
+
+export const findTokenWithBans = (db: AppDbOrTx) => (id: string) =>
+	db.query.tokenTable
+		.findFirst({
+			where: { id },
+			columns: { id: true, issuedAt: true, expiresAt: true },
+			with: { bans: { columns: { reason: true, effectiveAt: true } } },
+		})
+		.sync();
+
+export const findLiveTokensByUserId = (db: AppDbOrTx) => (userId: string) =>
+	db.query.tokenTable
+		.findMany({
+			where: { userId, expiresAt: { gt: new Date() } },
+			columns: { id: true, refreshedFrom: true, issuedAt: true, expiresAt: true },
+			with: { bans: { columns: { reason: true, effectiveAt: true } } },
+		})
+		.sync();

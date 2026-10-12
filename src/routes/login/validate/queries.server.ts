@@ -1,14 +1,10 @@
 import { eq } from 'drizzle-orm';
-import { createOrFindToken, findActiveUserById } from '#auth/server/queries.ts';
-import { defineQueries } from '#database/app/client.ts';
 import { loginAttemptTable, loginTable, userTable } from '#database/app/schema.ts';
-import type { AppInsert, AppRequired, AppSelect } from '#database/app/types.ts';
+import type { AppDbOrTx, AppInsert, AppRequired, AppSelect } from '#database/app/types.ts';
 
-export const db = defineQueries((db) => ({
-	findActiveUserById: findActiveUserById(db),
-	createOrFindToken: createOrFindToken(db),
-
-	findLoginByIdAndContact: ({ id, contact }: AppSelect<'loginTable', 'id' | 'contact'>) =>
+export const findLoginByIdAndContact =
+	(db: AppDbOrTx) =>
+	({ id, contact }: AppSelect<'loginTable', 'id' | 'contact'>) =>
 		db.query.loginTable
 			.findFirst({
 				where: { id, contact },
@@ -21,20 +17,25 @@ export const db = defineQueries((db) => ({
 					},
 				},
 			})
-			.sync(),
+			.sync();
 
-	createLoginAttempt: ({
+export const createLoginAttempt =
+	(db: AppDbOrTx) =>
+	({
 		loginId,
 		isSuccessful,
 		ip,
 	}: AppInsert<'loginAttemptTable', 'loginId' | 'isSuccessful' | 'ip'>) => {
 		db.insert(loginAttemptTable).values({ loginId, isSuccessful, ip }).run();
-	},
+	};
 
-	createUser: ({ contact }: AppInsert<'userTable', 'contact'>) =>
-		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!,
+export const createUser =
+	(db: AppDbOrTx) =>
+	({ contact }: AppInsert<'userTable', 'contact'>) =>
+		db.insert(userTable).values({ contact }).returning({ id: userTable.id }).all()[0]!;
 
-	linkLoginToUser: ({ id, userId }: AppRequired<'loginTable', 'id' | 'userId'>) => {
+export const linkLoginToUser =
+	(db: AppDbOrTx) =>
+	({ id, userId }: AppRequired<'loginTable', 'id' | 'userId'>) => {
 		db.update(loginTable).set({ userId }).where(eq(loginTable.id, id)).run();
-	},
-}));
+	};

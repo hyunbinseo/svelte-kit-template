@@ -7,7 +7,14 @@ import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import type { TokenBanReason } from '#auth/enums.ts';
 import { relations } from '#database/app/relations.ts';
-import { tokenBanTable, tokenTable, userRoleTable, userTable } from '#database/app/schema.ts';
+import {
+	loginAttemptTable,
+	loginTable,
+	tokenBanTable,
+	tokenTable,
+	userRoleTable,
+	userTable,
+} from '#database/app/schema.ts';
 import type { AppDb } from '#database/app/types.ts';
 import { DB_APP_MIGRATIONS_DIR } from '#database/config.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
@@ -24,6 +31,16 @@ export const createAppDb = (filename = ':memory:') => {
 
 export const seedUser = (db: AppDb) =>
 	db.insert(userTable).values({ contact: randomUUID() }).returning().all()[0]!;
+
+export const seedLogin = (db: AppDb, contact: string, id?: string) =>
+	db
+		.insert(loginTable)
+		.values({ ...(id && { id }), contact, code: '000000', ip: '' })
+		.returning()
+		.all()[0]!;
+
+export const seedLoginAttempt = (db: AppDb, loginId: string, isSuccessful: boolean) =>
+	db.insert(loginAttemptTable).values({ loginId, isSuccessful, ip: '' }).returning().all()[0]!;
 
 export const seedToken = (db: AppDb, userId: string, expiresAt: number, refreshedFrom?: string) =>
 	db

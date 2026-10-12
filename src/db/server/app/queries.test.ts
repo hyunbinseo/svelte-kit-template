@@ -4,18 +4,18 @@ import { test } from 'vite-plus/test';
 import { createAppDb, seedUser } from '#tests/database/app.ts';
 import { bindQueries } from './queries.ts';
 import { userTable } from './schema.ts';
-import type { AppDb, AppTx } from './types.ts';
+import type { AppDbOrTx } from './types.ts';
 
 test('binds queries to the transaction', () => {
 	const baseDb = createAppDb();
 	const { id } = seedUser(baseDb);
-	const clients: (AppDb | AppTx)[] = [];
+	const clients: AppDbOrTx[] = [];
 
-	const db = bindQueries(baseDb)((db) => {
-		clients.push(db);
-		return {
-			findUser: (id: string) => db.select().from(userTable).where(eq(userTable.id, id)).get(),
-		};
+	const db = bindQueries(baseDb)({
+		findUser: (db: AppDbOrTx) => {
+			clients.push(db);
+			return (id: string) => db.select().from(userTable).where(eq(userTable.id, id)).get();
+		},
 	});
 
 	const found = db.transaction((tx) => tx.findUser(id));
@@ -26,7 +26,7 @@ test('binds queries to the transaction', () => {
 });
 
 test('rejects async transaction callbacks', () => {
-	const db = bindQueries(createAppDb())(() => ({}));
+	const db = bindQueries(createAppDb())({});
 
 	assert.throws(
 		// @ts-expect-error async callbacks are not allowed
@@ -35,9 +35,14 @@ test('rejects async transaction callbacks', () => {
 	);
 });
 
+test('rejects non-factory values', () => {
+	// @ts-expect-error not a query factory
+	assert.throws(() => bindQueries(createAppDb())({ limit: 1 }), TypeError);
+});
+
 test('reserves transaction and runProcedure names', () => {
 	// @ts-expect-error reserved name
-	bindQueries(createAppDb())(() => ({ transaction: () => 1 }));
+	bindQueries(createAppDb())({ transaction: () => 1 });
 	// @ts-expect-error reserved name
-	bindQueries(createAppDb())(() => ({ runProcedure: () => 1 }));
+	bindQueries(createAppDb())({ runProcedure: () => 1 });
 });

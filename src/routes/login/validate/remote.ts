@@ -9,12 +9,20 @@ import {
 	AUTH_CODE_MAX_ATTEMPTS,
 	AUTH_REDIRECT_PARAM,
 } from '#auth/config.ts';
+import { createOrFindToken, findActiveUserById } from '#auth/server/queries.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { signToken, toIssuedToken } from '#auth/server/token.ts';
+import { defineQueries } from '#database/app/client.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import { type ValidateErrorCode, validateErrorCodeToMessage } from './enums.ts';
-import { db } from './server.ts';
+import * as queries from './queries.server.ts';
 import { ValidateCodeSchema } from './shared.ts';
+
+const db = defineQueries({
+	...queries,
+	createOrFindToken,
+	findActiveUserById,
+});
 
 const getRedirectDestination = () => {
 	const { url } = getRequestEvent();

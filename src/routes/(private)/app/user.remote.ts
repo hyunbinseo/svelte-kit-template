@@ -1,7 +1,10 @@
 import { query } from '$app/server';
 import { error } from '@sveltejs/kit';
 import { requireOnboarded } from '#auth/server/session.ts';
-import { db } from './server.ts';
+import { defineReadAuditedQueries } from '#database/app/client.ts';
+import * as queries from './queries.server.ts';
+
+const db = defineReadAuditedQueries(queries);
 
 export const getCurrentUser = query(() => {
 	const session = requireOnboarded();

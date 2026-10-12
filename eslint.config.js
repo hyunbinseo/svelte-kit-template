@@ -79,9 +79,11 @@ export default defineConfig(
 	{
 		plugins: { perfectionist },
 		rules: {
+			'perfectionist/sort-exports': 'error',
 			'perfectionist/sort-named-imports': 'error',
 			'perfectionist/sort-objects': [
 				'error',
+				{ useConfigurationIf: { callingFunctionNamePattern: '^defineRelations$' } },
 				{
 					useConfigurationIf: {
 						matchesAstSelector: [

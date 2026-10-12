@@ -16,7 +16,17 @@ export const userTable = snakeCase.table(
 	'user',
 	{
 		id: text().primaryKey().$default(randomUUIDv7),
-		contact: text().notNull(),
+		contact: text().notNull().unique(),
+		name: text().notNull().default(''),
+		emailVerified: integer({ mode: 'boolean' }).notNull().default(false),
+		image: text(),
+		createdAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date()),
+		updatedAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date())
+			.$onUpdate(() => new Date()),
 		createdBy: text().references(
 			// Self-referencing foreign key requires explicit return type.
 			// See https://orm.drizzle.team/docs/indexes-constraints#foreign-key
@@ -26,7 +36,6 @@ export const userTable = snakeCase.table(
 		deactivatedBy: text().references((): AnySQLiteColumn => userTable.id),
 	},
 	(table) => [
-		uniqueIndex('active_user_contact_idx').on(table.contact).where(isNull(table.deactivatedAt)),
 		check('user_deactivate_check', eq(isNull(table.deactivatedAt), isNull(table.deactivatedBy))),
 	],
 );
@@ -66,4 +75,43 @@ export const userRoleTable = snakeCase.table(
 			)!,
 		),
 	],
+);
+
+export const userSessionTable = snakeCase.table(
+	'user_session',
+	{
+		id: text().primaryKey().$default(randomUUIDv7),
+		userId: text()
+			.notNull()
+			.references(() => userTable.id),
+		token: text().notNull().unique(),
+		expiresAt: integer({ mode: 'timestamp' }).notNull(),
+		ipAddress: text(),
+		userAgent: text(),
+		createdAt: integer({ mode: 'timestamp' }).notNull(),
+		updatedAt: integer({ mode: 'timestamp' }).notNull(),
+	},
+	(table) => [index('user_session_user_id_idx').on(table.userId)],
+);
+
+export const userAccountTable = snakeCase.table(
+	'user_account',
+	{
+		id: text().primaryKey().$default(randomUUIDv7),
+		userId: text()
+			.notNull()
+			.references(() => userTable.id),
+		accountId: text().notNull(),
+		providerId: text().notNull(),
+		accessToken: text(),
+		refreshToken: text(),
+		idToken: text(),
+		accessTokenExpiresAt: integer({ mode: 'timestamp' }),
+		refreshTokenExpiresAt: integer({ mode: 'timestamp' }),
+		scope: text(),
+		password: text(),
+		createdAt: integer({ mode: 'timestamp' }).notNull(),
+		updatedAt: integer({ mode: 'timestamp' }).notNull(),
+	},
+	(table) => [index('user_account_user_id_idx').on(table.userId)],
 );

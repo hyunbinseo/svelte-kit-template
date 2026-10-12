@@ -1,63 +1,46 @@
-import { randomInt, randomUUID } from 'node:crypto';
-import { dev } from '$app/env';
-import { form, getRequestEvent } from '$app/server';
+import { form } from '$app/server';
 import { captureException } from '@sentry/sveltekit';
 import { invalid } from '@sveltejs/kit';
-import { AUTH_ALLOW_UNREGISTERED, AUTH_CODE_LENGTH } from '#auth/config.ts';
+import { AUTH_ALLOW_UNREGISTERED } from '#auth/config.ts';
+import { auth } from '#auth/server/auth.ts';
+import { sendLoginCode } from '#auth/server/email.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
 import { type SendErrorCode, sendErrorCodeToMessage } from './enums.ts';
 import { db } from './server.ts';
-import { SendCodeSchema } from './shared.ts';
+import { SendCodeSchema, toSignInIdentifier } from './shared.ts';
 
 export const sendCode = form(SendCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
-	const code = randomInt(0, Math.pow(10, AUTH_CODE_LENGTH))
-		.toString()
-		.padStart(AUTH_CODE_LENGTH, '0');
-	const ip = getRequestEvent().getClientAddress();
+	const identifier = toSignInIdentifier(data.contact);
 
-	const result = db.transaction(
+	const errorCode = db.transaction(
 		(tx) => {
-			const user = tx.findActiveUserByContact(data.contact);
-			if (!user && !AUTH_ALLOW_UNREGISTERED) return { errorCode: 'unregistered' };
+			const user = tx.findUserByContact(data.contact);
+			if (!user && !AUTH_ALLOW_UNREGISTERED) return 'unregistered';
 
-			const existingLogin = tx.findLatestUnexpiredLogin(data.contact);
-			if (existingLogin && !existingLogin.successfulAttempts.length) {
-				return { errorCode: 'rateLimited' };
-			}
+			const verification = tx.findVerificationByIdentifier(identifier);
+			if (verification && verification.expiresAt >= new Date()) return 'rateLimited';
+			if (verification) tx.discardVerification(identifier);
 
-			const login = tx.createLogin({
-				contact: data.contact,
-				userId: user?.id ?? null,
-				code,
-				ip,
-			});
-
-			return { login };
+			return undefined;
 		},
 		{ behavior: 'immediate' },
-	) satisfies { login: unknown } | { errorCode: SendErrorCode };
+	) satisfies SendErrorCode | undefined;
 
-	if (result.errorCode) invalid(issue.contact(sendErrorCodeToMessage[result.errorCode]));
+	if (errorCode) invalid(issue.contact(sendErrorCodeToMessage[errorCode]));
 
-	if (dev) console.table({ contact: data.contact, code });
-
-	let sendId: string;
+	const otp = await auth.api.createVerificationOTP({
+		body: { email: data.contact, type: 'sign-in' },
+	});
 
 	try {
-		// TODO Implement actual send logic
-		sendId = await Promise.resolve(randomUUID());
+		await sendLoginCode({ email: data.contact, otp });
 	} catch (error) {
 		captureException(error);
-		db.discardLogin(result.login.id);
+		db.discardVerification(identifier);
 		invalid(issue.contact(sendErrorCodeToMessage.sendFailed));
 	}
 
-	db.markLoginDelivered({ id: result.login.id, sendId });
-
-	return {
-		id: result.login.id,
-		contact: data.contact,
-	};
+	return { contact: data.contact };
 });

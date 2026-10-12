@@ -13,6 +13,5 @@ export const variables = defineEnvVars({
 	SITE_NAME: { public: true, schema: NonEmptyStringSchema },
 
 	// In production, dynamic values can be updated without rebuilding.
-	JWT_SECRET_NEW: { static: false, schema: NonEmptyStringSchema },
-	JWT_SECRET_OLD: { static: false, schema: optional(NonEmptyStringSchema) },
+	AUTH_SECRET: { static: false, schema: NonEmptyStringSchema },
 });

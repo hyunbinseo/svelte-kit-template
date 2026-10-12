@@ -2,10 +2,7 @@ import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
-import { AUTH_COOKIE_NAME } from '#auth/config.ts';
-import type { TokenRevokeReason } from '#auth/enums.ts';
-import { revokeToken } from '#database/app/procedures.ts';
-import { db } from './db.ts';
+import { auth } from './auth.ts';
 
 export const requireSession = () => {
 	const event = getRequestEvent();
@@ -30,16 +27,11 @@ export const requireLoggedOut = () => {
 	if (event.locals.session) redirect(303, AUTH_LOGIN_REDIRECT);
 };
 
-export const revokeSession = (reason: TokenRevokeReason) => {
+export const revokeSession = async () => {
 	const event = getRequestEvent();
 	if (!event.locals.session) return;
 
-	db.runProcedure(revokeToken, event.locals.session.jti, {
-		reason,
-		bannedBy: event.locals.session.sub,
-		ip: event.getClientAddress(),
-	});
+	await auth.api.signOut({ headers: event.request.headers });
 
-	event.cookies.delete(AUTH_COOKIE_NAME);
 	delete event.locals.session;
 };

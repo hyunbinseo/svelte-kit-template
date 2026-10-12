@@ -3,7 +3,7 @@ import { form } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import { revokeSession } from '#auth/server/session.ts';
 
-export const logout = form(() => {
-	revokeSession('logout');
+export const logout = form(async () => {
+	await revokeSession();
 	redirect(303, resolve('/'));
 });

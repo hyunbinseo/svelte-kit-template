@@ -3,5 +3,5 @@ import type { LayoutServerLoad } from './$types.ts';
 
 export const load = (() => {
 	const session = requireOnboarded();
-	return { userId: session.sub };
+	return { userId: session.userId };
 }) satisfies LayoutServerLoad;

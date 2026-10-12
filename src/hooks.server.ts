@@ -1,11 +1,11 @@
 import * as Sentry from '@sentry/sveltekit';
 import { getDotPath } from '@standard-schema/utils';
 import { type HandleServerError, sequence } from '@sveltejs/kit/hooks';
-import { handleToken } from '#auth/server/handle.ts';
+import { handleSession } from '#auth/server/handle.ts';
 
 export const handle = sequence(
 	Sentry.sentryHandle(), //
-	handleToken,
+	handleSession,
 	({ event, resolve }) =>
 		resolve(event, {
 			preload: ({ type }) => type === 'js' || type === 'css' || type === 'font',

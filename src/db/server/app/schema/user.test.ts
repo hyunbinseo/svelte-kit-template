@@ -11,25 +11,18 @@ const setup = () => {
 	return { db, adminId: seedUser(db).id, user: seedUser(db) };
 };
 
-describe('active_user_contact_idx', () => {
-	test('blocks a duplicate contact among active users', () => {
-		const { db, user } = setup();
+describe('contact UNIQUE', () => {
+	test('blocks a duplicate contact, even of a deactivated user', () => {
+		const { db, adminId, user } = setup();
 		const other = seedUser(db);
+
+		deactivateUser(db, user.id, { deactivatedBy: adminId });
 
 		assert.throws(
 			() =>
 				db.update(userTable).set({ contact: user.contact }).where(eq(userTable.id, other.id)).run(),
 			drizzleQueryErrorCausedBy(sqliteConstraintUniqueError),
 		);
-	});
-
-	test('allows reusing the contact of a deactivated user', () => {
-		const { db, adminId, user } = setup();
-		const other = seedUser(db);
-
-		deactivateUser(db, user.id, { deactivatedBy: adminId, ip: '' });
-
-		db.update(userTable).set({ contact: user.contact }).where(eq(userTable.id, other.id)).run();
 	});
 });
 
@@ -48,7 +41,7 @@ describe('active_user_role_user_id_role_idx', () => {
 		const { db, adminId, user } = setup();
 		const role = seedUserRole(db, user.id, adminId);
 
-		revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' });
+		revokeUserRole(db, role.id, { revokedBy: adminId });
 
 		seedUserRole(db, user.id, adminId);
 	});

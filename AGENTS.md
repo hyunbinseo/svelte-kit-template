@@ -158,6 +158,7 @@ Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapp
 - SvelteKit — query definers from `#database/app/client.ts`:
   - `defineQueries()` — logs writes only (plus CTEs)
   - `defineReadAuditedQueries()` — also logs reads
+  - `appDb` — for the Better Auth adapter only
 - CLI — from `#cli/database/clients.ts`:
   - `appDb` — logs writes only, without request context
   - `auditDb` — `undefined` unless `DATABASE_AUDIT_URL` is set
@@ -174,14 +175,14 @@ In SvelteKit:
 
 - Define queries in a definer (e.g. `defineQueries()`).
 - Export the result as `db` from an adjacent server-only module.
-- Share queries as factories (e.g. `#auth/server/queries.ts`).
+- Share queries as factories taking `db` (`AppDb | AppTx`).
 
 Call them on `db` or its transaction:
 
 ```ts
 db.findActiveUserByContact(contact); // outside a transaction
 db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transaction
-db.runProcedure(revokeToken, tokenId, ban); // a procedure on the same client
+db.runProcedure(revokeUserRole, roleId, revocation); // a procedure on the same client
 ```
 
 ##### Naming
@@ -256,7 +257,9 @@ Each group declares, in order:
 Delete rows by:
 
 - Soft-deleting — by default, using nullable columns (e.g. `deactivatedAt`/`deactivatedBy`)
-- Hard-deleting — only rows that never took effect (e.g. a login whose code failed to send)
+- Hard-deleting — only rows that never took effect (e.g. a login code that failed to send)
+
+Better Auth hard-deletes its own rows (e.g. `userSessionTable` on logout or deactivation).
 
 #### Constraints
 
@@ -278,10 +281,10 @@ Index foreign key columns used in lookups or cascades.
 
 Index names follow 2 conventions:
 
-- `<table>_<columns>_idx` (e.g. `token_user_id_idx`)
-- `<filter>_<table>_<columns>_idx` — filtered (e.g. `active_user_contact_idx` on soft-delete)
+- `<table>_<columns>_idx` (e.g. `user_role_user_id_idx`)
+- `<filter>_<table>_<columns>_idx` — filtered (e.g. `active_user_role_user_id_role_idx` on soft-delete)
 
-Use a `UNIQUE INDEX` to avoid duplicate records (e.g. one rotation per token). Write value filters with `` sql`...` ``:
+Use a `UNIQUE INDEX` to avoid duplicate records (e.g. one active role per user). Write value filters with `` sql`...` ``:
 
 ```ts
 uniqueIndex('rotate_token_ban_token_id_idx')
@@ -295,14 +298,14 @@ uniqueIndex('rotate_token_ban_token_id_idx')
 
 - Add relations only when needed; remove them when unused.
 - Soft-deleted tables can use filtered relations (`where`) to drop inactive rows.
-- Name filtered relations after their filter (e.g. `activeUserByContact`, `successfulAttempts`).
+- Name filtered relations after their filter (e.g. `activeUser`, `activeRoles`).
 
 ### Procedures
 
 Procedures live in `#database/app/procedures.ts`, shared by `cli/` and SvelteKit. For example:
 
 - Cascades — propagate a change (e.g. deactivating a user revokes their roles)
-- Guarded inserts — insert only if other rows allow it (e.g. a ban for an unbanned token)
+- Guarded inserts — insert only if other rows allow it (e.g. a role for an active user who lacks it)
 
 Each procedure must:
 
@@ -313,7 +316,7 @@ Each procedure must:
 
 Write guarded columns and rows (e.g. `revokedAt`, `userRole` rows) only via procedures. Test each guard in `procedures.test.ts`.
 
-A `claim` query guarded only by a `UNIQUE INDEX` (e.g. `claimTokenRotation`) doesn't need a procedure.
+A `claim` query guarded only by a `UNIQUE INDEX` (e.g. `claimProfile`) doesn't need a procedure.
 
 ### Transactions
 
@@ -345,6 +348,16 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
   - `server/` directories — outside `src/routes/`
 
 Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#query-modules).
+
+### Auth
+
+[Better Auth](https://www.better-auth.com/) issues login codes and sessions, configured in `#auth/server/auth.ts`:
+
+- Call `auth.api.*` from remote functions — its `/api/auth/*` handler isn't mounted.
+- Rate limiting doesn't apply to `auth.api.*` calls — guard them in the remote function (e.g. `sendCode`).
+- Don't call `auth.api.getSession()` — `handleSession` reads the session, profile, and roles in one query.
+
+`handleSession` verifies Better Auth's signed cookie itself. After upgrading Better Auth, run `handle.e2e.ts` and `login.e2e.ts`.
 
 ### Remote Functions (RPC)
 

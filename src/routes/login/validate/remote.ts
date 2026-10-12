@@ -1,19 +1,14 @@
-import { timingSafeEqual } from 'node:crypto';
 import { resolve } from '$app/paths';
 import { form, getRequestEvent } from '$app/server';
-import { error, invalid, redirect } from '@sveltejs/kit';
+import { invalid, redirect } from '@sveltejs/kit';
+import { isAPIError } from 'better-auth/api';
 import { check, fallback, parse, pipe } from 'valibot';
 import { AUTH_LOGIN_REDIRECT } from '#auth/config.svelte.ts';
-import {
-	AUTH_ALLOW_UNREGISTERED,
-	AUTH_CODE_MAX_ATTEMPTS,
-	AUTH_REDIRECT_PARAM,
-} from '#auth/config.ts';
+import { AUTH_REDIRECT_PARAM } from '#auth/config.ts';
+import { auth } from '#auth/server/auth.ts';
 import { requireLoggedOut } from '#auth/server/session.ts';
-import { signToken, toIssuedToken } from '#auth/server/token.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
-import { type ValidateErrorCode, validateErrorCodeToMessage } from './enums.ts';
-import { db } from './server.ts';
+import { apiErrorCodeToValidateErrorCode, validateErrorCodeToMessage } from './enums.ts';
 import { ValidateCodeSchema } from './shared.ts';
 
 const getRedirectDestination = () => {
@@ -34,61 +29,19 @@ const getRedirectDestination = () => {
 export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
-	const ip = getRequestEvent().getClientAddress();
+	try {
+		await auth.api.signInEmailOTP({
+			body: { email: data.contact, otp: data.code },
+			headers: getRequestEvent().request.headers,
+		});
+	} catch (error) {
+		const errorCode = isAPIError(error) && apiErrorCodeToValidateErrorCode[error.body?.code ?? ''];
+		if (!errorCode) throw error;
 
-	const result = db.transaction(
-		(tx) => {
-			const login = tx.findLoginByIdAndContact({ id: data.id, contact: data.contact });
+		if (errorCode === 'codeInvalid') invalid(issue.code(validateErrorCodeToMessage[errorCode]));
 
-			if (!login) error(400);
-
-			if (login.expiresAt < new Date()) return { errorCode: 'codeExpired' };
-			if (login.attempts.some((attempt) => attempt.isSuccessful)) return { errorCode: 'codeUsed' };
-
-			if (login.ip !== ip) return { errorCode: 'ipMismatch' };
-			if (login.attempts.length >= AUTH_CODE_MAX_ATTEMPTS) return { errorCode: 'codeExhausted' };
-
-			const isCorrect = timingSafeEqual(
-				Buffer.from(login.code), //
-				Buffer.from(data.code),
-			);
-
-			tx.createLoginAttempt({ loginId: data.id, isSuccessful: isCorrect, ip });
-
-			if (!isCorrect) {
-				const isLastAttempt = login.attempts.length + 1 >= AUTH_CODE_MAX_ATTEMPTS;
-				return { errorCode: isLastAttempt ? 'codeExhausted' : 'codeInvalid' };
-			}
-
-			let user = login.activeUserByContact;
-
-			if (login.userId && login.userId !== user?.id) return { errorCode: 'userDeactivated' };
-
-			if (!user) {
-				if (!AUTH_ALLOW_UNREGISTERED) error(403);
-
-				const newUser = tx.createUser({ contact: data.contact });
-				user = tx.findActiveUserById(newUser.id) ?? null;
-
-				if (!user) error(500);
-			}
-
-			if (!login.userId) tx.linkLoginToUser({ id: data.id, userId: user.id });
-
-			const token = tx.createOrFindToken({ userId: user.id, ip });
-
-			return { token: toIssuedToken(token, user) };
-		},
-		{ behavior: 'immediate' },
-	) satisfies { token: unknown } | { errorCode: ValidateErrorCode };
-
-	if (result.errorCode === 'codeInvalid') {
-		invalid(issue.code(validateErrorCodeToMessage[result.errorCode]));
+		return { errorCode };
 	}
-
-	if (result.errorCode) return result;
-
-	await signToken(result.token);
 
 	redirect(303, getRedirectDestination());
 });

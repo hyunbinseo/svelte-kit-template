@@ -10,7 +10,8 @@ vp <command>  # built-ins (e.g. fmt, test)
 Before finalizing changes:
 
 - Update `*.md` files (including this one) affected by the changes.
-- Lint and format edited files (skip files outside this project).
+- Type-check with `vpr check` if TypeScript or Svelte files changed.
+- Lint and format edited files (skip files outside this project):
 
 ```shell
 vp exec eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern <files>

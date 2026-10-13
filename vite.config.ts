@@ -3,6 +3,13 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 const buildId = Math.floor(Date.now() / 1000).toString();
 
 export default defineConfig({
+	staged: {
+		'*': [
+			// Sync with AGENTS.md lint and format commands
+			'eslint --fix --no-warn-ignored --no-error-on-unmatched-pattern',
+			'vp fmt --write --no-error-on-unmatched-pattern',
+		],
+	},
 	server: { port: 5526 },
 	build: { target: 'es2023' }, // sync with app.html browser check
 	preview: { port: 4526 },

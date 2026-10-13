@@ -26,7 +26,7 @@
 		"db:app:migrate:prod": "drizzle-kit migrate --config=cli/database/drizzle-kit/app.prod.ts",
 		"db:audit:generate": "drizzle-kit generate --config=cli/database/drizzle-kit/audit.ts",
 		"db:audit:migrate:prod": "drizzle-kit migrate --config=cli/database/drizzle-kit/audit.prod.ts",
-		"prepare": "svelte-kit sync || echo ''"
+		"prepare": "vp config || echo '' && svelte-kit sync || echo ''"
 	},
 	"dependencies": {
 		"@opentelemetry/api": "^1.9.1",

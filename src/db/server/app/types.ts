@@ -1,14 +1,20 @@
+import type { DBQueryConfig } from 'drizzle-orm';
 import type { NodeSQLiteDatabase, NodeSQLiteTransaction } from 'drizzle-orm/node-sqlite';
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import type { relations } from './relations.ts';
 import type * as schema from './schema.ts';
 
-export type AppDb = NodeSQLiteDatabase<typeof relations>;
-export type AppTx = NodeSQLiteTransaction<typeof relations>;
+type Relations = typeof relations;
+type Schema<T extends Record<string, SQLiteTable> = typeof schema> = T;
 
+export type AppDb = NodeSQLiteDatabase<Relations>;
+export type AppTx = NodeSQLiteTransaction<Relations>;
 export type AppDbOrTx = AppDb | AppTx;
 
-type Schema<T extends Record<string, SQLiteTable> = typeof schema> = T;
+export type AppFindConfig<
+	T extends keyof Relations,
+	R extends 'one' | 'many' = 'one', // omits `limit`, so also fits `findMany`
+> = DBQueryConfig<R, Relations, Relations[T]>;
 
 export type AppSelect<
 	T extends keyof Schema, //

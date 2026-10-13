@@ -163,11 +163,10 @@ Ask before running `drizzle-kit generate`/`migrate`, or the `db:*` scripts wrapp
   - `appDb` — logs writes only, without request context
   - `auditDb` — `undefined` unless `DATABASE_AUDIT_URL` is set
 
-Import these types from `#database/app/types.ts`:
+Import Drizzle types (e.g. `AppDb`, `AppSelect`) from `#database/app/types.ts`, including:
 
-- `AppDb`/`AppTx` — Drizzle clients/transactions
-- `AppInsert`/`AppSelect` — picked table columns
-- `AppRequired` — picked table columns, required and non-null (e.g. a nullable column a query must set)
+- `AppRequired` — columns a query must set, even if nullable
+- `AppFindConfig` — Relational Queries options for shared helpers (e.g. filters)
 
 #### Query Modules
 

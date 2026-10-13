@@ -3,11 +3,11 @@
 	import { AUTH_CODE_LENGTH } from '#auth/config.ts';
 	import { formIssues } from '#lib/components/FormIssues.svelte';
 	import StyledLabels from '#lib/components/StyledLabels.svelte';
-	import { sendCode as _sendCode } from './send/remote.ts';
-	import { SendCodeSchema } from './send/shared.ts';
-	import { validateErrorCodeToMessage } from './validate/enums.ts';
-	import { validateCode as _validateCode } from './validate/remote.ts';
-	import { ValidateCodeSchema } from './validate/shared.ts';
+	import { sendCode as _sendCode } from './send-code/remote.ts';
+	import { SendCodeSchema } from './send-code/shared.ts';
+	import { validateErrorCodeToMessage } from './validate-code/enums.ts';
+	import { validateCode as _validateCode } from './validate-code/remote.ts';
+	import { ValidateCodeSchema } from './validate-code/shared.ts';
 
 	let { data } = $props();
 	const uid = $props.id();

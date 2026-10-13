@@ -4,7 +4,7 @@ import { captureException } from '@sentry/sveltekit';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { type AuditLoggerOptions, createAuditLogger } from '#database/audit/logger.ts';
 import { drizzleOptions, openDatabase } from '#database/connection.ts';
-import { bindQueries } from './queries.ts';
+import { bindQueries } from './binder.ts';
 import { relations } from './relations.ts';
 
 const appClient = openDatabase(DATABASE_APP_URL);

@@ -171,7 +171,7 @@ Import these types from `#database/app/types.ts`:
 
 #### Query Modules
 
-In `src/routes/`, export only query factories from `queries.server.ts`:
+Export only query factories from `queries.server.ts` or `server/**/queries.ts`:
 
 ```ts
 // src/routes/posts/new/create-post/queries.server.ts
@@ -359,9 +359,7 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
 - Call `getRequestEvent()` in utility functions instead of passing `event`.
 - Check `load` return types with `satisfies`. See [sveltejs/kit#9799](https://github.com/sveltejs/kit/issues/9799).
 - Use `form` remote functions instead of `actions` in `+page.server.ts`.
-- Mark server-only modules by name or location:
-  - `server.ts` or `*.server.ts` — anywhere
-  - `server/` directories — outside `src/routes/`
+- Mark server-only modules with `server.*`, `*.server.*`, or `server/**`.
 
 Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#query-modules).
 

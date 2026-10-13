@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
 import { test } from 'vite-plus/test';
 import { createAppDb, seedUser } from '#tests/database/app.ts';
-import { bindQueries } from './queries.ts';
+import { bindQueries } from './binder.ts';
 import { userTable } from './schema.ts';
 import type { AppDbOrTx } from './types.ts';
 

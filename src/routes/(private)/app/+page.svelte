@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { logout } from '#remotes/logout.remote.ts';
-	import { getCurrentUser } from './user.remote.ts';
+	import { getCurrentUser } from './remote.ts';
 
 	let { data } = $props();
 

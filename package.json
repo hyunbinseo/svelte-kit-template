@@ -3,11 +3,12 @@
 	"private": true,
 	"type": "module",
 	"imports": {
+		"#cli/*": "./cli/*",
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
 		"build": "vp build",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p cli",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",

@@ -9,7 +9,10 @@
 	"[tailwindcss]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
 	"[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
 	"[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
-	"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit",
+		"source.organizeImports": "never"
+	},
 	"editor.defaultFormatter": "oxc.oxc-vscode",
 	"editor.formatOnSave": true,
 	"editor.formatOnSaveMode": "file",

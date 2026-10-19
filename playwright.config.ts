@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-const PORT = 4174;
+const PORT = 6526;
 
 export default defineConfig({
 	testMatch: '**/*.e2e.{js,ts}',

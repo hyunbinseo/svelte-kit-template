@@ -33,8 +33,8 @@ export default defineConfig({
 				}),
 			];
 		}) ?? [],
-	preview: { port: 4173, strictPort: true },
-	server: { port: 5173, strictPort: true },
+	preview: { port: 4526 },
+	server: { port: 5526 },
 	staged: {
 		'!(*.{cjs,cts,js,mjs,mts,svelte,ts})': 'vp fmt --no-error-on-unmatched-pattern',
 		'*.{cjs,cts,js,mjs,mts,svelte,ts}': ['eslint --fix', 'vp fmt'],

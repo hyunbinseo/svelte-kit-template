@@ -23,11 +23,5 @@
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 	},
-	"include": [
-		"src",
-		"drizzle.config.ts",
-		"eslint.config.js",
-		"playwright.config.ts",
-		"vite.config.ts"
-	]
+	"include": ["src", "*.js", "*.ts"]
 }

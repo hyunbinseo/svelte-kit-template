@@ -139,7 +139,7 @@ Open connections with the shared options or factory in `#database/connection.ts`
   - Makes writers wait instead of throwing `SQLITE_BUSY`
 - `PRAGMA journal_mode` (`delete` → `wal`, factory only)
 
-If a `PRAGMA` matters, verify it against the runtime in `pragmas/` tests and list it above.
+If a `PRAGMA` matters, set it there and list it above.
 
 ## Drizzle ORM
 

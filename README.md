@@ -8,7 +8,7 @@ An opinionated SvelteKit template for agent-assisted development — best practi
 - Audit logs — all writes, opt-in reads, query blocking on failure
 - Database procedures — TypeScript functions, not SQL triggers
 - Custom auth — database sessions, immediate revocation, onboarding flows
-- Unit, E2E tests — SQLite pragmas, session cookies
+- Unit, E2E tests — procedures, audit logs, session cookies
 
 ## Stack
 

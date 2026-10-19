@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
+const PORT = 4174;
+
 export default defineConfig({
-	webServer: { command: 'node --run build && node --run preview', port: 4173 },
-	testMatch: '**/*.e2e.{ts,js}'
+	testMatch: '**/*.e2e.{js,ts}',
+	webServer: { command: `vpr build && vpr preview --port ${PORT}`, port: PORT },
 });

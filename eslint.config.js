@@ -1,34 +1,32 @@
-import prettier from 'eslint-config-prettier';
-import path from 'node:path';
+import { resolve } from 'node:path';
 import js from '@eslint/js';
 import svelte from 'eslint-plugin-svelte';
 import { defineConfig, includeIgnoreFile } from 'eslint/config';
-import globals from 'globals';
 import ts from 'typescript-eslint';
 
-const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
-
 export default defineConfig(
-	includeIgnoreFile(gitignorePath),
+	includeIgnoreFile(resolve(import.meta.dirname, '.gitignore')),
 	js.configs.recommended,
 	ts.configs.recommended,
 	svelte.configs.recommended,
-	prettier,
-	svelte.configs.prettier,
+	{ rules: { 'no-undef': 'off' } },
 	{
-		languageOptions: { globals: { ...globals.browser, ...globals.node } },
-		rules: {
-			'no-undef': 'off'
-		}
-	},
-	{
-		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
+		files: ['**/*.svelte', '**/*.svelte.js', '**/*.svelte.ts'],
 		languageOptions: {
 			parserOptions: {
-				projectService: true,
 				extraFileExtensions: ['.svelte'],
-				parser: ts.parser
-			}
-		}
-	}
+				parser: ts.parser,
+				projectService: true,
+			},
+		},
+	},
+	{
+		files: ['**/*.{cjs,cts,mjs,mts}'],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				{ message: 'Use .js or .ts instead.', selector: 'Program' },
+			],
+		},
+	},
 );

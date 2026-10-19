@@ -15,6 +15,7 @@ Thumbs.db
 
 # Vite
 vite.config.ts.timestamp-*
+/.vitest
 
 # Playwright
 test-results

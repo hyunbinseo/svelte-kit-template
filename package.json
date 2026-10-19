@@ -6,23 +6,23 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
+		"build": "vp build",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write .",
-		"test:unit": "vitest",
-		"test": "node --run test:unit -- --run && node --run test:e2e",
-		"test:e2e": "playwright test",
-		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"dev": "vp dev",
+		"format": "vp fmt",
+		"lint": "vp fmt --check && eslint .",
+		"prepare": "(vp config --no-agent || echo '') && (svelte-kit sync || echo '')",
+		"preview": "vp preview",
+		"test": "vp test",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@opentelemetry/api": "^1.9.1",
 		"@playwright/test": "^1.64.1",
 		"@sun-typeface/suit": "^2.0.5",
 		"@sveltejs/adapter-node": "^6.0.0",
@@ -34,30 +34,25 @@
 		"drizzle-kit": "1.0.0-rc.4",
 		"drizzle-orm": "1.0.0-rc.4",
 		"eslint": "^10.13.0",
-		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.23.1",
-		"globals": "^17.13.0",
-		"prettier": "^3.9.10",
-		"prettier-plugin-svelte": "^4.1.1",
-		"prettier-plugin-tailwindcss": "^0.8.1",
 		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.7",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.71.2",
-		"vite": "^8.3.4",
-		"vitest": "^5.0.5"
+		"vite": "catalog:",
+		"vite-plus": "catalog:"
 	},
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
 			"version": "12.14.0",
-			"onFail": "download"
+			"onFail": "error"
 		},
 		"runtime": {
 			"name": "node",
 			"version": "24.22.0",
-			"onFail": "download"
+			"onFail": "error"
 		}
 	}
 }

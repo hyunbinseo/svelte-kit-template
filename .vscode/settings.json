@@ -1,5 +1,20 @@
 {
-	"files.associations": {
-		"*.css": "tailwindcss"
-	}
+	"[css]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[html]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[javascript]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[json]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[jsonc]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[markdown]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[svelte]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[tailwindcss]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode" },
+	"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+	"editor.defaultFormatter": "oxc.oxc-vscode",
+	"editor.formatOnSave": true,
+	"editor.formatOnSaveMode": "file",
+	"eslint.validate": ["javascript", "svelte", "typescript"],
+	"files.associations": { "*.css": "tailwindcss" },
+	"oxc.enable.oxlint": false,
+	"oxc.fmt.disableNestedConfig": true
 }

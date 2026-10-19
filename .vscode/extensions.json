@@ -1,8 +1,0 @@
-{
-	"recommendations": [
-		"bradlc.vscode-tailwindcss",
-		"dbaeumer.vscode-eslint",
-		"svelte.svelte-vscode",
-		"VoidZero.vite-plus-extension-pack"
-	]
-}

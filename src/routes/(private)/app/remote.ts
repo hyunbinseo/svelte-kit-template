@@ -8,7 +8,7 @@ const db = defineReadAuditedQueries(queries);
 
 export const getCurrentUser = query(() => {
 	const session = requireOnboarded();
-	const user = db.findCurrentUser(session.sub);
+	const user = db.findCurrentUser(session.userId);
 
 	if (!user) error(401);
 	if (!user.profile) error(500);

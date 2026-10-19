@@ -182,13 +182,13 @@ export const createPost =
 
 ```ts
 // src/routes/posts/new/create-post/remote.ts
-import { findActiveUserById } from '#auth/server/queries.ts';
+import { createSession } from '#auth/server/queries.ts';
 import { defineQueries } from '#database/app/client.ts';
 import * as queries from './queries.server.ts';
 
 const db = defineQueries({
 	...queries, // local
-	findActiveUserById, // shared
+	createSession, // shared
 });
 
 export const createPost = form(/* uses db */);
@@ -199,7 +199,7 @@ Call them on `db` or its transaction:
 ```ts
 db.findActiveUserByContact(contact); // outside a transaction
 db.transaction((tx) => tx.findActiveUserByContact(contact)); // on the transaction
-db.runProcedure(revokeToken, tokenId, ban); // a procedure on the same client
+db.runProcedure(revokeUserSession, sessionId, revocation); // a procedure on the same client
 ```
 
 ##### Naming
@@ -296,17 +296,17 @@ Index foreign key columns used in lookups or cascades.
 
 Index names follow 2 conventions:
 
-- `<table>_<columns>_idx` (e.g. `token_user_id_idx`)
+- `<table>_<columns>_idx` (e.g. `user_session_user_id_idx`)
 - `<filter>_<table>_<columns>_idx` — filtered (e.g. `active_user_contact_idx` on soft-delete)
 
-Use a `UNIQUE INDEX` to avoid duplicate records (e.g. one rotation per token). Write value filters with `` sql`...` ``:
+Use a `UNIQUE INDEX` to avoid duplicate records (e.g. one active role per user). Write value filters with `` sql`...` ``:
 
 ```ts
-uniqueIndex('rotate_token_ban_token_id_idx')
-	.on(table.tokenId)
+uniqueIndex('draft_post_author_id_idx')
+	.on(table.authorId)
 	// BLOCKED Use eq()
 	// See https://github.com/drizzle-team/drizzle-orm/issues/4790
-	.where(sql`${table.reason} = 'rotate'`);
+	.where(sql`${table.status} = 'draft'`);
 ```
 
 ### Relations
@@ -319,8 +319,8 @@ uniqueIndex('rotate_token_ban_token_id_idx')
 
 Procedures live in `#database/app/procedures.ts`, shared by `cli/` and SvelteKit. For example:
 
-- Cascades — propagate a change (e.g. deactivating a user revokes their roles)
-- Guarded inserts — insert only if other rows allow it (e.g. a ban for an unbanned token)
+- Cascades — propagate a change (e.g. deactivating a user revokes their roles and sessions)
+- Guarded inserts — insert only if other rows allow it (e.g. a role for an active user who lacks it)
 
 Each procedure must:
 
@@ -331,7 +331,7 @@ Each procedure must:
 
 Write guarded columns and rows (e.g. `revokedAt`, `userRole` rows) only via procedures. Test each guard in `procedures.test.ts`.
 
-A `claim` query guarded only by a `UNIQUE INDEX` (e.g. `claimTokenRotation`) doesn't need a procedure.
+A `claim` query guarded only by a `UNIQUE INDEX` (e.g. `claimProfile`) doesn't need a procedure.
 
 ### Transactions
 
@@ -361,6 +361,15 @@ Use the SvelteKit 3 API (e.g. `$app/env`).
 - Mark server-only modules with `server.*`, `*.server.*`, or `server/**`.
 
 Keep remote functions and `load` to business logic (e.g. guards, checks, transactions) — call queries via [`db`](#query-modules).
+
+### Auth
+
+`handleSession` verifies the session cookie on every request:
+
+- The cookie holds `<id>.<secret>` — only the secret's SHA-256 hash is stored.
+- One query reads the session and profile — revocations (including deactivation) and onboarding apply to any request that starts afterward.
+- `roles` is loaded on demand via `getSessionRoles()` and cached for the rest of the request.
+- Revoke sessions via procedures (e.g. `revokeUserSession`) — don't delete rows.
 
 ### Remote Functions (RPC)
 

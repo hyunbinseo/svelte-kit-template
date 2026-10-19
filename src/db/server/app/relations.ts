@@ -18,10 +18,10 @@ export const relations = defineRelations(schema, (r) => ({
 			where: { isSuccessful: true },
 		}),
 	},
-	tokenTable: {
-		bans: r.many.tokenBanTable({
-			from: r.tokenTable.id,
-			to: r.tokenBanTable.tokenId,
+	userSessionTable: {
+		profile: r.one.userProfileTable({
+			from: r.userSessionTable.userId,
+			to: r.userProfileTable.id,
 		}),
 	},
 	userTable: {

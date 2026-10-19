@@ -1,4 +1,4 @@
-import { randomUUIDv7 } from 'node:crypto';
+import { randomUUID, randomUUIDv7 } from 'node:crypto';
 import { and, eq, isNull } from 'drizzle-orm';
 import {
 	type AnySQLiteColumn,
@@ -9,7 +9,8 @@ import {
 	text,
 	uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
-import type { UserRole, UserRoleRevokeReason } from '#lib/enums/user.ts';
+import { AUTH_SESSION_EXPIRES_IN } from '#auth/config.ts';
+import type { UserRole, UserRoleRevokeReason, UserSessionRevokeReason } from '#lib/enums/user.ts';
 import type { ISODateString } from '#lib/valibot.ts';
 
 export const userTable = snakeCase.table(
@@ -60,6 +61,37 @@ export const userRoleTable = snakeCase.table(
 			.where(isNull(table.revokedAt)),
 		check(
 			'user_role_revoke_check',
+			and(
+				eq(isNull(table.revokedAt), isNull(table.revokedBy)),
+				eq(isNull(table.revokedBy), isNull(table.revokeReason)),
+			)!,
+		),
+	],
+);
+
+export const userSessionTable = snakeCase.table(
+	'user_session',
+	{
+		id: text().primaryKey().$default(randomUUID),
+		userId: text()
+			.notNull()
+			.references(() => userTable.id),
+		secretHash: text().notNull(),
+		createdAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date()),
+		expiresAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.$default(() => new Date(Date.now() + AUTH_SESSION_EXPIRES_IN)),
+		ip: text().notNull(),
+		revokedAt: integer({ mode: 'timestamp' }),
+		revokedBy: text().references(() => userTable.id),
+		revokeReason: text().$type<UserSessionRevokeReason>(),
+	},
+	(table) => [
+		index('user_session_user_id_idx').on(table.userId),
+		check(
+			'user_session_revoke_check',
 			and(
 				eq(isNull(table.revokedAt), isNull(table.revokedBy)),
 				eq(isNull(table.revokedBy), isNull(table.revokeReason)),

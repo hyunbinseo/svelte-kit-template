@@ -1,199 +1,95 @@
 import assert from 'node:assert/strict';
-import { env } from 'node:process';
 import { type BrowserContext, expect } from '@playwright/test';
-import { decodeJwt, SignJWT } from 'jose';
 import {
 	AUTH_COOKIE_NAME,
-	AUTH_TOKEN_ALGORITHM,
-	AUTH_TOKEN_EXPIRES_IN,
-	AUTH_TOKEN_ROTATE_GRACE,
-	AUTH_TOKEN_ROTATE_THRESHOLD,
+	AUTH_SESSION_EXPIRES_IN,
+	AUTH_SESSION_REFRESH_THRESHOLD,
 } from '#auth/config.ts';
-import type { AppSelect } from '#database/app/types.ts';
-import { findTokenBans, seedToken, seedTokenBan, seedUser } from '#tests/database/app.ts';
+import { deactivateUser } from '#database/app/procedures.ts';
+import { MINUTE } from '#lib/time.ts';
+import { seedUser, seedUserSession } from '#tests/database/app.ts';
 import { test } from '#tests/e2e/fixtures.ts';
 
-assert(env.JWT_SECRET_NEW);
-const secret = new TextEncoder().encode(env.JWT_SECRET_NEW);
-
-const addAuthCookie = async (
-	context: BrowserContext,
-	token: AppSelect<'tokenTable', 'id' | 'userId' | 'expiresAt'>,
-) => {
-	const jwt = await new SignJWT({})
-		.setProtectedHeader({ alg: AUTH_TOKEN_ALGORITHM })
-		.setJti(token.id)
-		.setSubject(token.userId)
-		.setExpirationTime(token.expiresAt)
-		.setIssuedAt()
-		.sign(secret);
-
+const addSessionCookie = async (context: BrowserContext, token: string) => {
 	await context.addCookies([
-		{
-			name: AUTH_COOKIE_NAME,
-			value: jwt,
-			domain: 'localhost',
-			path: '/',
-		},
+		{ name: AUTH_COOKIE_NAME, value: token, domain: 'localhost', path: '/' },
 	]);
-
-	return jwt;
 };
 
-const findAuthCookie = async (context: BrowserContext) => {
+const findSessionCookie = async (context: BrowserContext) => {
 	const cookies = await context.cookies();
 	return cookies.find((cookie) => cookie.name === AUTH_COOKIE_NAME);
 };
 
-test('rotates a near-expiry JWT cookie and keeps the session', async ({ page, context, db }) => {
-	const userId = seedUser(db).id;
-
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_ROTATE_THRESHOLD / 2);
-	const jwt = await addAuthCookie(context, token);
-
-	const oldCookieResponse = await page.request.get('/login', { maxRedirects: 0 });
-	expect(oldCookieResponse.status()).toBe(303);
-
-	const newCookie = await findAuthCookie(context);
-	assert(newCookie);
-	expect(newCookie.value).not.toBe(jwt);
-
-	const minExpiresAt = Date.now() + AUTH_TOKEN_EXPIRES_IN - AUTH_TOKEN_ROTATE_THRESHOLD;
-	expect(newCookie.expires * 1000).toBeGreaterThan(minExpiresAt);
-
-	const newCookieResponse = await page.request.get('/login', { maxRedirects: 0 });
-	expect(newCookieResponse.status()).toBe(303);
-
-	const keptCookie = await findAuthCookie(context);
-	assert(keptCookie);
-	expect(keptCookie.value).toBe(newCookie.value);
-});
-
-test('re-signs the rotated token when the rotation response was lost', async ({
-	page,
-	context,
-	db,
-}) => {
-	const userId = seedUser(db).id;
-
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_ROTATE_THRESHOLD / 2);
-	const jwt = await addAuthCookie(context, token);
-
-	await page.request.get('/login', { maxRedirects: 0 });
-
-	const rotated = await findAuthCookie(context);
-	assert(rotated);
-	expect(rotated.value).not.toBe(jwt);
-
-	// The client never received the rotated cookie.
-	await addAuthCookie(context, token);
+test('keeps a valid session', async ({ page, context, db }) => {
+	const session = seedUserSession(db, seedUser(db).id, Date.now() + AUTH_SESSION_EXPIRES_IN);
+	await addSessionCookie(context, session.token);
 
 	const response = await page.request.get('/login', { maxRedirects: 0 });
 	expect(response.status()).toBe(303);
 
-	const resigned = await findAuthCookie(context);
-	assert(resigned);
-	expect(resigned.value).toBe(rotated.value);
-	expect(db.query.tokenTable.findMany({ where: { userId } }).sync()).toHaveLength(2);
+	expect((await findSessionCookie(context))?.value).toBe(session.token);
 });
 
-test('re-signs the rotated token for a token far from expiry', async ({ page, context, db }) => {
-	const userId = seedUser(db).id;
-
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
-	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
-	const jwt = await addAuthCookie(context, token);
-
-	seedTokenBan(db, token.id, userId, 'rotate', Date.now() + AUTH_TOKEN_ROTATE_GRACE);
-
-	await page.request.get('/login', { maxRedirects: 0 });
-
-	const cookie = await findAuthCookie(context);
-	assert(cookie);
-	expect(cookie.value).not.toBe(jwt);
-	expect(decodeJwt(cookie.value).jti).toBe(child.id);
-});
-
-test('rotates a stale JWT and bans it after the grace period', async ({ page, context, db }) => {
-	const userId = seedUser(db).id;
-
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
-	const jwt = await addAuthCookie(context, token);
-
-	seedTokenBan(db, token.id, userId, 'stale', token.expiresAt.getTime());
-
-	const requestedAt = Date.now();
-	await page.request.get('/login', { maxRedirects: 0 });
-
-	const cookie = await findAuthCookie(context);
-	assert(cookie);
-	expect(cookie.value).not.toBe(jwt);
-
-	const bans = findTokenBans(db, token.id);
-	const rotateBan = bans.find((ban) => ban.reason === 'rotate');
-	assert(rotateBan);
-	expect(rotateBan.effectiveAt.getTime()).toBeGreaterThan(requestedAt);
-	expect(rotateBan.effectiveAt.getTime()).toBeLessThanOrEqual(Date.now() + AUTH_TOKEN_ROTATE_GRACE);
-});
-
-test('rotates a stale JWT that was already rotated', async ({ page, context, db }) => {
-	const userId = seedUser(db).id;
-
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
-	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
-	const jwt = await addAuthCookie(context, token);
-
-	seedTokenBan(db, token.id, userId, 'rotate', Date.now() + AUTH_TOKEN_ROTATE_GRACE);
-	seedTokenBan(db, token.id, userId, 'stale', token.expiresAt.getTime());
-	seedTokenBan(db, child.id, userId, 'stale', child.expiresAt.getTime());
+test('refreshes a session within the refresh threshold', async ({ page, context, db }) => {
+	const expiresAt = Date.now() + AUTH_SESSION_REFRESH_THRESHOLD - MINUTE;
+	const session = seedUserSession(db, seedUser(db).id, expiresAt);
+	await addSessionCookie(context, session.token);
 
 	const response = await page.request.get('/login', { maxRedirects: 0 });
 	expect(response.status()).toBe(303);
 
-	const cookie = await findAuthCookie(context);
-	assert(cookie);
-	expect(cookie.value).not.toBe(jwt);
+	const refreshed = db.query.userSessionTable.findFirst({ where: { id: session.id } }).sync();
+	assert(refreshed);
+	expect(refreshed.expiresAt.getTime()).toBeGreaterThan(expiresAt);
 
-	const latest = db.query.tokenTable.findFirst({ where: { refreshedFrom: child.id } }).sync();
-	assert(latest);
-	expect(decodeJwt(cookie.value).jti).toBe(latest.id);
-	expect(latest.refreshReason).toBe('stale');
+	const cookie = await findSessionCookie(context);
+	assert(cookie);
+	expect(cookie.value).toBe(session.token);
+	expect(cookie.expires * 1000).toBeGreaterThan(expiresAt);
 });
 
-test('revokes the family when a JWT is reused after the grace period', async ({
-	page,
-	context,
-	db,
-}) => {
-	const userId = seedUser(db).id;
-
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
-	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
-	await addAuthCookie(context, token);
-
-	seedTokenBan(db, token.id, userId, 'rotate', Date.now() - 1);
+test('drops a session with a wrong secret', async ({ page, context, db }) => {
+	const session = seedUserSession(db, seedUser(db).id, Date.now() + AUTH_SESSION_EXPIRES_IN);
+	await addSessionCookie(context, `${session.id}.wrong-secret`);
 
 	const response = await page.request.get('/login', { maxRedirects: 0 });
 	expect(response.status()).toBe(200);
 
-	expect(await findAuthCookie(context)).toBeUndefined();
-	expect(findTokenBans(db, child.id).map((ban) => ban.reason)).toEqual(['reuse']);
+	expect(await findSessionCookie(context)).toBeUndefined();
 });
 
-test('re-signs the latest descendant for a replayed ancestor', async ({ page, context, db }) => {
+test('drops an expired session', async ({ page, context, db }) => {
+	const session = seedUserSession(db, seedUser(db).id, Date.now() - 1);
+	await addSessionCookie(context, session.token);
+
+	const response = await page.request.get('/login', { maxRedirects: 0 });
+	expect(response.status()).toBe(200);
+
+	expect(await findSessionCookie(context)).toBeUndefined();
+});
+
+test('drops a session of a deactivated user', async ({ page, context, db }) => {
+	const adminId = seedUser(db).id;
 	const userId = seedUser(db).id;
+	const session = seedUserSession(db, userId, Date.now() + AUTH_SESSION_EXPIRES_IN);
+	await addSessionCookie(context, session.token);
 
-	const token = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN);
-	const child = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, token.id);
-	const grandchild = seedToken(db, userId, Date.now() + AUTH_TOKEN_EXPIRES_IN, child.id);
-	await addAuthCookie(context, token);
+	deactivateUser(db, userId, { deactivatedBy: adminId });
 
-	seedTokenBan(db, token.id, userId, 'rotate', Date.now() + AUTH_TOKEN_ROTATE_GRACE);
-	seedTokenBan(db, child.id, userId, 'rotate', Date.now() - 1);
+	const response = await page.request.get('/login', { maxRedirects: 0 });
+	expect(response.status()).toBe(200);
 
-	await page.request.get('/login', { maxRedirects: 0 });
+	expect(await findSessionCookie(context)).toBeUndefined();
+});
 
-	const cookie = await findAuthCookie(context);
-	assert(cookie);
-	expect(decodeJwt(cookie.value).jti).toBe(grandchild.id);
+test('revokes the session on logout', async ({ page, context, db }) => {
+	const session = seedUserSession(db, seedUser(db).id, Date.now() + AUTH_SESSION_EXPIRES_IN);
+	await addSessionCookie(context, session.token);
+
+	const response = await page.request.post('/api/clear-site-data', { maxRedirects: 0 });
+	expect(response.status()).toBe(303);
+
+	const revoked = db.query.userSessionTable.findFirst({ where: { id: session.id } }).sync();
+	expect(revoked?.revokeReason).toBe('logout');
 });

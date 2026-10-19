@@ -9,9 +9,9 @@ import {
 	AUTH_CODE_MAX_ATTEMPTS,
 	AUTH_REDIRECT_PARAM,
 } from '#auth/config.ts';
-import { createOrFindToken, findActiveUserById } from '#auth/server/queries.ts';
-import { requireLoggedOut } from '#auth/server/session.ts';
-import { signToken, toIssuedToken } from '#auth/server/token.ts';
+import { createSession } from '#auth/server/queries.ts';
+import { requireLoggedOut, setSessionCookie } from '#auth/server/session.ts';
+import { createSessionSecret, hashSessionSecret, toSessionToken } from '#auth/server/token.ts';
 import { defineQueries } from '#database/app/client.ts';
 import { InternalAbsolutePathSchema } from '#lib/valibot.ts';
 import { type ValidateErrorCode, validateErrorCodeToMessage } from './enums.ts';
@@ -20,8 +20,7 @@ import { ValidateCodeSchema } from './shared.ts';
 
 const db = defineQueries({
 	...queries,
-	createOrFindToken,
-	findActiveUserById,
+	createSession,
 });
 
 const getRedirectDestination = () => {
@@ -43,6 +42,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 	requireLoggedOut();
 
 	const ip = getRequestEvent().getClientAddress();
+	const secret = createSessionSecret();
 
 	const result = db.transaction(
 		(tx) => {
@@ -74,21 +74,21 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 			if (!user) {
 				if (!AUTH_ALLOW_UNREGISTERED) error(403);
-
-				const newUser = tx.createUser({ contact: data.contact });
-				user = tx.findActiveUserById(newUser.id) ?? null;
-
-				if (!user) error(500);
+				user = tx.createUser({ contact: data.contact });
 			}
 
 			if (!login.userId) tx.linkLoginToUser({ id: data.id, userId: user.id });
 
-			const token = tx.createOrFindToken({ userId: user.id, ip });
+			const session = tx.createSession({
+				userId: user.id,
+				secretHash: hashSessionSecret(secret),
+				ip,
+			});
 
-			return { token: toIssuedToken(token, user) };
+			return { session };
 		},
 		{ behavior: 'immediate' },
-	) satisfies { token: unknown } | { errorCode: ValidateErrorCode };
+	) satisfies { session: unknown } | { errorCode: ValidateErrorCode };
 
 	if (result.errorCode === 'codeInvalid') {
 		invalid(issue.code(validateErrorCodeToMessage[result.errorCode]));
@@ -96,7 +96,7 @@ export const validateCode = form(ValidateCodeSchema, async (data, issue) => {
 
 	if (result.errorCode) return result;
 
-	await signToken(result.token);
+	setSessionCookie(toSessionToken(result.session.id, secret), result.session.expiresAt);
 
 	redirect(303, getRedirectDestination());
 });

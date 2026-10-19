@@ -11,10 +11,7 @@ export const findLoginByIdAndContact =
 				columns: { userId: true, code: true, expiresAt: true, ip: true },
 				with: {
 					attempts: { columns: { isSuccessful: true } },
-					activeUserByContact: {
-						columns: { id: true },
-						with: { profile: { columns: { id: true } }, activeRoles: { columns: { role: true } } },
-					},
+					activeUserByContact: { columns: { id: true } },
 				},
 			})
 			.sync();

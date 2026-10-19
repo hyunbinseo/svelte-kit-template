@@ -1,17 +1,9 @@
 import assert from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, test, vi } from 'vite-plus/test';
-import {
-	createAppDb,
-	findTokenBans,
-	getSoleTokenBan,
-	seedToken,
-	seedTokenBan,
-	seedUser,
-	seedUserRole,
-} from '#tests/database/app.ts';
-import { deactivateUser, grantUserRole, revokeToken, revokeUserRole } from './procedures.ts';
-import { userRoleTable, userTable } from './schema.ts';
+import { createAppDb, seedUser, seedUserRole, seedUserSession } from '#tests/database/app.ts';
+import { deactivateUser, grantUserRole, revokeUserRole, revokeUserSession } from './procedures.ts';
+import { userRoleTable, userSessionTable, userTable } from './schema.ts';
 import type { AppDb } from './types.ts';
 
 const at = new Date(100_000);
@@ -27,9 +19,12 @@ afterEach(() => {
 
 const revokeEarlier = (db: AppDb, roleId: string, revokedBy: string) => {
 	vi.setSystemTime(50_000);
-	revokeUserRole(db, roleId, { revokedBy: revokedBy, ip: '' });
+	revokeUserRole(db, roleId, { revokedBy });
 	vi.setSystemTime(at);
 };
+
+const findUserSession = (db: AppDb, sessionId: string) =>
+	db.select().from(userSessionTable).where(eq(userSessionTable.id, sessionId)).get();
 
 const setup = () => {
 	const db = createAppDb();
@@ -40,7 +35,7 @@ describe('deactivateUser', () => {
 	test('deactivates the user', () => {
 		const { db, adminId, userId } = setup();
 
-		assert.equal(deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' }), true);
+		assert.equal(deactivateUser(db, userId, { deactivatedBy: adminId }), true);
 
 		const row = db.select().from(userTable).where(eq(userTable.id, userId)).get();
 		assert.equal(row?.deactivatedAt?.getTime(), at.getTime());
@@ -51,7 +46,7 @@ describe('deactivateUser', () => {
 		const { db, adminId, userId } = setup();
 		seedUserRole(db, userId, adminId);
 
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
 		const role = db.select().from(userRoleTable).where(eq(userRoleTable.userId, userId)).get();
 		assert.equal(role?.revokedAt?.getTime(), at.getTime());
@@ -59,16 +54,16 @@ describe('deactivateUser', () => {
 		assert.equal(role?.revokeReason, 'deactivate');
 	});
 
-	test('bans live token immediately (reason: deactivate)', () => {
+	test('revokes active session (reason: deactivate)', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const session = seedUserSession(db, userId, 999_999_000);
 
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '127.0.0.1' });
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
-		const ban = getSoleTokenBan(db, token.id);
-		assert.equal(ban.reason, 'deactivate');
-		assert.equal(ban.effectiveAt.getTime(), at.getTime());
-		assert.equal(ban.ip, '127.0.0.1');
+		const after = findUserSession(db, session.id);
+		assert.equal(after?.revokedAt?.getTime(), at.getTime());
+		assert.equal(after?.revokedBy, adminId);
+		assert.equal(after?.revokeReason, 'deactivate');
 	});
 
 	test('does not overwrite already revoked role', () => {
@@ -76,65 +71,40 @@ describe('deactivateUser', () => {
 		const role = seedUserRole(db, userId, adminId);
 		revokeEarlier(db, role.id, adminId);
 
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
 		const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
 		assert.equal(after?.revokedAt?.getTime(), 50_000);
 		assert.equal(after?.revokeReason, 'manual');
 	});
 
-	test('does not ban already expired token', () => {
+	test('does not overwrite already revoked session', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 50_000);
+		const session = seedUserSession(db, userId, 999_999_000);
+		vi.setSystemTime(50_000);
+		revokeUserSession(db, session.id, { revokedBy: userId, reason: 'logout' });
+		vi.setSystemTime(at);
 
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
-		assert.deepEqual(findTokenBans(db, token.id), []);
-	});
-
-	test('keeps an existing ban', () => {
-		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
-		seedTokenBan(db, token.id, userId, 'logout', 1_000);
-
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
-
-		assert.deepEqual(
-			findTokenBans(db, token.id).map((ban) => ban.reason),
-			['logout', 'deactivate'],
-		);
-	});
-
-	test('adds an immediate ban before a deferred one', () => {
-		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
-		const role = seedUserRole(db, userId, adminId);
-		revokeEarlier(db, role.id, adminId);
-
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
-
-		const bans = findTokenBans(db, token.id);
-		assert.equal(bans.length, 2);
-		const [first, second] = bans;
-		assert.equal(first?.reason, 'deactivate');
-		assert.equal(first?.effectiveAt.getTime(), at.getTime());
-		assert.equal(second?.reason, 'stale');
-		assert.equal(second?.bannedAt.getTime(), 50_000);
+		const after = findUserSession(db, session.id);
+		assert.equal(after?.revokedAt?.getTime(), 50_000);
+		assert.equal(after?.revokeReason, 'logout');
 	});
 
 	test('does nothing if already deactivated', () => {
 		const { db, adminId, userId } = setup();
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
-		// Added after the first deactivation, so a repeat would revoke/ban them.
+		// Added after the first deactivation, so a repeat would revoke them.
 		const role = seedUserRole(db, userId, adminId);
-		const token = seedToken(db, userId, 999_999_000);
+		const session = seedUserSession(db, userId, 999_999_000);
 
-		assert.equal(deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' }), false);
+		assert.equal(deactivateUser(db, userId, { deactivatedBy: adminId }), false);
 
 		const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
 		assert.equal(after?.revokedAt, null);
-		assert.deepEqual(findTokenBans(db, token.id), []);
+		assert.equal(findUserSession(db, session.id)?.revokedAt, null);
 	});
 });
 
@@ -171,7 +141,7 @@ describe('grantUserRole', () => {
 
 	test('does nothing if the user is deactivated', () => {
 		const { db, adminId, userId } = setup();
-		deactivateUser(db, userId, { deactivatedBy: adminId, ip: '' });
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
 		assert.equal(grantUserRole(db, userId, { role: 'admin', assignedBy: adminId }), undefined);
 
@@ -185,152 +155,53 @@ describe('revokeUserRole', () => {
 		const { db, adminId, userId } = setup();
 		const role = seedUserRole(db, userId, adminId);
 
-		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' }), true);
+		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId }), true);
 
 		const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
 		assert.equal(after?.revokedAt?.getTime(), at.getTime());
 		assert.equal(after?.revokeReason, 'manual');
 	});
 
-	test('defers token ban until expiry (reason: stale)', () => {
-		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
-		const role = seedUserRole(db, userId, adminId);
-
-		revokeUserRole(db, role.id, { revokedBy: adminId, ip: '127.0.0.1' });
-
-		const ban = getSoleTokenBan(db, token.id);
-		assert.equal(ban.reason, 'stale');
-		assert.equal(ban.effectiveAt.getTime(), 999_999_000);
-		assert.equal(ban.ip, '127.0.0.1');
-	});
-
 	test('does nothing if already revoked', () => {
 		const { db, adminId, userId } = setup();
 		const role = seedUserRole(db, userId, adminId);
 		revokeEarlier(db, role.id, adminId);
-		const token = seedToken(db, userId, 999_999_000);
 
-		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' }), false);
+		assert.equal(revokeUserRole(db, role.id, { revokedBy: adminId }), false);
 
-		assert.deepEqual(findTokenBans(db, token.id), []);
+		const after = db.select().from(userRoleTable).where(eq(userRoleTable.id, role.id)).get();
+		assert.equal(after?.revokedAt?.getTime(), 50_000);
 	});
 });
 
-describe('revokeToken', () => {
-	const logout = { reason: 'logout', ip: '' } as const;
-
-	test('bans the token immediately (reason: logout)', () => {
+describe('revokeUserSession', () => {
+	test('revokes the session (reason: logout)', () => {
 		const { db, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
+		const session = seedUserSession(db, userId, 999_999_000);
+		const other = seedUserSession(db, userId, 999_999_000);
 
-		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
+		assert.equal(revokeUserSession(db, session.id, { revokedBy: userId, reason: 'logout' }), true);
 
-		const ban = getSoleTokenBan(db, token.id);
-		assert.equal(ban.reason, 'logout');
-		assert.equal(ban.effectiveAt.getTime(), at.getTime());
+		const after = findUserSession(db, session.id);
+		assert.equal(after?.revokedAt?.getTime(), at.getTime());
+		assert.equal(after?.revokedBy, userId);
+		assert.equal(after?.revokeReason, 'logout');
+		assert.equal(findUserSession(db, other.id)?.revokedAt, null);
 	});
 
-	test('bans live ancestors and descendants', () => {
-		const { db, userId } = setup();
-		const expired = seedToken(db, userId, 50_000);
-		const parent = seedToken(db, userId, 999_998_000, expired.id);
-		const token = seedToken(db, userId, 999_999_000, parent.id);
-		const child = seedToken(db, userId, 1_000_000_000, token.id);
-		const other = seedToken(db, userId, 999_999_000);
-
-		revokeToken(db, token.id, { ...logout, bannedBy: userId });
-
-		assert.deepEqual(findTokenBans(db, expired.id), []);
-		assert.equal(getSoleTokenBan(db, parent.id).reason, 'logout');
-		assert.equal(getSoleTokenBan(db, token.id).reason, 'logout');
-		assert.equal(getSoleTokenBan(db, child.id).reason, 'logout');
-		assert.deepEqual(findTokenBans(db, other.id), []);
-	});
-
-	test('skips family members that are already banned', () => {
-		const { db, userId } = setup();
-		const parent = seedToken(db, userId, 999_998_000);
-		const token = seedToken(db, userId, 999_999_000, parent.id);
-		seedTokenBan(db, parent.id, userId, 'rotate', 1_000);
-
-		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
-
-		assert.equal(getSoleTokenBan(db, parent.id).reason, 'rotate');
-		assert.equal(getSoleTokenBan(db, token.id).reason, 'logout');
-	});
-
-	test('bans the family of a rotated token (reason: reuse)', () => {
-		const { db, userId } = setup();
-		const token = seedToken(db, userId, 999_998_000);
-		const child = seedToken(db, userId, 999_999_000, token.id);
-		seedTokenBan(db, token.id, userId, 'rotate', 1_000);
-
-		assert.equal(revokeToken(db, token.id, { reason: 'reuse', ip: '', bannedBy: userId }), true);
-
-		assert.equal(getSoleTokenBan(db, token.id).reason, 'rotate');
-		assert.equal(getSoleTokenBan(db, child.id).reason, 'reuse');
-	});
-
-	test('bans ancestors still within the rotation grace period (reason: reuse)', () => {
-		const { db, userId } = setup();
-		const parent = seedToken(db, userId, 999_997_000);
-		const token = seedToken(db, userId, 999_998_000, parent.id);
-		const child = seedToken(db, userId, 999_999_000, token.id);
-		seedTokenBan(db, parent.id, userId, 'rotate', 160_000);
-		seedTokenBan(db, token.id, userId, 'rotate', 1_000);
-
-		assert.equal(revokeToken(db, token.id, { reason: 'reuse', ip: '', bannedBy: userId }), true);
-
-		assert.deepEqual(
-			findTokenBans(db, parent.id).map((ban) => ban.reason),
-			['reuse', 'rotate'],
-		);
-		assert.equal(getSoleTokenBan(db, token.id).reason, 'rotate');
-		assert.equal(getSoleTokenBan(db, child.id).reason, 'reuse');
-	});
-
-	test('does nothing if the rotated family is already banned', () => {
-		const { db, userId } = setup();
-		const token = seedToken(db, userId, 999_998_000);
-		const child = seedToken(db, userId, 999_999_000, token.id);
-		seedTokenBan(db, token.id, userId, 'rotate', 1_000);
-		seedTokenBan(db, child.id, userId, 'logout', 1_000);
-
-		assert.equal(revokeToken(db, token.id, { reason: 'reuse', ip: '', bannedBy: userId }), false);
-
-		assert.equal(getSoleTokenBan(db, child.id).reason, 'logout');
-	});
-
-	test('bans despite a deferred ban', () => {
+	test('does nothing if already revoked', () => {
 		const { db, adminId, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
-		const role = seedUserRole(db, userId, adminId);
-		revokeUserRole(db, role.id, { revokedBy: adminId, ip: '' });
+		const session = seedUserSession(db, userId, 999_999_000);
+		deactivateUser(db, userId, { deactivatedBy: adminId });
 
-		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), true);
+		assert.equal(revokeUserSession(db, session.id, { revokedBy: userId, reason: 'logout' }), false);
 
-		assert.deepEqual(
-			findTokenBans(db, token.id).map((ban) => ban.reason),
-			['logout', 'stale'],
-		);
+		assert.equal(findUserSession(db, session.id)?.revokeReason, 'deactivate');
 	});
 
-	test('does nothing if already banned', () => {
-		const { db, userId } = setup();
-		const token = seedToken(db, userId, 999_999_000);
-		seedTokenBan(db, token.id, userId, 'logout', 1_000);
-		const child = seedToken(db, userId, 1_000_000_000, token.id);
-
-		assert.equal(revokeToken(db, token.id, { ...logout, bannedBy: userId }), false);
-
-		assert.equal(findTokenBans(db, token.id).length, 1);
-		assert.deepEqual(findTokenBans(db, child.id), []);
-	});
-
-	test('does nothing if the token does not exist', () => {
+	test('does nothing if the session does not exist', () => {
 		const { db, userId } = setup();
 
-		assert.equal(revokeToken(db, 'missing', { ...logout, bannedBy: userId }), false);
+		assert.equal(revokeUserSession(db, 'missing', { revokedBy: userId, reason: 'logout' }), false);
 	});
 });

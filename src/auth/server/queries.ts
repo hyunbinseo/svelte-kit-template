@@ -1,66 +1,38 @@
-import { tokenBanTable, tokenTable } from '#database/app/schema.ts';
-import type { AppDbOrTx, AppInsert } from '#database/app/types.ts';
+import { and, eq, isNull } from 'drizzle-orm';
+import { userSessionTable } from '#database/app/schema.ts';
+import type { AppDbOrTx, AppInsert, AppRequired } from '#database/app/types.ts';
 
-export const findActiveUserById = (db: AppDbOrTx) => (id: string) =>
-	db.query.userTable
-		.findFirst({
-			where: { id, deactivatedAt: { isNull: true } },
-			columns: { id: true },
-			with: { profile: { columns: { id: true } }, activeRoles: { columns: { role: true } } },
-		})
-		.sync();
-
-export const createOrFindToken =
+export const createSession =
 	(db: AppDbOrTx) =>
-	({
-		userId,
-		refreshedFrom,
-		refreshReason,
-		ip,
-	}: AppInsert<'tokenTable', 'userId' | 'refreshedFrom' | 'refreshReason' | 'ip'>) =>
+	({ userId, secretHash, ip }: AppInsert<'userSessionTable', 'userId' | 'secretHash' | 'ip'>) =>
 		db
-			.insert(tokenTable)
-			.values({ userId, refreshedFrom, refreshReason, ip })
-			// Returns existing row.
-			.onConflictDoUpdate({
-				target: tokenTable.refreshedFrom,
-				set: { userId: tokenTable.userId },
-			})
-			.returning({
-				id: tokenTable.id,
-				issuedAt: tokenTable.issuedAt,
-				expiresAt: tokenTable.expiresAt,
-			})
+			.insert(userSessionTable)
+			.values({ userId, secretHash, ip })
+			.returning({ id: userSessionTable.id, expiresAt: userSessionTable.expiresAt })
 			.all()[0]!;
 
-export const claimTokenRotation =
+export const findLiveSessionById = (db: AppDbOrTx) => (id: string) =>
+	db.query.userSessionTable
+		.findFirst({
+			where: { id, expiresAt: { gt: new Date() }, revokedAt: { isNull: true } },
+			columns: { id: true, userId: true, secretHash: true, expiresAt: true },
+			with: { profile: { columns: { id: true } } },
+		})
+		.sync();
+
+export const findActiveUserRolesByUserId = (db: AppDbOrTx) => (userId: string) =>
+	db.query.userRoleTable
+		.findMany({
+			where: { userId, revokedAt: { isNull: true } },
+			columns: { role: true },
+		})
+		.sync();
+
+export const markSessionRefreshed =
 	(db: AppDbOrTx) =>
-	({
-		tokenId,
-		bannedBy,
-		ip,
-		effectiveAt,
-	}: AppInsert<'tokenBanTable', 'tokenId' | 'bannedBy' | 'ip' | 'effectiveAt'>) => {
-		db.insert(tokenBanTable)
-			.values({ tokenId, bannedBy, ip, effectiveAt, reason: 'rotate' })
-			.onConflictDoNothing()
+	({ id, expiresAt }: AppRequired<'userSessionTable', 'id' | 'expiresAt'>) => {
+		db.update(userSessionTable)
+			.set({ expiresAt })
+			.where(and(eq(userSessionTable.id, id), isNull(userSessionTable.revokedAt)))
 			.run();
 	};
-
-export const findTokenWithBans = (db: AppDbOrTx) => (id: string) =>
-	db.query.tokenTable
-		.findFirst({
-			where: { id },
-			columns: { id: true, issuedAt: true, expiresAt: true },
-			with: { bans: { columns: { reason: true, effectiveAt: true } } },
-		})
-		.sync();
-
-export const findLiveTokensByUserId = (db: AppDbOrTx) => (userId: string) =>
-	db.query.tokenTable
-		.findMany({
-			where: { userId, expiresAt: { gt: new Date() } },
-			columns: { id: true, refreshedFrom: true, issuedAt: true, expiresAt: true },
-			with: { bans: { columns: { reason: true, effectiveAt: true } } },
-		})
-		.sync();

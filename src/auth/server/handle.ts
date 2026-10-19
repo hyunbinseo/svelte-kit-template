@@ -1,62 +1,45 @@
-import { captureException, setUser } from '@sentry/sveltekit';
+import { logger, setUser } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit/hooks';
-import { AUTH_COOKIE_NAME, AUTH_TOKEN_ROTATE_THRESHOLD } from '#auth/config.ts';
-import { revokeToken } from '#database/app/procedures.ts';
+import {
+	AUTH_COOKIE_NAME,
+	AUTH_SESSION_EXPIRES_IN,
+	AUTH_SESSION_REFRESH_THRESHOLD,
+} from '#auth/config.ts';
 import { db } from './db.ts';
-import { rotateToken, verifyToken } from './token.ts';
+import { setSessionCookie } from './session.ts';
+import { parseSessionToken, verifySessionSecret } from './token.ts';
 
-export const handleToken: Handle = async ({ event, resolve }) => {
-	const jwt = event.cookies.get(AUTH_COOKIE_NAME);
-	if (!jwt) return resolve(event);
+export const handleSession: Handle = ({ event, resolve }) => {
+	const token = event.cookies.get(AUTH_COOKIE_NAME);
+	if (!token) return resolve(event);
 
-	const payload = (await verifyToken(jwt))?.payload;
-	const token = payload && db.findTokenWithBans(payload.jti);
+	const parsed = parseSessionToken(token);
+	const session = parsed && db.findLiveSessionById(parsed.id);
+	const isValid = !!session && verifySessionSecret(parsed.secret, session.secretHash);
 
-	const now = new Date();
+	if (!parsed || (session && !isValid)) logger.warn('Invalid session token');
 
-	if (!token || token.bans.some((ban) => ban.effectiveAt <= now)) {
-		if (payload && token?.bans.some((ban) => ban.reason === 'rotate' && ban.effectiveAt <= now)) {
-			try {
-				db.runProcedure(revokeToken, token.id, {
-					reason: 'reuse',
-					bannedBy: payload.sub,
-					ip: event.getClientAddress(),
-				});
-			} catch (error) {
-				captureException(error);
-			}
-		}
-
+	if (!isValid) {
 		event.cookies.delete(AUTH_COOKIE_NAME);
 		return resolve(event);
 	}
 
-	const pending = new Set(token.bans.map((ban) => ban.reason));
-	const isStale = pending.has('stale');
+	event.locals.session = {
+		id: session.id,
+		userId: session.userId,
+		isOnboarded: !!session.profile,
+	};
 
-	if (!isStale) {
-		event.locals.session = {
-			jti: payload.jti,
-			sub: payload.sub,
-			profile: payload.profile !== null,
-			roles: new Set(payload.roles),
-		};
+	const now = Date.now();
+
+	if (session.expiresAt.getTime() - now <= AUTH_SESSION_REFRESH_THRESHOLD) {
+		const expiresAt = new Date(now + AUTH_SESSION_EXPIRES_IN);
+		db.markSessionRefreshed({ id: session.id, expiresAt });
+		setSessionCookie(token, expiresAt);
 	}
 
-	if (
-		isStale ||
-		pending.has('rotate') ||
-		payload.exp * 1000 - now.getTime() <= AUTH_TOKEN_ROTATE_THRESHOLD
-	) {
-		// Re-signs the latest descendant if a previous rotation response was lost.
-		await rotateToken(payload, 'threshold').catch(captureException);
-	}
-
-	if (event.locals.session) {
-		const { sub: userId } = event.locals.session;
-		setUser({ id: userId });
-		event.tracing.root.setAttribute('userId', userId);
-	}
+	setUser({ id: session.userId });
+	event.tracing.root.setAttribute('userId', session.userId);
 
 	return resolve(event);
 };

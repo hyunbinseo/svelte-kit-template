@@ -29,7 +29,7 @@ const createRequestAuditLogger = (options?: AuditLoggerOptions) => {
 			try {
 				const event = getRequestEvent();
 				return {
-					sub: event.locals.session?.sub,
+					sub: event.locals.session?.userId,
 					ip: event.getClientAddress(),
 					pathname: new URL(event.request.url).pathname,
 				};

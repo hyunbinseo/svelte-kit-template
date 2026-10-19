@@ -2,7 +2,26 @@
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
 		"strict": true,
-		"types": ["$app/types", "node"]
+
+		// Environment Settings
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		// "lib": [/* TODO: specs/01-language-target.md */],
+		"types": ["$app/types", "node"],
+
+		// Stricter Typechecking Options
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+
+		// Style Options
+		"noImplicitReturns": true,
+		"noImplicitOverride": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noPropertyAccessFromIndexSignature": false,
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false
 	},
 	"include": ["src", "vite.config.ts", "playwright.config.ts", "drizzle.config.ts"]
 }

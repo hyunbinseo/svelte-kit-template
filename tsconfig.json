@@ -6,7 +6,7 @@
 		// Environment Settings
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
-		// "lib": [/* TODO: specs/01-language-target.md */],
+		"lib": ["ES2023", "DOM", "DOM.Iterable"], // sync with vite.config.ts
 		"types": ["$app/types", "node"],
 
 		// Stricter Typechecking Options

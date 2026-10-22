@@ -1,9 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<script>
+			// Sync with vite.config.ts
+			// Keep ES5 for legacy browsers
+			try {
+				if (!(
+					[].toReversed &&
+					CSS.supports('selector(:has(*))') &&
+					CSS.supports('color', 'color-mix(in oklab, red, red)')
+				)) {
+					throw 0;
+				}
+			} catch (e) {
+				document.write('지원하지 않는 브라우저입니다.');
+				document.write('<plaintext style="display: none">');
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

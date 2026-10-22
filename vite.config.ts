@@ -1,6 +1,12 @@
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
+	build: {
+		// Keep target in sync with:
+		// - src/app.html check
+		// - tsconfig.json `lib`
+		target: 'es2023',
+	},
 	fmt: {
 		ignorePatterns: ['/drizzle/', 'pnpm-lock.yaml'],
 		printWidth: 100,

@@ -25,3 +25,7 @@ App schema to support (columns are a starting point, not a contract):
 - [ ] Generate/migrate scripts exist per DB and environment; production migration reads production env.
 - [ ] Connections close on `sveltekit:shutdown`.
 - [ ] Drizzle query errors never expose query params in messages or `inspect()` output — tested. (Drizzle includes them by default; find the lightest fix.)
+
+## Decisions
+
+- The SvelteKit client (`src/db/server/app/client.ts`) opens `:memory:` while `building` (build analysis and prerendering), so `vpr build` creates no files, e.g. no `data/` in the image ([12](./12-operations.md)). Prerendered pages can't read the database.

@@ -10,7 +10,7 @@ Log database queries to a separate audit DB, from both SvelteKit and CLI.
 
 ## Checklist
 
-- [ ] Off unless `DATABASE_AUDIT_URL` is set.
+- [ ] Off in development, on in every other mode (`isAuditEnabled` in `src/db/server/shared.ts`, see [03](./03-environment.md)).
 - [ ] Writes always logged (including `begin`/`commit`/`rollback`; CTEs count as writes); reads only when opted in.
 - [ ] SQL text deduplicated by hash; each entry records time, user ID, client IP, pathname, params.
 - [ ] A failed audit write blocks the query before it runs; a failed `commit` log rolls back the transaction.

@@ -8,17 +8,16 @@ node_modules
 .DS_Store
 Thumbs.db
 
-# Env
-.env
-.env.*
-!.env.example
-
 # Vite
-vite.config.ts.timestamp-*
+*.local
 /.vitest
+vite.config.ts.timestamp-*
 
 # Playwright
 test-results
 
 # SQLite
 *.db
+*.db-shm
+*.db-wal
+/data/

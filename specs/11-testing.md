@@ -15,3 +15,7 @@ Unit tests (Vitest via Vite+) and E2E (Playwright) with isolated databases.
 - [ ] E2E uses a custom `test` fixture exposing `db`; importing Playwright's `test` directly is blocked.
 - [ ] E2E selects by role, attribute, or seeded value — not UI text.
 - [ ] `vpr test` and `vpr test:e2e` pass.
+
+## Decisions
+
+- Unit tests don't import `#db/server/app/client.ts`, directly or transitively: it parses `import.meta.env.MODE`, which is `test` under Vitest, and throws. Code under test takes a database instead.

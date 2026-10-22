@@ -78,16 +78,15 @@ Check `src/env.ts` to see if the variables are static:
 
 ### Update Node.js and PM2
 
-The `update-runtime` shell function installs the latest PM2 on the latest Node.js LTS, updates the PM2 daemon, and reloads the apps.
+The `update-runtime` shell function installs the latest PM2 on the latest Node.js LTS, then restarts the PM2 daemon and apps with brief downtime. Cron apps (`cron_restart`) also run once.
 
-> [!WARNING]
-> `update-runtime` stops all processes and will result in brief downtime.
+Either may move to a new major. If so, first check its changelog, then bump and test each project's pin:
+
+- [Node.js](https://github.com/nodejs/node/blob/main/CHANGELOG.md) (e.g. 24 → 26) — `devEngines.runtime`
+- [PM2](https://github.com/Unitech/pm2/blob/master/CHANGELOG.md) (e.g. 7 → 8) — `pm2-ecosystem`
 
 > [!CAUTION]
 > Don't run `vp update -g` or `vp install -g pm2` directly — they delete the PM2 install the daemon runs from, so app restarts fail. See [voidzero-dev/vite-plus#2878](https://github.com/voidzero-dev/vite-plus/issues/2878).
-
-> [!CAUTION]
-> The LTS can move to a new major (e.g. 24 → 26) — bump and test projects' `devEngines.runtime` first.
 
 ```shell
 pm2 info <name> # node.js version │ <old-version>
@@ -97,13 +96,8 @@ update-runtime
 pm2 info <name> # node.js version │ <new-version>
 ```
 
-`pm2-ecosystem`'s version is pinned to match the installed `pm2` version, so it doubles as a version log. Bump it after updating PM2:
-
-```shell
-pm2 --version
-vp update --latest pm2-ecosystem
-# verify version matches, then commit
-```
+> [!NOTE]
+> Until the next reboot, the new daemon runs outside `pm2-nodejs.service`, so `systemctl status` won't list it. As root, `systemctl restart pm2-nodejs` moves it back, but kills and resurrects all apps — another brief downtime.
 
 ### System Resource Usage
 

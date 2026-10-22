@@ -55,7 +55,9 @@ write_files:
     content: |
       update-runtime() {
         vp install -g --node lts pm2 &&
+          # Restart the daemon and cluster mode apps.
           pm2 update &&
+          # Restart fork mode apps.
           pm2 reload all --update-env &&
           pm2 save &&
           vp list -g pm2
@@ -84,17 +86,19 @@ write_files:
       After=network.target
 
       [Service]
-      # SELinux blocks init_t from reading a PIDFile under /home.
+      # Not `forking` — SELinux blocks systemd from reading a PID file under /home.
       Type=oneshot
+
+      # `pm2 resurrect` starts the daemon and exits — remain active or the daemon is killed.
       RemainAfterExit=yes
+
       User=nodejs
-      LimitNOFILE=infinity
-      LimitNPROC=infinity
-      LimitCORE=infinity
-      Environment=PM2_HOME=/home/nodejs/.pm2
+
+      # No `Limit*=` — a daemon restarted by `pm2 update` wouldn't inherit them.
 
       ExecStart=/bin/bash -c 'source /home/nodejs/.config/vite-plus/env && pm2 resurrect'
-      ExecReload=/bin/bash -c 'source /home/nodejs/.config/vite-plus/env && pm2 reload all'
+
+      # Also stops a daemon started outside this service (e.g. by `pm2 update`).
       ExecStop=/bin/bash -c 'source /home/nodejs/.config/vite-plus/env && pm2 kill'
 
       [Install]

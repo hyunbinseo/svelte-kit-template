@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { defineRelations } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-sqlite';
+// eslint-disable-next-line no-restricted-syntax
 import * as schema from '#db/server/app/schema.ts';
 import { DATABASE_URL } from '$app/env/private';
 

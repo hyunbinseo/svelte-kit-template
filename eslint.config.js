@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import js from '@eslint/js';
+import perfectionist from 'eslint-plugin-perfectionist';
 import svelte from 'eslint-plugin-svelte';
 import { defineConfig, includeIgnoreFile } from 'eslint/config';
 import ts from 'typescript-eslint';
@@ -9,7 +10,31 @@ export default defineConfig(
 	js.configs.recommended,
 	ts.configs.recommended,
 	svelte.configs.recommended,
-	{ rules: { 'no-undef': 'off' } },
+	perfectionist.configs['recommended-natural'],
+	{
+		rules: {
+			'func-style': ['error', 'expression'],
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{ message: 'Use node:assert/strict.', name: 'assert' },
+						{ message: 'Use node:assert/strict.', name: 'node:assert' },
+					],
+					patterns: [
+						{
+							group: ['../*', './*/**'],
+							message: 'Use a subpath import.',
+						},
+					],
+				},
+			],
+			'no-restricted-syntax': ['error', 'ImportNamespaceSpecifier'],
+			'no-undef': 'off',
+			'perfectionist/sort-imports': 'off', // oxfmt
+			'prefer-arrow-callback': 'error',
+		},
+	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.js', '**/*.svelte.ts'],
 		languageOptions: {

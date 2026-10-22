@@ -46,12 +46,20 @@ export default defineConfig({
 		'*.{cjs,cts,js,mjs,mts,svelte,ts}': ['eslint --fix', 'vp fmt'],
 	},
 	test: {
-		expect: { requireAssertions: true },
 		projects: [
+			{
+				test: {
+					environment: 'node',
+					expect: { requireAssertions: true },
+					include: ['cli/**/*.{test,spec}.{js,ts}'],
+					name: 'cli',
+				},
+			},
 			{
 				extends: './vite.config.ts',
 				test: {
 					environment: 'node',
+					expect: { requireAssertions: true },
 					include: ['src/**/*.{test,spec}.{js,ts}'],
 					name: 'server',
 				},

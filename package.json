@@ -44,6 +44,7 @@
 		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.7",
 		"tailwindcss": "^4.3.3",
+		"type-fest": "^5.10.0",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.71.2",
 		"valibot": "^1.5.0",

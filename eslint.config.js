@@ -50,6 +50,16 @@ export default defineConfig(
 		},
 	},
 	{
+		files: ['src/db/**/*.ts'],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				'ImportNamespaceSpecifier',
+				{ message: "Use Drizzle's sync API.", selector: 'AwaitExpression' },
+			],
+		},
+	},
+	{
 		files: ['src/db/*/server/schema/*.ts'],
 		ignores: ['**/*.*.ts'],
 		rules: { 'perfectionist/sort-objects': 'off' },

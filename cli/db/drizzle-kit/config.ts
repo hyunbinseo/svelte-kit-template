@@ -31,7 +31,6 @@ export const defineDatabaseConfig = (database: DatabaseName) => {
 		dialect: 'sqlite',
 		out: `./drizzle/${database}`,
 		schema: `./src/db/server/${database}/schema.ts`,
-		strict: true,
 		verbose: true,
 	});
 };

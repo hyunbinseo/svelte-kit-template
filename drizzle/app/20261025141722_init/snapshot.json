@@ -1,0 +1,812 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "c8fc231b-59f9-4844-9684-9b5f410a9d43",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "ddl": [
+    {
+      "name": "login",
+      "entityType": "tables"
+    },
+    {
+      "name": "login_attempt",
+      "entityType": "tables"
+    },
+    {
+      "name": "user",
+      "entityType": "tables"
+    },
+    {
+      "name": "user_profile",
+      "entityType": "tables"
+    },
+    {
+      "name": "user_role",
+      "entityType": "tables"
+    },
+    {
+      "name": "user_session",
+      "entityType": "tables"
+    },
+    {
+      "table": "login",
+      "name": "id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "contact",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "user_id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "code_hash",
+      "type": "blob",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "created_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "expires_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "ip",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "send_id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login_attempt",
+      "name": "id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login_attempt",
+      "name": "login_id",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login_attempt",
+      "name": "success",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login_attempt",
+      "name": "attempted_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login_attempt",
+      "name": "ip",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "contact",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "created_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "created_by",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "closed_at",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "closed_by",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user",
+      "name": "closed_reason",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_profile",
+      "name": "user_id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_profile",
+      "name": "birth_date",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_profile",
+      "name": "created_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "user_id",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "role",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "assigned_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "assigned_by",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "revoked_at",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "revoked_by",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_role",
+      "name": "revoked_reason",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "id",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "user_id",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "secret_hash",
+      "type": "blob",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "created_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "expires_at",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "ip",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "revoked_at",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "revoked_by",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "user_session",
+      "name": "revoked_reason",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "login",
+      "name": "login_contact_idx",
+      "columns": [
+        {
+          "value": "contact",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "login",
+      "name": "login_user_id_idx",
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "login_attempt",
+      "name": "login_attempt_login_id_idx",
+      "columns": [
+        {
+          "value": "login_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "user_role",
+      "name": "user_role_active_unique",
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        },
+        {
+          "value": "role",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "(\"user_role\".\"revoked_at\" is null)",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_user_id_idx",
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "login",
+      "name": "fk_login_user_id_user_id_fk",
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "login_attempt",
+      "name": "fk_login_attempt_login_id_login_id_fk",
+      "columns": [
+        "login_id"
+      ],
+      "tableTo": "login",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user",
+      "name": "fk_user_created_by_user_id_fk",
+      "columns": [
+        "created_by"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user",
+      "name": "fk_user_closed_by_user_id_fk",
+      "columns": [
+        "closed_by"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user_profile",
+      "name": "fk_user_profile_user_id_user_id_fk",
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user_role",
+      "name": "fk_user_role_user_id_user_id_fk",
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user_role",
+      "name": "fk_user_role_assigned_by_user_id_fk",
+      "columns": [
+        "assigned_by"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user_role",
+      "name": "fk_user_role_revoked_by_user_id_fk",
+      "columns": [
+        "revoked_by"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user_session",
+      "name": "fk_user_session_user_id_user_id_fk",
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "user_session",
+      "name": "fk_user_session_revoked_by_user_id_fk",
+      "columns": [
+        "revoked_by"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "login",
+      "name": "login_pk",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "login_attempt",
+      "name": "login_attempt_pk",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "user",
+      "name": "user_pk",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "user_profile",
+      "name": "user_profile_pk",
+      "columns": [
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "user_role",
+      "name": "user_role_pk",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_pk",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "user",
+      "name": "user_contact_unique",
+      "columns": [
+        "contact"
+      ],
+      "nameExplicit": false,
+      "entityType": "uniques"
+    },
+    {
+      "table": "login",
+      "name": "login_code_hash_check",
+      "value": "length(\"code_hash\") = 32",
+      "entityType": "checks"
+    },
+    {
+      "table": "login",
+      "name": "login_expires_at_check",
+      "value": "\"expires_at\" > \"created_at\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "user",
+      "name": "user_contact_check",
+      "value": "(((\"contact\" is not null)) or ((\"closed_at\" is not null)))",
+      "entityType": "checks"
+    },
+    {
+      "table": "user",
+      "name": "user_closed_at_check",
+      "value": "\"closed_at\" >= \"created_at\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "user",
+      "name": "user_closed_nullity_check",
+      "value": "(((\"closed_at\" is null) = (\"closed_reason\" is null)) and ((((\"closed_by\" is null)) or ((\"closed_at\" is not null)))))",
+      "entityType": "checks"
+    },
+    {
+      "table": "user",
+      "name": "user_closed_reason_check",
+      "value": "((((\"closed_reason\" glob 'admin_*') or (\"closed_reason\" glob 'cascade_*') or (\"closed_reason\" glob 'system_*') or (\"closed_reason\" glob 'user_*') or ((\"closed_reason\" is null)))) and (((\"closed_reason\" not glob 'admin_*') or ((\"closed_by\" is not null)))) and (((\"closed_reason\" not glob 'system_*') or ((\"closed_by\" is null)))))",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_profile",
+      "name": "user_profile_birth_date_check",
+      "value": "\"birth_date\" is date(\"birth_date\")",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_role",
+      "name": "user_role_revoked_at_check",
+      "value": "\"revoked_at\" >= \"assigned_at\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_role",
+      "name": "user_role_revoked_nullity_check",
+      "value": "(((\"revoked_at\" is null) = (\"revoked_reason\" is null)) and ((((\"revoked_by\" is null)) or ((\"revoked_at\" is not null)))))",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_role",
+      "name": "user_role_revoked_reason_check",
+      "value": "((((\"revoked_reason\" glob 'admin_*') or (\"revoked_reason\" glob 'cascade_*') or (\"revoked_reason\" glob 'system_*') or (\"revoked_reason\" glob 'user_*') or ((\"revoked_reason\" is null)))) and (((\"revoked_reason\" not glob 'admin_*') or ((\"revoked_by\" is not null)))) and (((\"revoked_reason\" not glob 'system_*') or ((\"revoked_by\" is null)))))",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_secret_hash_check",
+      "value": "length(\"secret_hash\") = 32",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_expires_at_check",
+      "value": "\"expires_at\" > \"created_at\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_revoked_at_check",
+      "value": "\"revoked_at\" >= \"created_at\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_revoked_nullity_check",
+      "value": "(((\"revoked_at\" is null) = (\"revoked_reason\" is null)) and ((((\"revoked_by\" is null)) or ((\"revoked_at\" is not null)))))",
+      "entityType": "checks"
+    },
+    {
+      "table": "user_session",
+      "name": "user_session_revoked_reason_check",
+      "value": "((((\"revoked_reason\" glob 'admin_*') or (\"revoked_reason\" glob 'cascade_*') or (\"revoked_reason\" glob 'system_*') or (\"revoked_reason\" glob 'user_*') or ((\"revoked_reason\" is null)))) and (((\"revoked_reason\" not glob 'admin_*') or ((\"revoked_by\" is not null)))) and (((\"revoked_reason\" not glob 'system_*') or ((\"revoked_by\" is null)))))",
+      "entityType": "checks"
+    }
+  ],
+  "renames": []
+}

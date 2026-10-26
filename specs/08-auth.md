@@ -36,7 +36,7 @@ Closing (탈퇴 and bans):
 
 - [ ] A procedure closes the user: `closedReason: 'user_requested'` when the user asks to leave (탈퇴), whether they close the account themselves or an admin does it for them, `'admin_banned'` when an admin bans them (강제 탈퇴), `'admin_removed'` when an admin closes it for another reason (e.g. cleanup, a legal order), `'system_removed'` when no user acts (e.g. a scheduled job for an under-14 sign-up without guardian consent or an inactivity policy, or a CLI script). The reason decides what happens to the data (only a ban keeps the contact); `closedBy` records who acted. It revokes their roles and sessions (`revokedReason: 'cascade_user_closed'`); the purge job deletes the sessions like other revoked ones ([12](./12-operations.md)). Closing is final; there's no reactivation.
 - [ ] The same transaction erases personal fields: the profile, login, and login attempt rows (logins matched by user ID or contact, since logins before sign-up have no user ID; via the login-deletion procedure the purge job also uses, [06](./06-query-layer.md)), and, unless banned, the contact. The user ID stays, so audit entries still resolve. An erased contact can sign up again, as a new user.
-- [ ] A `CHECK` allows a null contact only on closed users.
+- [x] A `CHECK` allows a null contact only on closed users.
 - [ ] A ban keeps the contact for a configurable block period (default: 6 months), so the person can't sign up again; then the purge job erases it ([12](./12-operations.md)). The basis is 제15조 ① 6호 (정당한 이익); the period, its purpose, and a short balancing note go in the privacy policy.
 - [ ] Records the law requires keeping stay only in the audit database until its retention ends ([07](./07-audit-logging.md), [12](./12-operations.md)).
 

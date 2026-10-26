@@ -29,6 +29,10 @@ export default defineConfig(
 					],
 				},
 			],
+			'no-restricted-properties': [
+				'error',
+				{ message: 'Bind values instead.', object: 'sql', property: 'raw' },
+			],
 			'no-restricted-syntax': ['error', 'ImportNamespaceSpecifier'],
 			'no-undef': 'off',
 			'perfectionist/sort-imports': 'off', // oxfmt
@@ -44,6 +48,11 @@ export default defineConfig(
 				projectService: true,
 			},
 		},
+	},
+	{
+		files: ['src/db/*/server/schema/*.ts'],
+		ignores: ['**/*.*.ts'],
+		rules: { 'perfectionist/sort-objects': 'off' },
 	},
 	{
 		files: ['**/*.{cjs,cts,mjs,mts}'],

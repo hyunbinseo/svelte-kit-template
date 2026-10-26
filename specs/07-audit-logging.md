@@ -10,7 +10,7 @@ Log database queries to a separate audit DB, from both SvelteKit and CLI.
 
 ## Checklist
 
-- [ ] Off in development, on in every other mode (`isAuditEnabled` in `src/db/server/shared.ts`, see [03](./03-environment.md)).
+- [ ] Off in development, on in every other mode (`isAuditEnabled` in `src/db/shared.server.ts`, see [03](./03-environment.md)).
 - [ ] Writes always logged (including `begin`/`commit`/`rollback`; CTEs count as writes); reads only when opted in.
 - [ ] SQL text deduplicated by hash; each entry records time, user ID, client IP, pathname, params, and whether the actor is a 개인정보취급자 (the CLI, or a user with a role).
 - [ ] Entries are purged by class: 개인정보취급자 entries after 2 years, others after 3 months ([12](./12-operations.md)).

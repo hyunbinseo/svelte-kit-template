@@ -18,4 +18,4 @@ Unit tests (Vitest via Vite+) and E2E (Playwright) with isolated databases.
 
 ## Decisions
 
-- Unit tests don't import `#db/server/app/client.ts`, directly or transitively: it parses `import.meta.env.MODE`, which is `test` under Vitest, and throws. Code under test takes a database instead.
+- Unit tests don't import `#db/app/server/client.ts`, directly or transitively: it parses `import.meta.env.MODE`, which is `test` under Vitest, and throws. Code under test takes a database instead.

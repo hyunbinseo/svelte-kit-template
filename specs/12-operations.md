@@ -28,9 +28,10 @@ Target: a small VPS (any Linux distro with a recent Podman), Tailscale SSH (no p
 - [ ] Databases live in a host directory, bind-mounted at `DATA_DIR`. The `700` directory mode works with rootless Podman's user mapping. Deploys and image pruning never touch it.
 - [ ] Migrations run from the new image before its containers replace the old ones.
 - [ ] Client IPs reach the app correctly (Caddy, then `ADDRESS_HEADER`/`XFF_DEPTH`).
-- [ ] Daily backup of app and audit DBs via `node:sqlite` `backup()`; app kept 90 days, audit 365.
-- [ ] Audit rows are deleted only after a successful backup.
+- [ ] Daily backup of app and audit DBs via `node:sqlite` `backup()`; both kept 90 days. Each audit backup holds the full retained log, so it needs no longer retention ([07](./07-audit-logging.md)). Erased data lingers in backups until they rotate out; the privacy policy says so.
+- [ ] After a successful backup, the daily job purges: audit entries past their retention (개인정보취급자 2 years, others 3 months, [07](./07-audit-logging.md)); `login` rows (with their attempts, via the procedure closing uses, [06](./06-query-layer.md)) 5 days after they expire, and sessions 5 days after they expire or are revoked (지체 없이, which the 표준 개인정보 보호지침 reads as within 5 days); and banned users' contacts after the block period ([08](./08-auth.md)).
+- [ ] Each destruction (closing and purge) is recorded (what, how many, when), and the 개인정보 보호책임자 can confirm the results ([표준 개인정보 보호지침](https://www.law.go.kr/행정규칙/표준개인정보보호지침) 제10조 ③ ④). The audit entries of the `DELETE` statements may serve, if they suffice.
 - [ ] Backup failures reported to Sentry; non-zero exit.
 - [ ] `docs/` covers: provisioning, firewall, HTTPS (Caddy), Podman install and updates, building images, deploy, rollback, and restoring a backup.
-- [ ] A Korean privacy policy template.
+- [ ] A Korean privacy policy template. It covers 파기절차 및 파기방법 (제30조 ① 3의2) and lists what's kept after an account is closed as a table (item, purpose, legal basis, period): access records of staff (2 years, audit database, 안전성 확보조치 기준 제8조), users' login records (3 months, audit database, 통신비밀보호법), a banned user's contact (the block period, 제15조 ① 6호, [08](./08-auth.md)), the closed account record (ID, dates, reason codes, actor IDs, role history; personal information while audit entries or a ban's contact can link it to a person, then anonymous, [08](./08-auth.md)), backups (90 days), and, for projects that take payments, commerce and tax records (5 years, 전자상거래법, 국세기본법). Verify periods against current law.
 - [ ] Provisioning validated on a fresh VM (ask before downloading a cloud image).

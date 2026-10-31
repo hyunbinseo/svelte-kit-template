@@ -3,7 +3,7 @@ import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import type { SetFieldType, SetNonNullable } from 'type-fest';
 import type { UserRoleRevokeReason } from '#db/app/enums/user.ts';
 import type { AppDb, AppTx } from '#db/app/server/database.ts';
-import { deleteLogins } from '#db/app/server/procedures/login.ts';
+import { deleteLogins } from '#db/app/server/login/procedures.ts';
 import {
 	loginTable,
 	userProfileTable,

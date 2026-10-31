@@ -1,4 +1,4 @@
-import type { SoftDeleteReason } from '#db/app/server/schema/checks.ts';
+import type { SoftDeleteReason } from '#db/app/server/checks.ts';
 
 export type UserRole = (typeof userRoles)[number];
 export const userRoles = ['admin'] as const satisfies readonly string[];

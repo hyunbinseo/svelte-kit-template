@@ -15,7 +15,7 @@ import {
 	userRoles,
 	userSessionRevokedReasons,
 } from '#db/app/enums/user.ts';
-import { softDeleteChecks } from '#db/app/server/schema/checks.ts';
+import { softDeleteChecks } from '#db/app/server/checks.ts';
 
 export type UserInsert = typeof userTable.$inferInsert;
 export type UserSelect = typeof userTable.$inferSelect;

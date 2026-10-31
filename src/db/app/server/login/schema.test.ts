@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { beforeEach, expect, test } from 'vite-plus/test';
 import type { AppDb } from '#db/app/server/database.ts';
-import { type LoginInsert, loginTable } from '#db/app/server/schema/login.ts';
+import { type LoginInsert, loginTable } from '#db/app/server/login/schema.ts';
 import { createTestDatabase } from '#db/app/server/testing.ts';
 
 const now = new Date();

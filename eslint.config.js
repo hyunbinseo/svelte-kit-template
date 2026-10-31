@@ -60,8 +60,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: ['src/db/*/server/schema/*.ts'],
-		ignores: ['**/*.*.ts'],
+		files: ['src/db/*/server/*/schema.ts'],
 		rules: { 'perfectionist/sort-objects': 'off' },
 	},
 	{

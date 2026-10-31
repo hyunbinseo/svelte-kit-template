@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { beforeEach, expect, test } from 'vite-plus/test';
 import type { AppDb } from '#db/app/server/database.ts';
-import { deleteLogins } from '#db/app/server/procedures/login.ts';
+import { deleteLogins } from '#db/app/server/login/procedures.ts';
 import { loginAttemptTable, loginTable } from '#db/app/server/schema.ts';
 import { createTestDatabase, seedLogin } from '#db/app/server/testing.ts';
 

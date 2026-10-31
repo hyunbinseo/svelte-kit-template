@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { sql } from 'drizzle-orm';
 import { beforeEach, describe, expect, test } from 'vite-plus/test';
 import type { AppDb } from '#db/app/server/database.ts';
+import { createTestDatabase } from '#db/app/server/testing.ts';
 import {
 	type UserInsert,
 	type UserProfileInsert,
@@ -12,8 +13,7 @@ import {
 	type UserSessionInsert,
 	userSessionTable,
 	userTable,
-} from '#db/app/server/schema/user.ts';
-import { createTestDatabase } from '#db/app/server/testing.ts';
+} from '#db/app/server/user/schema.ts';
 
 const now = new Date();
 const before = new Date(now.getTime() - 1);

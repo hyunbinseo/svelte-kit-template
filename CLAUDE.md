@@ -16,7 +16,7 @@ Interim rules while `specs/` is in progress. [13](./specs/13-agent-docs.md) repl
 - Assert invariants the schema guarantees (`ok`). Return falsy only for guards.
 - Names:
   - Name what a value is, not its shape: `loginIds`, `activeUser`, `actorId`, not `ids`, `current`, `by`, `r`. Booleans read as predicates (`isValid`).
-  - Don't destructure to shorten access. Keep the object and read its fields (`user.id`, `login.id`), including parameters and `test.for` cases. Exception: `{ default: x }` from a dynamic import.
+  - Keep an object when it has a natural name, and read its fields: a row from `userTable` is `user`, read as `user.id` and `user.contact`, so each field carries its context. Destructure only when no such name exists, e.g. a query or procedure's argument object (`{ closedBy, userId }`, see [06](./specs/06-query-layer.md)) or `{ default: x }` from a dynamic import. Don't destructure just to shorten access.
 - In `src/env.ts`, set `public` and `static` explicitly on every variable.
 - Tests:
   - Put them next to the file they test (`x.ts` → `x.test.ts`).

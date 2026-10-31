@@ -86,7 +86,7 @@ describe('closeUser', () => {
 
 	test('closes the user and cascades with the actor', () => {
 		expect(
-			closeUser(db, { closedBy: ADMIN_ID, closedReason: 'user_requested', id: MEMBER_ID }),
+			closeUser(db, { closedBy: ADMIN_ID, closedReason: 'user_requested', userId: MEMBER_ID }),
 		).toBe(true);
 		expect(getUser(MEMBER_ID)).toMatchObject({
 			closedAt: now,
@@ -108,7 +108,7 @@ describe('closeUser', () => {
 	});
 
 	test('erases personal data', () => {
-		closeUser(db, { closedBy: MEMBER_ID, closedReason: 'user_requested', id: MEMBER_ID });
+		closeUser(db, { closedBy: MEMBER_ID, closedReason: 'user_requested', userId: MEMBER_ID });
 		expect(getUser(MEMBER_ID)?.contact).toBeNull();
 		expect(db.select().from(userProfileTable).all()).toEqual([]);
 		expect(db.select({ userId: loginTable.userId }).from(loginTable).all()).toEqual([
@@ -118,18 +118,22 @@ describe('closeUser', () => {
 	});
 
 	test('a ban keeps the contact', () => {
-		closeUser(db, { closedBy: ADMIN_ID, closedReason: 'admin_banned', id: MEMBER_ID });
+		closeUser(db, { closedBy: ADMIN_ID, closedReason: 'admin_banned', userId: MEMBER_ID });
 		expect(getUser(MEMBER_ID)?.contact).toBe('member@example.com');
 	});
 
-	test.for([MISSING_ID, CLOSED_ID])('returns false for user %i', (id) => {
-		const userBefore = getUser(id);
-		expect(closeUser(db, { closedBy: ADMIN_ID, closedReason: 'admin_removed', id })).toBe(false);
-		expect(getUser(id)).toEqual(userBefore);
+	test.for([MISSING_ID, CLOSED_ID])('returns false for user %i', (userId) => {
+		const userBefore = getUser(userId);
+		expect(closeUser(db, { closedBy: ADMIN_ID, closedReason: 'admin_removed', userId })).toBe(
+			false,
+		);
+		expect(getUser(userId)).toEqual(userBefore);
 	});
 
 	test.for([MISSING_ID, CLOSED_ID])('returns false for actor %i', (closedBy) => {
-		expect(closeUser(db, { closedBy, closedReason: 'admin_removed', id: MEMBER_ID })).toBe(false);
+		expect(closeUser(db, { closedBy, closedReason: 'admin_removed', userId: MEMBER_ID })).toBe(
+			false,
+		);
 		expect(getUser(MEMBER_ID)?.closedAt).toBeNull();
 		expect(db.select().from(loginTable).all()).toHaveLength(3);
 	});

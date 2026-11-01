@@ -1,6 +1,6 @@
 import { eq, inArray, or, type SQL } from 'drizzle-orm';
-import type { AppTx } from '#db/app/server/database.ts';
-import { loginAttemptTable, type LoginSelect, loginTable } from '#db/app/server/schema.ts';
+import type { AppTx } from '#db/app/drizzle.ts';
+import { loginAttemptTable, type LoginSelect, loginTable } from '#db/app/schema.ts';
 
 // Attempts first, then logins, see specs/05-database.md
 const deleteLoginsWhere = (tx: AppTx, where: SQL) => {

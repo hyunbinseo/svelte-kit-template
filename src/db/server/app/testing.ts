@@ -1,18 +1,18 @@
 import { randomBytes } from 'node:crypto';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
-import { type AppDb, createAppDatabase } from '#db/app/server/database.ts';
-import { loginAttemptTable, type LoginInsert, loginTable } from '#db/app/server/schema.ts';
-import { openDatabase } from '#db/shared.server.ts';
+import { type AppDb, createAppDb } from '#db/app/drizzle.ts';
+import { loginAttemptTable, type LoginInsert, loginTable } from '#db/app/schema.ts';
+import { openConnection } from '#db/shared/connection.ts';
 
-export const createTestAppDatabase = (path = ':memory:') => {
-	const client = openDatabase(path);
+export const createTestAppDb = (path = ':memory:') => {
+	const connection = openConnection(path);
 
-	migrate(drizzle({ client }), { migrationsFolder: 'drizzle/app' });
+	migrate(drizzle({ client: connection }), { migrationsFolder: 'drizzle/app' });
 
 	// Disposable, for `using`
-	return Object.assign(createAppDatabase(client), {
-		[Symbol.dispose]: () => client.close(),
+	return Object.assign(createAppDb(connection), {
+		[Symbol.dispose]: () => connection.close(),
 	});
 };
 

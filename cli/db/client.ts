@@ -1,13 +1,14 @@
 import { relative } from 'node:path';
 import { ROOT } from '#cli/shared.ts';
-import { createAppDatabase } from '#db/app/server/database.ts';
-import { createAuditDatabase } from '#db/audit/server/database.ts';
-import { auditClient, type AuditContext } from '#db/audit/server/logger.ts';
-import { isAuditEnabled, openDatabase, prepareDatabaseFile } from '#db/shared.server.ts';
+import { createAppDb } from '#db/app/drizzle.ts';
+import { createAuditDb } from '#db/audit/drizzle.ts';
+import { auditConnection, type AuditContext } from '#db/audit/logger.ts';
+import { openConnection } from '#db/shared/connection.ts';
+import { isAuditEnabled, prepareDatabasePath } from '#db/shared/database.ts';
 import type { Mode } from '#lib/env.ts';
 
 // Pass the script's import.meta.filename, logged where a request pathname would go.
-export const openCliDatabases = ({
+export const openDbs = ({
 	dataDir,
 	mode,
 	scriptPath,
@@ -16,10 +17,10 @@ export const openCliDatabases = ({
 	mode: Mode;
 	scriptPath: string;
 }) => {
-	const client = openDatabase(prepareDatabaseFile(dataDir, mode, 'app'));
+	const connection = openConnection(prepareDatabasePath(dataDir, mode, 'app'));
 
 	const auditDb = isAuditEnabled(mode)
-		? createAuditDatabase(openDatabase(prepareDatabaseFile(dataDir, mode, 'audit')))
+		? createAuditDb(openConnection(prepareDatabasePath(dataDir, mode, 'audit')))
 		: undefined;
 
 	// CLI operators are staff (개인정보취급자).
@@ -36,18 +37,20 @@ export const openCliDatabases = ({
 		report: console.error, // TODO Sentry, see specs/10-observability.md
 	};
 
-	const db = createAppDatabase(
-		auditOptions ? auditClient(client, { ...auditOptions, isReadAudited: false }) : client,
+	const db = createAppDb(
+		auditOptions
+			? auditConnection(connection, { ...auditOptions, isReadAudited: false })
+			: connection,
 	);
 
 	return {
 		auditDb, // undefined in development
 		auditedDb: auditOptions
-			? createAppDatabase(auditClient(client, { ...auditOptions, isReadAudited: true }))
+			? createAppDb(auditConnection(connection, { ...auditOptions, isReadAudited: true }))
 			: db,
 		db,
 		[Symbol.dispose]: () => {
-			client.close();
+			connection.close();
 			auditDb?.$client.close();
 		},
 	};

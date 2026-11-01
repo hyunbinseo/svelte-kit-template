@@ -1,4 +1,4 @@
-import type { UserSelect } from '#db/app/server/schema.ts';
+import type { UserSelect } from '#db/app/schema.ts';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 declare global {

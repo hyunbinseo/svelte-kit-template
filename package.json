@@ -4,7 +4,7 @@
 	"type": "module",
 	"imports": {
 		"#cli/*": "./cli/*",
-		"#db/*": "./src/db/*",
+		"#db/*": "./src/db/server/*",
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {

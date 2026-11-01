@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
 import { purgeEntries } from '#cli/db/audit/entry/procedures.ts';
-import type { AuditDb } from '#db/audit/server/database.ts';
-import { type EntryInsert, entrySqlTable, entryTable } from '#db/audit/server/schema.ts';
-import { createTestAuditDatabase } from '#db/audit/server/testing.ts';
+import type { AuditDb } from '#db/audit/drizzle.ts';
+import { type EntryInsert, entrySqlTable, entryTable } from '#db/audit/schema.ts';
+import { createTestAuditDb } from '#db/audit/testing.ts';
 
 // Month ends clamp.
 const now = new Date('2026-05-31T00:00:00Z');
@@ -17,7 +17,7 @@ let db: AuditDb;
 
 beforeEach(() => {
 	vi.useFakeTimers({ now, toFake: ['Temporal'] });
-	db = createTestAuditDatabase();
+	db = createTestAuditDb();
 	db.insert(entrySqlTable)
 		.values({ hash: Buffer.alloc(32), id: SQL_ID, sql: 'commit' })
 		.run();

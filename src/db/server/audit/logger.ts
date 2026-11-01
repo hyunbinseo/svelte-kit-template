@@ -1,13 +1,9 @@
 import { ok } from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
-import type { AuditDb } from '#db/audit/server/database.ts';
-import {
-	createEntry,
-	findOrCreateEntrySql,
-	markEntryFailed,
-} from '#db/audit/server/entry/queries.ts';
-import type { EntrySelect } from '#db/audit/server/schema.ts';
+import type { AuditDb } from '#db/audit/drizzle.ts';
+import { createEntry, findOrCreateEntrySql, markEntryFailed } from '#db/audit/entry/queries.ts';
+import type { EntrySelect } from '#db/audit/schema.ts';
 
 export type AuditContext = Pick<EntrySelect, 'byStaff' | 'ip' | 'pathname' | 'userId'>;
 
@@ -21,8 +17,8 @@ const executeMethods = new Set<PropertyKey>([
 
 // Wraps a node:sqlite connection, so every statement Drizzle runs passes through it,
 // including begin, commit, rollback, and savepoints.
-export const auditClient = (
-	client: DatabaseSync,
+export const auditConnection = (
+	connection: DatabaseSync,
 	{
 		auditDb,
 		getContext,
@@ -57,7 +53,7 @@ export const auditClient = (
 	};
 
 	const prepare = (sql: string) => {
-		const statement = client.prepare(sql);
+		const statement = connection.prepare(sql);
 
 		const keyword = /^\s*(\w+)/.exec(sql)?.[1]?.toLowerCase();
 		const isRead = keyword === 'select'; // CTEs (with) count as writes
@@ -67,7 +63,7 @@ export const auditClient = (
 			(method: ExecuteMethod) =>
 			(...params: SQLInputValue[]) => {
 				// Nesting would fail after logging, so fail before it.
-				if (keyword === 'begin') ok(!client.isTransaction);
+				if (keyword === 'begin') ok(!connection.isTransaction);
 
 				let entryId: EntrySelect['id'] | undefined;
 				try {
@@ -101,7 +97,7 @@ export const auditClient = (
 		});
 	};
 
-	return new Proxy(client, {
+	return new Proxy(connection, {
 		get: (target, key) => {
 			if (key === 'prepare') return prepare;
 			// Unlogged, and Drizzle doesn't use it.

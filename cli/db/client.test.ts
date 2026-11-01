@@ -5,11 +5,12 @@ import { join } from 'node:path';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { afterEach, beforeEach, expect, test } from 'vite-plus/test';
-import { openCliDatabases } from '#cli/db/client.ts';
+import { openDbs } from '#cli/db/client.ts';
 import { ROOT } from '#cli/shared.ts';
-import { userTable } from '#db/app/server/schema.ts';
-import { entryTable } from '#db/audit/server/schema.ts';
-import { openDatabase, prepareDatabaseFile } from '#db/shared.server.ts';
+import { userTable } from '#db/app/schema.ts';
+import { entryTable } from '#db/audit/schema.ts';
+import { openConnection } from '#db/shared/connection.ts';
+import { type DatabaseName, prepareDatabasePath } from '#db/shared/database.ts';
 
 const SCRIPT_PATH = join(ROOT, 'cli', 'db', 'example.ts');
 
@@ -24,16 +25,16 @@ afterEach(() => {
 });
 
 test('logs the script as a staff actor, to the audit database it returns', () => {
-	for (const name of ['app', 'audit'] as const satisfies readonly ('app' | 'audit')[]) {
-		using client = openDatabase(prepareDatabaseFile(dataDir, 'e2e', name));
-		migrate(drizzle({ client }), { migrationsFolder: join('drizzle', name) });
+	for (const name of ['app', 'audit'] as const satisfies readonly DatabaseName[]) {
+		using connection = openConnection(prepareDatabasePath(dataDir, 'e2e', name));
+		migrate(drizzle({ client: connection }), { migrationsFolder: join('drizzle', name) });
 	}
 
-	using databases = openCliDatabases({ dataDir, mode: 'e2e', scriptPath: SCRIPT_PATH });
-	databases.db.insert(userTable).values({ contact: 'a@example.com', createdAt: new Date() }).run();
+	using dbs = openDbs({ dataDir, mode: 'e2e', scriptPath: SCRIPT_PATH });
+	dbs.db.insert(userTable).values({ contact: 'a@example.com', createdAt: new Date() }).run();
 
-	ok(databases.auditDb);
-	const entries = databases.auditDb
+	ok(dbs.auditDb);
+	const entries = dbs.auditDb
 		.select({
 			byStaff: entryTable.byStaff,
 			ip: entryTable.ip,
@@ -49,9 +50,9 @@ test('logs the script as a staff actor, to the audit database it returns', () =>
 
 test('opens no audit database in development', () => {
 	{
-		using databases = openCliDatabases({ dataDir, mode: 'development', scriptPath: SCRIPT_PATH });
-		expect(databases.auditDb).toBeUndefined();
-		expect(databases.auditedDb).toBe(databases.db);
+		using dbs = openDbs({ dataDir, mode: 'development', scriptPath: SCRIPT_PATH });
+		expect(dbs.auditDb).toBeUndefined();
+		expect(dbs.auditedDb).toBe(dbs.db);
 	}
 
 	expect(existsSync(join(dataDir, 'development', 'audit.db'))).toBe(false);

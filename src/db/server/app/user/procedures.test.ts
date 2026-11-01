@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test';
-import type { AppDb } from '#db/app/server/database.ts';
+import type { AppDb } from '#db/app/drizzle.ts';
 import {
 	loginAttemptTable,
 	loginTable,
@@ -11,9 +11,9 @@ import {
 	type UserSessionInsert,
 	userSessionTable,
 	userTable,
-} from '#db/app/server/schema.ts';
-import { createTestAppDatabase, seedLogin } from '#db/app/server/testing.ts';
-import { closeUser, grantRole, revokeRole } from '#db/app/server/user/procedures.ts';
+} from '#db/app/schema.ts';
+import { createTestAppDb, seedLogin } from '#db/app/testing.ts';
+import { closeUser, grantRole, revokeRole } from '#db/app/user/procedures.ts';
 
 const past = new Date('2026-01-01T00:00:00Z');
 const now = new Date('2026-01-02T00:00:00Z');
@@ -42,7 +42,7 @@ let db: AppDb;
 
 beforeEach(() => {
 	vi.useFakeTimers({ now, toFake: ['Date'] });
-	db = createTestAppDatabase();
+	db = createTestAppDb();
 	db.insert(userTable)
 		.values([
 			{ contact: 'admin@example.com', createdAt: past, id: ADMIN_ID },

@@ -1,6 +1,6 @@
 import { and, eq, lt, or } from 'drizzle-orm';
-import type { AuditTx } from '#db/audit/server/database.ts';
-import { type EntrySelect, entryTable } from '#db/audit/server/schema.ts';
+import type { AuditTx } from '#db/audit/drizzle.ts';
+import { type EntrySelect, entryTable } from '#db/audit/schema.ts';
 
 export const deleteExpiredEntries = (
 	tx: AuditTx,

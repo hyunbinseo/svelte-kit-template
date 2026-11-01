@@ -1,5 +1,5 @@
 import { deleteExpiredEntries } from '#cli/db/audit/entry/queries.ts';
-import type { AuditDb } from '#db/audit/server/database.ts';
+import type { AuditDb } from '#db/audit/drizzle.ts';
 
 // Retention: see specs/07-audit-logging.md
 export const purgeEntries = (db: AuditDb) =>

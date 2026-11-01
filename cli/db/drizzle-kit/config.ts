@@ -4,7 +4,7 @@ import { cwd, env, loadEnvFile } from 'node:process';
 import { defineConfig } from 'drizzle-kit';
 import { parse } from 'valibot';
 import { ROOT } from '#cli/shared.ts';
-import { type DatabaseName, isAuditEnabled, prepareDatabaseFile } from '#db/shared.server.ts';
+import { type DatabaseName, isAuditEnabled, prepareDatabasePath } from '#db/shared/database.ts';
 import { DbEnvSchema, ModeSchema } from '#lib/env.ts';
 
 export const defineDatabaseConfig = (database: DatabaseName) => {
@@ -24,13 +24,13 @@ export const defineDatabaseConfig = (database: DatabaseName) => {
 	}
 
 	const dataDir = parse(DbEnvSchema.entries.DATA_DIR, env.DATA_DIR);
-	const url = prepareDatabaseFile(dataDir, mode, database);
+	const url = prepareDatabasePath(dataDir, mode, database);
 
 	return defineConfig({
 		dbCredentials: { url },
 		dialect: 'sqlite',
 		out: `./drizzle/${database}`,
-		schema: `./src/db/${database}/server/schema.ts`,
+		schema: `./src/db/server/${database}/schema.ts`,
 		verbose: true,
 	});
 };

@@ -1,5 +1,5 @@
 import { and, eq, gt, isNull } from 'drizzle-orm';
-import type { AppDbOrTx, AppTx } from '#db/app/server/database.ts';
+import type { AppDbOrTx, AppTx } from '#db/app/drizzle.ts';
 import {
 	type UserProfileSelect,
 	userProfileTable,
@@ -9,7 +9,7 @@ import {
 	type UserSessionSelect,
 	userSessionTable,
 	userTable,
-} from '#db/app/server/schema.ts';
+} from '#db/app/schema.ts';
 
 export const findActiveUser = (db: AppDbOrTx, { userId }: { userId: UserSelect['id'] }) =>
 	db

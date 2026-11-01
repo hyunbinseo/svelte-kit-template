@@ -30,7 +30,7 @@ const cliScripts = {
 // CLI-only procedures mirror src/db, see specs/06-query-layer.md
 const procedureModuleGlobs = [
 	'cli/db/*/*/procedures.{js,ts}',
-	'src/db/*/server/*/procedures.{js,ts}',
+	'src/db/server/*/*/procedures.{js,ts}',
 ];
 
 const testModuleGlobs = ['**/*.{test,spec}.{js,ts}']; // as in vite.config.ts
@@ -119,9 +119,9 @@ export default defineConfig(
 							allowTypeImports: true,
 							// Escaped: gitignore syntax reads a leading # as a comment.
 							group: [
-								String.raw`\#db/*/server/schema.ts`,
-								String.raw`\#db/*/server/*/schema.ts`,
-								String.raw`\#db/*/server/*/schema/*`,
+								String.raw`\#db/*/schema.ts`,
+								String.raw`\#db/*/*/schema.ts`,
+								String.raw`\#db/*/*/schema/*`,
 								'drizzle-orm',
 								'drizzle-orm/*',
 							],
@@ -161,7 +161,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: ['src/db/*/server/*/schema.ts'],
+		files: ['src/db/server/*/*/schema.ts'],
 		rules: { 'perfectionist/sort-objects': 'off' },
 	},
 	{

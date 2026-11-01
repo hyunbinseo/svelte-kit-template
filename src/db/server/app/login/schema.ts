@@ -1,6 +1,6 @@
 import { gt, sql } from 'drizzle-orm';
 import { blob, check, index, integer, snakeCase, text } from 'drizzle-orm/sqlite-core';
-import { userTable } from '#db/app/server/user/schema.ts';
+import { userTable } from '#db/app/user/schema.ts';
 
 export type LoginInsert = typeof loginTable.$inferInsert;
 export type LoginSelect = typeof loginTable.$inferSelect;

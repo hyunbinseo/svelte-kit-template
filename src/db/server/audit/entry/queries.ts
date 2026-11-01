@@ -1,12 +1,12 @@
 import { ok } from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
-import type { AuditDb } from '#db/audit/server/database.ts';
+import type { AuditDb } from '#db/audit/drizzle.ts';
 import {
 	type EntrySelect,
 	type EntrySqlSelect,
 	entrySqlTable,
 	entryTable,
-} from '#db/audit/server/schema.ts';
+} from '#db/audit/schema.ts';
 
 // Autocommit: an entry must be stored before its statement runs.
 export const findOrCreateEntrySql = (

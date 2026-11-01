@@ -2,13 +2,13 @@ import { AssertionError } from 'node:assert/strict';
 import { eq, sql } from 'drizzle-orm';
 import type { NodeSQLiteTransaction } from 'drizzle-orm/node-sqlite';
 import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
-import { type AppDb, createAppDatabase } from '#db/app/server/database.ts';
-import { userTable } from '#db/app/server/schema.ts';
-import { createTestAppDatabase } from '#db/app/server/testing.ts';
-import type { AuditDb } from '#db/audit/server/database.ts';
-import { auditClient, type AuditContext } from '#db/audit/server/logger.ts';
-import { entrySqlTable, entryTable } from '#db/audit/server/schema.ts';
-import { createTestAuditDatabase } from '#db/audit/server/testing.ts';
+import { type AppDb, createAppDb } from '#db/app/drizzle.ts';
+import { userTable } from '#db/app/schema.ts';
+import { createTestAppDb } from '#db/app/testing.ts';
+import type { AuditDb } from '#db/audit/drizzle.ts';
+import { auditConnection, type AuditContext } from '#db/audit/logger.ts';
+import { entrySqlTable, entryTable } from '#db/audit/schema.ts';
+import { createTestAuditDb } from '#db/audit/testing.ts';
 
 const now = new Date('2026-01-01T00:00:00Z');
 
@@ -29,12 +29,12 @@ const report = vi.fn();
 
 beforeEach(() => {
 	vi.useFakeTimers({ now, toFake: ['Date'] });
-	appDb = createTestAppDatabase();
-	auditDb = createTestAuditDatabase();
+	appDb = createTestAppDb();
+	auditDb = createTestAuditDb();
 
 	const options = { auditDb, getContext: () => CONTEXT, report };
-	db = createAppDatabase(auditClient(appDb.$client, { ...options, isReadAudited: false }));
-	auditedDb = createAppDatabase(auditClient(appDb.$client, { ...options, isReadAudited: true }));
+	db = createAppDb(auditConnection(appDb.$client, { ...options, isReadAudited: false }));
+	auditedDb = createAppDb(auditConnection(appDb.$client, { ...options, isReadAudited: true }));
 
 	return () => {
 		appDb.$client.close();

@@ -1,7 +1,7 @@
 import { ok } from 'node:assert/strict';
-import type { AppDb, AppTx } from '#db/app/server/database.ts';
-import { deleteUserLogins } from '#db/app/server/login/queries.ts';
-import type { UserRoleSelect, UserSelect } from '#db/app/server/schema.ts';
+import type { AppDb, AppTx } from '#db/app/drizzle.ts';
+import { deleteUserLogins } from '#db/app/login/queries.ts';
+import type { UserRoleSelect, UserSelect } from '#db/app/schema.ts';
 import {
 	closeActiveUser,
 	createUserRole,
@@ -11,7 +11,7 @@ import {
 	revokeActiveUserRole,
 	revokeActiveUserRoles,
 	revokeActiveUserSessions,
-} from '#db/app/server/user/queries.ts';
+} from '#db/app/user/queries.ts';
 import type { UserRoleRevokeReason } from '#lib/enums/user.ts';
 
 // null is the system, see specs/05-database.md

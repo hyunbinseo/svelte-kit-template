@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { beforeEach, expect, test } from 'vite-plus/test';
-import type { AppDb } from '#db/app/server/database.ts';
-import { type LoginInsert, loginTable } from '#db/app/server/login/schema.ts';
-import { createTestAppDatabase } from '#db/app/server/testing.ts';
+import type { AppDb } from '#db/app/drizzle.ts';
+import { type LoginInsert, loginTable } from '#db/app/login/schema.ts';
+import { createTestAppDb } from '#db/app/testing.ts';
 
 const now = new Date();
 const after = new Date(now.getTime() + 1);
@@ -10,7 +10,7 @@ const after = new Date(now.getTime() + 1);
 let db: AppDb;
 
 beforeEach(() => {
-	db = createTestAppDatabase();
+	db = createTestAppDb();
 	return () => db.$client.close();
 });
 

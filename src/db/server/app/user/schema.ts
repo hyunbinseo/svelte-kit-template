@@ -9,7 +9,7 @@ import {
 	text,
 	uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
-import { softDeleteChecks } from '#db/app/server/checks.ts';
+import { softDeleteChecks } from '#db/app/checks.ts';
 import {
 	userClosedReasons,
 	userRoleRevokedReasons,

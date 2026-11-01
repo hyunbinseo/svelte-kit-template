@@ -1,8 +1,8 @@
 import { beforeEach, expect, test } from 'vite-plus/test';
-import type { AppDb } from '#db/app/server/database.ts';
-import { type UserRoleInsert, userRoleTable, userTable } from '#db/app/server/schema.ts';
-import { createTestAppDatabase } from '#db/app/server/testing.ts';
-import { hasActiveUserRole } from '#db/app/server/user/queries.ts';
+import type { AppDb } from '#db/app/drizzle.ts';
+import { type UserRoleInsert, userRoleTable, userTable } from '#db/app/schema.ts';
+import { createTestAppDb } from '#db/app/testing.ts';
+import { hasActiveUserRole } from '#db/app/user/queries.ts';
 
 const past = new Date('2026-01-01T00:00:00Z');
 
@@ -13,7 +13,7 @@ const MEMBER_ID = 3;
 let db: AppDb;
 
 beforeEach(() => {
-	db = createTestAppDatabase();
+	db = createTestAppDb();
 	return () => db.$client.close();
 });
 

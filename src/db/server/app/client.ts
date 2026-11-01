@@ -1,9 +1,10 @@
 import { parse } from 'valibot';
-import { createAppDatabase } from '#db/app/server/database.ts';
-import { hasActiveUserRole } from '#db/app/server/user/queries.ts';
-import { createAuditDatabase } from '#db/audit/server/database.ts';
-import { auditClient, type AuditContext } from '#db/audit/server/logger.ts';
-import { isAuditEnabled, openDatabase, prepareDatabaseFile } from '#db/shared.server.ts';
+import { createAppDb } from '#db/app/drizzle.ts';
+import { hasActiveUserRole } from '#db/app/user/queries.ts';
+import { createAuditDb } from '#db/audit/drizzle.ts';
+import { auditConnection, type AuditContext } from '#db/audit/logger.ts';
+import { openConnection } from '#db/shared/connection.ts';
+import { isAuditEnabled, prepareDatabasePath } from '#db/shared/database.ts';
 import { ModeSchema } from '#lib/env.ts';
 import { building, dev } from '$app/env';
 import { DATA_DIR } from '$app/env/private';
@@ -11,18 +12,20 @@ import { getRequestEvent } from '$app/server';
 
 const mode = parse(ModeSchema, import.meta.env.MODE);
 
-const client = openDatabase(building ? ':memory:' : prepareDatabaseFile(DATA_DIR, mode, 'app'));
+const connection = openConnection(
+	building ? ':memory:' : prepareDatabasePath(DATA_DIR, mode, 'app'),
+);
 
 // Prerendering can't read the database, so there's nothing to audit.
 const auditDb =
 	!building && isAuditEnabled(mode)
-		? createAuditDatabase(openDatabase(prepareDatabaseFile(DATA_DIR, mode, 'audit')))
+		? createAuditDb(openConnection(prepareDatabasePath(DATA_DIR, mode, 'audit')))
 		: undefined;
 
 // See https://svelte.dev/docs/kit/adapter-node#Graceful-shutdown
 if (!dev) {
 	process.on('sveltekit:shutdown', () => {
-		client.close();
+		connection.close();
 		auditDb?.$client.close();
 	});
 }
@@ -47,11 +50,13 @@ const auditOptions = auditDb && {
 };
 
 // Writes are always audited.
-export const db = createAppDatabase(
-	auditOptions ? auditClient(client, { ...auditOptions, isReadAudited: false }) : client,
+export const db = createAppDb(
+	auditOptions
+		? auditConnection(connection, { ...auditOptions, isReadAudited: false })
+		: connection,
 );
 
 // Reads too, for routes that opt in
 export const auditedDb = auditOptions
-	? createAppDatabase(auditClient(client, { ...auditOptions, isReadAudited: true }))
+	? createAppDb(auditConnection(connection, { ...auditOptions, isReadAudited: true }))
 	: db;

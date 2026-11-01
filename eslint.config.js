@@ -5,6 +5,18 @@ import svelte from 'eslint-plugin-svelte';
 import { defineConfig, includeIgnoreFile } from 'eslint/config';
 import ts from 'typescript-eslint';
 
+const svelteKitServerModuleGlobs = [
+	'src/**/*.remote.*',
+	'src/**/remote.*',
+	'src/hooks.server.{js,ts}',
+	'src/hooks.server/index.{js,ts}',
+	'src/routes/**/+server.{js,ts}',
+	'src/routes/**/+{layout,page}{,@*}.server.{js,ts}',
+];
+
+const procedureModuleGlob = 'src/db/*/server/*/procedures.{js,ts}';
+const testModuleGlob = '**/*.{test,spec}.{js,ts}'; // as in vite.config.ts
+
 export default defineConfig(
 	includeIgnoreFile(resolve(import.meta.dirname, '.gitignore')),
 	js.configs.recommended,
@@ -56,6 +68,60 @@ export default defineConfig(
 				'error',
 				'ImportNamespaceSpecifier',
 				{ message: "Use Drizzle's sync API.", selector: 'AwaitExpression' },
+			],
+		},
+	},
+	{
+		// Named queries only, see specs/06-query-layer.md
+		files: [...svelteKitServerModuleGlobs, procedureModuleGlob],
+		ignores: [testModuleGlob],
+		rules: {
+			'@typescript-eslint/no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							allowTypeImports: true,
+							// Escaped: gitignore syntax reads a leading # as a comment.
+							group: [
+								String.raw`\#db/*/server/schema.ts`,
+								String.raw`\#db/*/server/*/schema.ts`,
+								String.raw`\#db/*/server/*/schema/*`,
+								'drizzle-orm',
+								'drizzle-orm/*',
+							],
+							message: 'Move queries to a query file.',
+						},
+					],
+				},
+			],
+		},
+	},
+	{
+		// Writes take a tx, so only procedures can run them.
+		files: svelteKitServerModuleGlobs,
+		ignores: [testModuleGlob],
+		rules: {
+			'no-restricted-properties': [
+				'error',
+				{ message: 'Bind values instead.', object: 'sql', property: 'raw' },
+				{ message: 'Move queries to a query file.', object: 'db' }, // db.query and db.run need no import
+			],
+		},
+	},
+	{
+		files: [procedureModuleGlob],
+		ignores: [testModuleGlob],
+		rules: {
+			'no-restricted-properties': [
+				'error',
+				{ message: 'Bind values instead.', object: 'sql', property: 'raw' },
+				{ message: 'Move queries to a query file.', object: 'tx' }, // tx.query and tx.run need no import
+				{
+					allowProperties: ['transaction'],
+					message: 'Move queries to a query file.',
+					object: 'db',
+				},
 			],
 		},
 	},

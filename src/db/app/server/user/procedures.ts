@@ -1,34 +1,23 @@
 import { ok } from 'node:assert/strict';
-import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import type { UserRoleRevokeReason } from '#db/app/enums/user.ts';
 import type { AppDb, AppTx } from '#db/app/server/database.ts';
-import { deleteLogins } from '#db/app/server/login/procedures.ts';
+import { deleteUserLogins } from '#db/app/server/login/queries.ts';
+import type { UserRoleSelect, UserSelect } from '#db/app/server/schema.ts';
 import {
-	loginTable,
-	userProfileTable,
-	type UserRoleSelect,
-	userRoleTable,
-	type UserSelect,
-	userSessionTable,
-	userTable,
-} from '#db/app/server/schema.ts';
-
-const isActiveUser = (tx: AppTx, userId: UserSelect['id']) =>
-	tx
-		.select({ id: userTable.id })
-		.from(userTable)
-		.where(
-			and(
-				eq(userTable.id, userId), //
-				isNull(userTable.closedAt),
-			),
-		)
-		.get() !== undefined;
+	closeActiveUser,
+	createUserRole,
+	deleteUserProfile,
+	findActiveUser,
+	findActiveUserRole,
+	revokeActiveUserRole,
+	revokeActiveUserRoles,
+	revokeActiveUserSessions,
+} from '#db/app/server/user/queries.ts';
 
 // null is the system, see specs/05-database.md
 const isValidActor = (tx: AppTx, actorId: null | UserSelect['id']) => {
 	if (actorId === null) return true;
-	return isActiveUser(tx, actorId);
+	return findActiveUser(tx, { userId: actorId }) !== undefined;
 };
 
 // See specs/08-auth.md
@@ -48,72 +37,37 @@ export const closeUser = (
 		(tx) => {
 			const now = new Date();
 
-			const activeUser = tx
-				.select({ contact: userTable.contact })
-				.from(userTable)
-				.where(
-					and(
-						eq(userTable.id, userId), //
-						isNull(userTable.closedAt),
-					),
-				)
-				.get();
-
+			const activeUser = findActiveUser(tx, { userId });
 			if (!activeUser) return false;
 			ok(activeUser.contact); // user_contact_check
 			if (!isValidActor(tx, closedBy)) return false;
 
-			tx.update(userTable)
-				.set({
-					closedAt: now,
-					closedBy,
-					closedReason,
-					contact: closedReason === 'admin_banned' ? undefined : null,
-				})
-				.where(
-					and(
-						eq(userTable.id, userId), //
-						isNull(userTable.closedAt),
-					),
-				)
-				.run();
+			closeActiveUser(tx, {
+				closedAt: now,
+				closedBy,
+				closedReason,
+				// banned contacts stay, so they can't sign up again
+				contact: closedReason === 'admin_banned' ? activeUser.contact : null,
+				userId,
+			});
 
-			const revocation = {
+			revokeActiveUserRoles(tx, {
 				revokedAt: now,
 				revokedBy: closedBy,
 				revokedReason: 'cascade_user_closed',
-			} satisfies Pick<UserRoleSelect, 'revokedAt' | 'revokedBy' | 'revokedReason'>;
+				userId,
+			});
 
-			tx.update(userRoleTable)
-				.set(revocation)
-				.where(
-					and(
-						eq(userRoleTable.userId, userId), //
-						isNull(userRoleTable.revokedAt),
-					),
-				)
-				.run();
+			revokeActiveUserSessions(tx, {
+				now,
+				revokedAt: now,
+				revokedBy: closedBy,
+				revokedReason: 'cascade_user_closed',
+				userId,
+			});
 
-			tx.update(userSessionTable)
-				.set(revocation)
-				.where(
-					and(
-						eq(userSessionTable.userId, userId),
-						isNull(userSessionTable.revokedAt),
-						gt(userSessionTable.expiresAt, now),
-					),
-				)
-				.run();
-
-			tx.delete(userProfileTable).where(eq(userProfileTable.userId, userId)).run();
-
-			deleteLogins(
-				tx,
-				or(
-					eq(loginTable.userId, userId),
-					eq(loginTable.contact, activeUser.contact), // logins before sign-up
-				)!,
-			);
+			deleteUserProfile(tx, { userId });
+			deleteUserLogins(tx, { contact: activeUser.contact, userId });
 
 			return true;
 		},
@@ -136,28 +90,11 @@ export const grantRole = (
 		(tx) => {
 			const now = new Date();
 
-			if (!isActiveUser(tx, userId)) return;
+			if (!findActiveUser(tx, { userId })) return;
 			if (!isValidActor(tx, assignedBy)) return;
+			if (findActiveUserRole(tx, { role, userId })) return;
 
-			const activeRole = tx
-				.select({ id: userRoleTable.id })
-				.from(userRoleTable)
-				.where(
-					and(
-						eq(userRoleTable.userId, userId),
-						eq(userRoleTable.role, role),
-						isNull(userRoleTable.revokedAt),
-					),
-				)
-				.get();
-
-			if (activeRole) return;
-
-			return tx
-				.insert(userRoleTable)
-				.values({ assignedAt: now, assignedBy, role, userId })
-				.returning({ id: userRoleTable.id })
-				.get().id;
+			return createUserRole(tx, { assignedAt: now, assignedBy, role, userId });
 		},
 		{ behavior: 'immediate' },
 	);
@@ -180,34 +117,16 @@ export const revokeRole = (
 		(tx) => {
 			const now = new Date();
 
-			const activeRole = tx
-				.select({ id: userRoleTable.id })
-				.from(userRoleTable)
-				.where(
-					and(
-						eq(userRoleTable.userId, userId),
-						eq(userRoleTable.role, role),
-						isNull(userRoleTable.revokedAt),
-					),
-				)
-				.get();
-
+			const activeRole = findActiveUserRole(tx, { role, userId });
 			if (!activeRole) return false;
 			if (!isValidActor(tx, revokedBy)) return false;
 
-			tx.update(userRoleTable)
-				.set({
-					revokedAt: now,
-					revokedBy,
-					revokedReason,
-				})
-				.where(
-					and(
-						eq(userRoleTable.id, activeRole.id), //
-						isNull(userRoleTable.revokedAt),
-					),
-				)
-				.run();
+			revokeActiveUserRole(tx, {
+				revokedAt: now,
+				revokedBy,
+				revokedReason,
+				userRoleId: activeRole.id,
+			});
 
 			return true;
 		},

@@ -19,3 +19,6 @@ export type AppDb = Omit<ReturnType<typeof drizzle<typeof relations>>, 'transact
 export type AppTx = Omit<NodeSQLiteTransaction<typeof relations>, 'transaction'>;
 
 export const createDatabase = (client: DatabaseSync) => drizzle({ client, relations }) as AppDb;
+
+// Queries that don't need a caller's transaction take either.
+export type AppDbOrTx = AppDb | AppTx;

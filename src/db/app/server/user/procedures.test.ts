@@ -81,6 +81,7 @@ describe('closeUser', () => {
 			.run();
 		seedLogin(db, { contact: 'member@example.com', userId: MEMBER_ID });
 		seedLogin(db, { contact: 'member@example.com' }); // before sign-up
+		seedLogin(db, { contact: 'old@example.com', userId: MEMBER_ID }); // contact changed since
 		seedLogin(db, { contact: 'admin@example.com', userId: ADMIN_ID });
 	});
 
@@ -135,7 +136,7 @@ describe('closeUser', () => {
 			false,
 		);
 		expect(getUser(MEMBER_ID)?.closedAt).toBeNull();
-		expect(db.select().from(loginTable).all()).toHaveLength(3);
+		expect(db.select().from(loginTable).all()).toHaveLength(4);
 	});
 });
 

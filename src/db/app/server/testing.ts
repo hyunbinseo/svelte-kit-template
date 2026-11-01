@@ -10,7 +10,10 @@ export const createTestAppDatabase = (path = ':memory:') => {
 
 	migrate(drizzle({ client }), { migrationsFolder: 'drizzle/app' });
 
-	return createAppDatabase(client);
+	// Disposable, for `using`
+	return Object.assign(createAppDatabase(client), {
+		[Symbol.dispose]: () => client.close(),
+	});
 };
 
 // A login with one attempt

@@ -8,5 +8,8 @@ export const createTestAuditDatabase = (path = ':memory:') => {
 
 	migrate(drizzle({ client }), { migrationsFolder: 'drizzle/audit' });
 
-	return createAuditDatabase(client);
+	// Disposable, for `using`
+	return Object.assign(createAuditDatabase(client), {
+		[Symbol.dispose]: () => client.close(),
+	});
 };

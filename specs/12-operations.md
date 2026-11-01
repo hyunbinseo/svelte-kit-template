@@ -20,7 +20,7 @@ Target: a small VPS (any Linux distro with a recent Podman), Tailscale SSH (no p
 ## Checklist
 
 - [ ] A `Containerfile` (and `.containerignore`) builds the production image on the VPS. The image runs as a non-root user and contains no `*.local` files and no `data/`.
-- [ ] The image pins Node.js to the same version as `devEngines.runtime` (e.g. `node:24.22.0-slim`); a test fails if they differ.
+- [ ] The image pins Node.js to the same version as `devEngines.runtime` (e.g. `node:26.13.0-slim`); a test fails if they differ.
 - [ ] The image starts the server with the env files loaded (see [03](./03-environment.md)); `.env.production.local` is provided as a Podman secret, mounted at its path in the app directory (not in the image, not in `podman inspect`). Verified: each instance listens on its configured `HOST` and `PORT`.
 - [ ] At least 2 app containers run under systemd: started on boot, restarted on failure, health-checked.
 - [ ] Deploys have zero downtime: containers are replaced one at a time, and Caddy routes only to healthy ones. Verified with requests during a deploy.

@@ -35,9 +35,9 @@ export default defineConfig(
 					],
 					patterns: [
 						{
-							message: 'Use a subpath import.',
 							// SvelteKit resolves ./$types through rootDirs.
-							regex: String.raw`^\.\.?/(?!\$types\.ts$)`,
+							group: ['./*', '../*', '!./$types.ts'],
+							message: 'Use a subpath import.',
 						},
 					],
 				},

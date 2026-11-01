@@ -14,8 +14,40 @@ const svelteKitServerModuleGlobs = [
 	'src/routes/**/+{layout,page}{,@*}.server.{js,ts}',
 ];
 
-const procedureModuleGlob = 'src/db/*/server/*/procedures.{js,ts}';
-const testModuleGlob = '**/*.{test,spec}.{js,ts}'; // as in vite.config.ts
+// Like SvelteKit server modules
+const cliScripts = {
+	files: ['cli/**/*.{js,ts}'],
+	// Modules scripts import, and files other tools run
+	ignores: [
+		'cli/canary.ts',
+		'cli/db/*/*/queries.{js,ts}',
+		'cli/db/client.ts',
+		'cli/db/drizzle-kit/*',
+		'cli/shared.ts',
+	],
+};
+
+// CLI-only procedures mirror src/db, see specs/06-query-layer.md
+const procedureModuleGlobs = [
+	'cli/db/*/*/procedures.{js,ts}',
+	'src/db/*/server/*/procedures.{js,ts}',
+];
+
+const testModuleGlobs = ['**/*.{test,spec}.{js,ts}']; // as in vite.config.ts
+
+const restrictedImports = {
+	paths: [
+		{ message: 'Use node:assert/strict.', name: 'assert' },
+		{ message: 'Use node:assert/strict.', name: 'node:assert' },
+	],
+	patterns: [
+		{
+			// SvelteKit resolves ./$types through rootDirs.
+			group: ['./*', '../*', '!./$types.ts'],
+			message: 'Use a subpath import.',
+		},
+	],
+};
 
 export default defineConfig(
 	includeIgnoreFile(resolve(import.meta.dirname, '.gitignore')),
@@ -26,22 +58,7 @@ export default defineConfig(
 	{
 		rules: {
 			'func-style': ['error', 'expression'],
-			'no-restricted-imports': [
-				'error',
-				{
-					paths: [
-						{ message: 'Use node:assert/strict.', name: 'assert' },
-						{ message: 'Use node:assert/strict.', name: 'node:assert' },
-					],
-					patterns: [
-						{
-							// SvelteKit resolves ./$types through rootDirs.
-							group: ['./*', '../*', '!./$types.ts'],
-							message: 'Use a subpath import.',
-						},
-					],
-				},
-			],
+			'no-restricted-imports': ['error', restrictedImports],
 			'no-restricted-properties': [
 				'error',
 				{ message: 'Bind values instead.', object: 'sql', property: 'raw' },
@@ -50,6 +67,23 @@ export default defineConfig(
 			'no-undef': 'off',
 			'perfectionist/sort-imports': 'off', // oxfmt
 			'prefer-arrow-callback': 'error',
+		},
+	},
+	{
+		// CLI-only code stays in cli/, see specs/02-cli-separation.md
+		files: ['src/**'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					...restrictedImports,
+					patterns: [
+						...restrictedImports.patterns,
+						// Escaped: gitignore syntax reads a leading # as a comment.
+						{ group: [String.raw`\#cli/*`], message: 'Move shared code to src/.' },
+					],
+				},
+			],
 		},
 	},
 	{
@@ -63,7 +97,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: ['src/db/**/*.ts'],
+		files: ['cli/db/*/*/*.ts', 'src/db/**/*.ts'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',
@@ -74,8 +108,8 @@ export default defineConfig(
 	},
 	{
 		// Named queries only, see specs/06-query-layer.md
-		files: [...svelteKitServerModuleGlobs, procedureModuleGlob],
-		ignores: [testModuleGlob],
+		files: [...svelteKitServerModuleGlobs, ...cliScripts.files, ...procedureModuleGlobs],
+		ignores: [...testModuleGlobs, ...cliScripts.ignores],
 		rules: {
 			'@typescript-eslint/no-restricted-imports': [
 				'error',
@@ -100,8 +134,8 @@ export default defineConfig(
 	},
 	{
 		// Writes take a tx, so only procedures can run them.
-		files: svelteKitServerModuleGlobs,
-		ignores: [testModuleGlob],
+		files: [...svelteKitServerModuleGlobs, ...cliScripts.files],
+		ignores: [...testModuleGlobs, ...cliScripts.ignores, ...procedureModuleGlobs],
 		rules: {
 			'no-restricted-properties': [
 				'error',
@@ -111,8 +145,8 @@ export default defineConfig(
 		},
 	},
 	{
-		files: [procedureModuleGlob],
-		ignores: [testModuleGlob],
+		files: procedureModuleGlobs,
+		ignores: testModuleGlobs,
 		rules: {
 			'no-restricted-properties': [
 				'error',

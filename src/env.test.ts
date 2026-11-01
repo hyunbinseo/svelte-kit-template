@@ -1,6 +1,6 @@
 import { expect, test } from 'vite-plus/test';
 import { AppEnvSchema, DbEnvSchema } from '#lib/env.ts';
-import { variables } from './env.ts';
+import { variables } from './env.ts'; // eslint-disable-line no-restricted-imports
 
 test('declares every app and database variable with its schema', () => {
 	const libSchemas = { ...AppEnvSchema.entries, ...DbEnvSchema.entries };

@@ -167,3 +167,19 @@ export const revokeActiveUserSessions = (
 			),
 		)
 		.run();
+
+// Any active role makes a user staff (개인정보취급자), see specs/07-audit-logging.md
+export const hasActiveUserRole = (
+	db: AppDbOrTx,
+	{ userId }: { userId: UserRoleSelect['userId'] },
+) =>
+	db
+		.select({ id: userRoleTable.id })
+		.from(userRoleTable)
+		.where(
+			and(
+				eq(userRoleTable.userId, userId), //
+				isNull(userRoleTable.revokedAt),
+			),
+		)
+		.get() !== undefined;

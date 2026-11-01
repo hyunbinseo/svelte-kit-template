@@ -1,16 +1,16 @@
 import { randomBytes } from 'node:crypto';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
-import { type AppDb, createDatabase } from '#db/app/server/database.ts';
+import { type AppDb, createAppDatabase } from '#db/app/server/database.ts';
 import { loginAttemptTable, type LoginInsert, loginTable } from '#db/app/server/schema.ts';
 import { openDatabase } from '#db/shared.server.ts';
 
-export const createTestDatabase = (path = ':memory:') => {
+export const createTestAppDatabase = (path = ':memory:') => {
 	const client = openDatabase(path);
 
 	migrate(drizzle({ client }), { migrationsFolder: 'drizzle/app' });
 
-	return createDatabase(client);
+	return createAppDatabase(client);
 };
 
 // A login with one attempt

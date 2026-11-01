@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { sql } from 'drizzle-orm';
 import { beforeEach, describe, expect, test } from 'vite-plus/test';
 import type { AppDb } from '#db/app/server/database.ts';
-import { createTestDatabase } from '#db/app/server/testing.ts';
+import { createTestAppDatabase } from '#db/app/server/testing.ts';
 import {
 	type UserInsert,
 	type UserProfileInsert,
@@ -51,7 +51,7 @@ const validUser = {
 let db: AppDb;
 
 beforeEach(() => {
-	db = createTestDatabase();
+	db = createTestAppDatabase();
 	db.insert(userTable)
 		.values({ ...validUser, id: USER_ID })
 		.run();

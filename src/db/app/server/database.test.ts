@@ -3,10 +3,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from 'vite-plus/test';
-import { createTestDatabase } from '#db/app/server/testing.ts';
+import { createTestAppDatabase } from '#db/app/server/testing.ts';
 
 test('transaction types reject async callbacks, non-immediate configs, and savepoints', () => {
-	const db = createTestDatabase();
+	const db = createTestAppDatabase();
 	try {
 		// @ts-expect-error -- async callback
 		expect(db.transaction(async () => 1, { behavior: 'immediate' })).toBeInstanceOf(Promise);
@@ -29,7 +29,7 @@ test('transaction types reject async callbacks, non-immediate configs, and savep
 test('transaction locks the database for writing on begin', () => {
 	const tempDir = mkdtempSync(join(tmpdir(), 'transaction-'));
 	const databasePath = join(tempDir, 'app.db');
-	const db = createTestDatabase(databasePath);
+	const db = createTestAppDatabase(databasePath);
 
 	try {
 		using otherConnection = new DatabaseSync(databasePath, { timeout: 0 });

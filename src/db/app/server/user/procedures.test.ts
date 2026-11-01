@@ -12,7 +12,7 @@ import {
 	userSessionTable,
 	userTable,
 } from '#db/app/server/schema.ts';
-import { createTestDatabase, seedLogin } from '#db/app/server/testing.ts';
+import { createTestAppDatabase, seedLogin } from '#db/app/server/testing.ts';
 import { closeUser, grantRole, revokeRole } from '#db/app/server/user/procedures.ts';
 
 const past = new Date('2026-01-01T00:00:00Z');
@@ -42,7 +42,7 @@ let db: AppDb;
 
 beforeEach(() => {
 	vi.useFakeTimers({ now, toFake: ['Date'] });
-	db = createTestDatabase();
+	db = createTestAppDatabase();
 	db.insert(userTable)
 		.values([
 			{ contact: 'admin@example.com', createdAt: past, id: ADMIN_ID },

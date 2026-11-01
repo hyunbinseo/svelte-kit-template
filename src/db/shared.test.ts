@@ -5,7 +5,7 @@ import { inspect } from 'node:util';
 import { DrizzleQueryError, type SQL, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-sqlite';
 import { afterEach, beforeEach, describe, expect, test } from 'vite-plus/test';
-import { openDatabase, prepareDatabaseFile } from '#db/shared.server.ts';
+import { isAuditEnabled, openDatabase, prepareDatabaseFile } from '#db/shared.server.ts';
 
 let dataDir: string;
 
@@ -15,6 +15,14 @@ beforeEach(() => {
 
 afterEach(() => {
 	rmSync(dataDir, { force: true, recursive: true });
+});
+
+describe('isAuditEnabled', () => {
+	test('is off in development only', () => {
+		expect(isAuditEnabled('development')).toBe(false);
+		expect(isAuditEnabled('e2e')).toBe(true);
+		expect(isAuditEnabled('production')).toBe(true);
+	});
 });
 
 describe('prepareDatabaseFile', () => {

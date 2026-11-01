@@ -10,7 +10,7 @@ Interim rules while `specs/` is in progress. [13](./specs/13-agent-docs.md) repl
 - Prefer plain library calls over project helpers. Inline a helper with one or two callers.
 - Use subpath imports (`#…`, see `package.json` `imports`), even within the same folder. Exceptions: SvelteKit's `./$types.ts`, and inline disables where no subpath applies (`src/env.test.ts`, `src/routes/+layout.svelte`).
 - Build file paths with `node:path` (`join`), not string templates.
-- No bare `as const`. Add `satisfies` with the narrowest type that fits, e.g. `as const satisfies readonly SoftDeleteReason[]`.
+- No bare `as const`. Add `satisfies` with the narrowest type that fits, e.g. `as const satisfies readonly ReasonCode[]`.
 - Declare a derived type right above its source: `export type UserRole = …;` then `export const userRoles = …`.
 - Separate steps with a blank line, and put one around multi-line statements. Keep related one-liners (e.g. a group of `expect`s) together.
 - Assert invariants the schema guarantees (`ok`). Return falsy only for guards.

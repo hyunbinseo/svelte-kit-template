@@ -1,5 +1,4 @@
 import { ok } from 'node:assert/strict';
-import type { UserRoleRevokeReason } from '#db/app/enums/user.ts';
 import type { AppDb, AppTx } from '#db/app/server/database.ts';
 import { deleteUserLogins } from '#db/app/server/login/queries.ts';
 import type { UserRoleSelect, UserSelect } from '#db/app/server/schema.ts';
@@ -13,6 +12,7 @@ import {
 	revokeActiveUserRoles,
 	revokeActiveUserSessions,
 } from '#db/app/server/user/queries.ts';
+import type { UserRoleRevokeReason } from '#lib/enums/user.ts';
 
 // null is the system, see specs/05-database.md
 const isValidActor = (tx: AppTx, actorId: null | UserSelect['id']) => {

@@ -1,9 +1,6 @@
 import { and, eq, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { type AnySQLiteColumn, check } from 'drizzle-orm/sqlite-core';
 
-// Matches the globs in softDeleteChecks, see specs/08-auth.md
-export type SoftDeleteReason = `${'admin' | 'cascade' | 'system' | 'user'}_${string}`;
-
 // [verb]At/[verb]By/[verb]Reason, see specs/05-database.md
 export const softDeleteChecks = (
 	groupName: string,

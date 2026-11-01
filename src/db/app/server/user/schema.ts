@@ -9,13 +9,13 @@ import {
 	text,
 	uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
+import { softDeleteChecks } from '#db/app/server/checks.ts';
 import {
 	userClosedReasons,
 	userRoleRevokedReasons,
 	userRoles,
 	userSessionRevokedReasons,
-} from '#db/app/enums/user.ts';
-import { softDeleteChecks } from '#db/app/server/checks.ts';
+} from '#lib/enums/user.ts';
 
 export type UserInsert = typeof userTable.$inferInsert;
 export type UserSelect = typeof userTable.$inferSelect;

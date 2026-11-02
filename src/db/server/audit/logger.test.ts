@@ -19,8 +19,6 @@ const CONTEXT = {
 	userId: 1,
 } satisfies AuditContext;
 
-const IMMEDIATE = { behavior: 'immediate' } as const satisfies { behavior: 'immediate' };
-
 let appDb: AppDb;
 let auditDb: AuditDb;
 let db: AppDb;
@@ -92,10 +90,13 @@ const failEntries = (glob: string) =>
 	`);
 
 test('logs writes, including transactions and CTEs, but not reads', () => {
-	db.transaction((tx) => {
-		insertUser(tx, 'a@example.com');
-		tx.select().from(userTable).all();
-	}, IMMEDIATE);
+	db.transaction(
+		(tx) => {
+			insertUser(tx, 'a@example.com');
+			tx.select().from(userTable).all();
+		},
+		{ behavior: 'immediate' },
+	);
 	db.run(sql`with x as (select 1) select * from x`);
 	db.select().from(userTable).all();
 
@@ -146,7 +147,9 @@ test('rolls back a transaction whose commit fails to log', () => {
 	failEntries('commit');
 
 	expect(
-		getRootCause(() => db.transaction((tx) => insertUser(tx, 'a@example.com'), IMMEDIATE)),
+		getRootCause(() =>
+			db.transaction((tx) => insertUser(tx, 'a@example.com'), { behavior: 'immediate' }),
+		),
 	).toHaveProperty('message', 'audit failed');
 	expect(appDb.$client.isTransaction).toBe(false);
 	expect(getUsers()).toEqual([]);
@@ -158,10 +161,13 @@ test('rolls back a transaction whose rollback fails to log, and reports it', () 
 	const error = new Error('callback failed');
 
 	expect(() =>
-		db.transaction((tx) => {
-			insertUser(tx, 'a@example.com');
-			throw error;
-		}, IMMEDIATE),
+		db.transaction(
+			(tx) => {
+				insertUser(tx, 'a@example.com');
+				throw error;
+			},
+			{ behavior: 'immediate' },
+		),
 	).toThrow(error);
 	expect(appDb.$client.isTransaction).toBe(false);
 	expect(getUsers()).toEqual([]);
@@ -171,17 +177,20 @@ test('rolls back a transaction whose rollback fails to log, and reports it', () 
 test('rolls back a savepoint whose rollback fails to log, and reports it', () => {
 	failEntries('rollback*');
 
-	db.transaction((tx) => {
-		insertUser(tx, 'a@example.com');
-		// AppTx hides savepoints, see specs/06-query-layer.md
-		const unsafeTx = tx as unknown as NodeSQLiteTransaction<Record<string, never>>;
-		expect(() =>
-			unsafeTx.transaction((savepoint) => {
-				insertUser(savepoint, 'b@example.com');
-				throw new Error('savepoint failed');
-			}),
-		).toThrow('savepoint failed');
-	}, IMMEDIATE);
+	db.transaction(
+		(tx) => {
+			insertUser(tx, 'a@example.com');
+			// AppTx hides savepoints, see specs/06-query-layer.md
+			const unsafeTx = tx as unknown as NodeSQLiteTransaction<Record<string, never>>;
+			expect(() =>
+				unsafeTx.transaction((savepoint) => {
+					insertUser(savepoint, 'b@example.com');
+					throw new Error('savepoint failed');
+				}),
+			).toThrow('savepoint failed');
+		},
+		{ behavior: 'immediate' },
+	);
 
 	expect(getUsers()).toEqual([{ contact: 'a@example.com' }]);
 	expect(report).toHaveBeenCalledOnce();
@@ -191,8 +200,9 @@ test('throws before logging a transaction nested across clients', () => {
 	expect(
 		getRootCause(() =>
 			db.transaction(
-				() => auditedDb.transaction(() => insertUser(db, 'a@example.com'), IMMEDIATE),
-				IMMEDIATE,
+				() =>
+					auditedDb.transaction(() => insertUser(db, 'a@example.com'), { behavior: 'immediate' }),
+				{ behavior: 'immediate' },
 			),
 		),
 	).toBeInstanceOf(AssertionError);

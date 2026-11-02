@@ -37,7 +37,7 @@ const reasonCases = [
 	{ closedReason: 'user_x', closedBy: USER_ID, isValid: true },
 	{ closedReason: 'x', closedBy: null, isValid: false },
 	/* eslint-enable perfectionist/sort-objects */
-] as const satisfies readonly {
+] satisfies {
 	closedBy: UserSelect['closedBy'];
 	closedReason: string;
 	isValid: boolean;

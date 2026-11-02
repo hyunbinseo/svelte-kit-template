@@ -3,7 +3,9 @@ import type { ReasonCode } from '#lib/enums/reason.ts';
 // Stored in rows with no CHECK: renaming or removing a value needs a data migration.
 
 export type UserRole = (typeof userRoles)[number];
-export const userRoles = ['admin'] as const satisfies readonly string[];
+export const userRoles = [
+	'admin', //
+] as const;
 
 export type UserClosedReason = (typeof userClosedReasons)[number];
 export const userClosedReasons = [

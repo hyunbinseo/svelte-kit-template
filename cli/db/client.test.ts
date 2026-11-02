@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 test('logs the script as a staff actor, to the audit database it returns', () => {
-	for (const name of ['app', 'audit'] as const satisfies readonly DatabaseName[]) {
+	for (const name of ['app', 'audit'] satisfies DatabaseName[]) {
 		using connection = openConnection(prepareDatabasePath(dataDir, 'e2e', name));
 		migrate(drizzle({ client: connection }), { migrationsFolder: join('drizzle', name) });
 	}

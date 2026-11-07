@@ -23,5 +23,5 @@
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 	},
-	"include": ["src", "*.js", "*.ts"]
+	"include": ["src", "tests", "*.js", "*.ts"]
 }

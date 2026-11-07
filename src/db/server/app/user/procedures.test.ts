@@ -13,7 +13,15 @@ import {
 	userTable,
 } from '#db/app/schema.ts';
 import { createTestAppDb, seedLogin } from '#db/app/testing.ts';
-import { closeUser, grantRole, revokeRole } from '#db/app/user/procedures.ts';
+import {
+	closeUser,
+	extendSession,
+	grantRole,
+	onboardUser,
+	revokeRole,
+	revokeSession,
+} from '#db/app/user/procedures.ts';
+import { SESSION_LIFETIME_MS } from '#lib/auth/config.ts';
 
 const past = new Date('2026-01-01T00:00:00Z');
 const now = new Date('2026-01-02T00:00:00Z');
@@ -88,7 +96,7 @@ describe('closeUser', () => {
 	test('closes the user and cascades with the actor', () => {
 		expect(
 			closeUser(db, { closedBy: ADMIN_ID, closedReason: 'user_requested', userId: MEMBER_ID }),
-		).toBe(true);
+		).toEqual({ ok: true });
 		expect(getUser(MEMBER_ID)).toMatchObject({
 			closedAt: now,
 			closedBy: ADMIN_ID,
@@ -123,18 +131,20 @@ describe('closeUser', () => {
 		expect(getUser(MEMBER_ID)?.contact).toBe('member@example.com');
 	});
 
-	test.for([MISSING_ID, CLOSED_ID])('returns false for user %i', (userId) => {
+	test.for([MISSING_ID, CLOSED_ID])('returns user_not_found for user %i', (userId) => {
 		const userBefore = getUser(userId);
-		expect(closeUser(db, { closedBy: ADMIN_ID, closedReason: 'admin_removed', userId })).toBe(
-			false,
-		);
+		expect(closeUser(db, { closedBy: ADMIN_ID, closedReason: 'admin_removed', userId })).toEqual({
+			error: 'user_not_found',
+			ok: false,
+		});
 		expect(getUser(userId)).toEqual(userBefore);
 	});
 
-	test.for([MISSING_ID, CLOSED_ID])('returns false for actor %i', (closedBy) => {
-		expect(closeUser(db, { closedBy, closedReason: 'admin_removed', userId: MEMBER_ID })).toBe(
-			false,
-		);
+	test.for([MISSING_ID, CLOSED_ID])('returns actor_not_found for actor %i', (closedBy) => {
+		expect(closeUser(db, { closedBy, closedReason: 'admin_removed', userId: MEMBER_ID })).toEqual({
+			error: 'actor_not_found',
+			ok: false,
+		});
 		expect(getUser(MEMBER_ID)?.closedAt).toBeNull();
 		expect(db.select().from(loginTable).all()).toHaveLength(4);
 	});
@@ -142,32 +152,44 @@ describe('closeUser', () => {
 
 describe('grantRole', () => {
 	test('grants the role', () => {
-		const roleId = grantRole(db, { assignedBy: ADMIN_ID, role: 'admin', userId: MEMBER_ID });
+		const granted = grantRole(db, { assignedBy: ADMIN_ID, role: 'admin', userId: MEMBER_ID });
 		expect(getRoles()).toMatchObject([
-			{ assignedAt: now, assignedBy: ADMIN_ID, id: roleId, userId: MEMBER_ID },
+			{ assignedAt: now, assignedBy: ADMIN_ID, userId: MEMBER_ID },
 		]);
+		expect(granted).toEqual({ ok: true, userRoleId: getRoles()[0]?.id });
 	});
 
 	test('ignores revoked roles', () => {
 		db.insert(userRoleTable)
 			.values({ ...validUserRole, revokedAt: past, revokedReason: 'user_requested' })
 			.run();
-		expect(grantRole(db, { assignedBy: null, role: 'admin', userId: MEMBER_ID })).toBeTruthy();
+		expect(grantRole(db, { assignedBy: null, role: 'admin', userId: MEMBER_ID })).toMatchObject({
+			ok: true,
+		});
 	});
 
-	test('returns undefined if the role is active', () => {
+	test('returns role_already_granted if the role is active', () => {
 		grantRole(db, { assignedBy: null, role: 'admin', userId: MEMBER_ID });
-		expect(grantRole(db, { assignedBy: null, role: 'admin', userId: MEMBER_ID })).toBeUndefined();
+		expect(grantRole(db, { assignedBy: null, role: 'admin', userId: MEMBER_ID })).toEqual({
+			error: 'role_already_granted',
+			ok: false,
+		});
 		expect(getRoles()).toHaveLength(1);
 	});
 
-	test.for([MISSING_ID, CLOSED_ID])('returns undefined for user %i', (userId) => {
-		expect(grantRole(db, { assignedBy: null, role: 'admin', userId })).toBeUndefined();
+	test.for([MISSING_ID, CLOSED_ID])('returns user_not_found for user %i', (userId) => {
+		expect(grantRole(db, { assignedBy: null, role: 'admin', userId })).toEqual({
+			error: 'user_not_found',
+			ok: false,
+		});
 		expect(getRoles()).toEqual([]);
 	});
 
-	test.for([MISSING_ID, CLOSED_ID])('returns undefined for actor %i', (assignedBy) => {
-		expect(grantRole(db, { assignedBy, role: 'admin', userId: MEMBER_ID })).toBeUndefined();
+	test.for([MISSING_ID, CLOSED_ID])('returns actor_not_found for actor %i', (assignedBy) => {
+		expect(grantRole(db, { assignedBy, role: 'admin', userId: MEMBER_ID })).toEqual({
+			error: 'actor_not_found',
+			ok: false,
+		});
 		expect(getRoles()).toEqual([]);
 	});
 });
@@ -185,13 +207,13 @@ describe('revokeRole', () => {
 				role: 'admin',
 				userId: MEMBER_ID,
 			}),
-		).toBe(true);
+		).toEqual({ ok: true });
 		expect(getRoles()).toMatchObject([
 			{ revokedAt: now, revokedBy: ADMIN_ID, revokedReason: 'admin_removed' },
 		]);
 	});
 
-	test('returns false if the role is revoked', () => {
+	test('returns role_not_found if the role is revoked', () => {
 		revokeRole(db, {
 			revokedBy: MEMBER_ID,
 			revokedReason: 'user_requested',
@@ -206,11 +228,11 @@ describe('revokeRole', () => {
 				role: 'admin',
 				userId: MEMBER_ID,
 			}),
-		).toBe(false);
+		).toEqual({ error: 'role_not_found', ok: false });
 		expect(getRoles()).toMatchObject([{ revokedAt: now, revokedReason: 'user_requested' }]);
 	});
 
-	test.for([MISSING_ID, CLOSED_ID])('returns false for actor %i', (revokedBy) => {
+	test.for([MISSING_ID, CLOSED_ID])('returns actor_not_found for actor %i', (revokedBy) => {
 		expect(
 			revokeRole(db, {
 				revokedBy,
@@ -218,7 +240,116 @@ describe('revokeRole', () => {
 				role: 'admin',
 				userId: MEMBER_ID,
 			}),
-		).toBe(false);
+		).toEqual({ error: 'actor_not_found', ok: false });
 		expect(getRoles()).toMatchObject([{ revokedAt: null }]);
+	});
+});
+
+describe('onboardUser', () => {
+	const getProfiles = () => db.select().from(userProfileTable).all();
+
+	test('creates the profile', () => {
+		expect(onboardUser(db, { birthDate: '2000-01-01', userId: MEMBER_ID })).toEqual({ ok: true });
+		expect(getProfiles()).toEqual([{ birthDate: '2000-01-01', createdAt: now, userId: MEMBER_ID }]);
+	});
+
+	test('returns user_already_onboarded if already onboarded', () => {
+		onboardUser(db, { birthDate: '2000-01-01', userId: MEMBER_ID });
+		expect(onboardUser(db, { birthDate: '2001-01-01', userId: MEMBER_ID })).toEqual({
+			error: 'user_already_onboarded',
+			ok: false,
+		});
+		expect(getProfiles()).toMatchObject([{ birthDate: '2000-01-01' }]);
+	});
+
+	test.for([MISSING_ID, CLOSED_ID])('returns user_not_found for user %i', (userId) => {
+		expect(onboardUser(db, { birthDate: '2000-01-01', userId })).toEqual({
+			error: 'user_not_found',
+			ok: false,
+		});
+		expect(getProfiles()).toEqual([]);
+	});
+});
+
+describe('sessions', () => {
+	const getSessions = () => db.select().from(userSessionTable).orderBy(userSessionTable.id).all();
+
+	const seedSessions = () =>
+		db
+			.insert(userSessionTable)
+			.values([
+				validUserSession, // active
+				{ ...validUserSession, expiresAt: now }, // expired
+				{ ...validUserSession, revokedAt: past, revokedReason: 'user_logged_out' },
+				{ ...validUserSession, userId: CLOSED_ID }, // closed user
+			])
+			.returning({ id: userSessionTable.id })
+			.all()
+			.map(({ id }) => id);
+
+	describe('extendSession', () => {
+		test('extends an active session', () => {
+			const [activeId] = seedSessions();
+			const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
+			expect(extendSession(db, { userSessionId: activeId ?? 0 })).toEqual({ expiresAt, ok: true });
+			expect(getSessions()[0]?.expiresAt).toEqual(expiresAt);
+		});
+
+		test('returns session_not_found for expired, revoked, closed-user, and missing sessions', () => {
+			const [, ...inactiveIds] = seedSessions();
+			const sessionsBefore = getSessions();
+			for (const userSessionId of [...inactiveIds, MISSING_ID]) {
+				expect(extendSession(db, { userSessionId })).toEqual({
+					error: 'session_not_found',
+					ok: false,
+				});
+			}
+			expect(getSessions()).toEqual(sessionsBefore);
+		});
+	});
+
+	describe('revokeSession', () => {
+		test('revokes an active session', () => {
+			const [activeId = 0] = seedSessions();
+			expect(
+				revokeSession(db, {
+					revokedBy: MEMBER_ID,
+					revokedReason: 'user_logged_out',
+					userSessionId: activeId,
+				}),
+			).toEqual({ ok: true });
+			expect(getSessions()[0]).toMatchObject({
+				revokedAt: now,
+				revokedBy: MEMBER_ID,
+				revokedReason: 'user_logged_out',
+			});
+		});
+
+		test('returns session_not_found for expired, revoked, closed-user, and missing sessions', () => {
+			const [, ...inactiveIds] = seedSessions();
+			const sessionsBefore = getSessions();
+			for (const userSessionId of [...inactiveIds, MISSING_ID]) {
+				expect(
+					revokeSession(db, {
+						revokedBy: ADMIN_ID,
+						revokedReason: 'admin_terminated',
+						userSessionId,
+					}),
+				).toEqual({ error: 'session_not_found', ok: false });
+			}
+			expect(getSessions()).toEqual(sessionsBefore);
+		});
+
+		test.for([MISSING_ID, CLOSED_ID])('returns actor_not_found for actor %i', (revokedBy) => {
+			const [activeId = 0] = seedSessions();
+			expect(
+				revokeSession(db, {
+					revokedBy,
+					revokedReason: 'admin_terminated',
+					userSessionId: activeId,
+				}),
+			).toEqual({ error: 'actor_not_found', ok: false });
+			expect(getSessions()[0]?.revokedAt).toBeNull();
+		});
 	});
 });

@@ -13,7 +13,7 @@ Interim rules while `specs/` is in progress. [13](./specs/13-agent-docs.md) repl
 - Prefer `satisfies` alone: it keeps literal types (`{ behavior: 'immediate' } satisfies …`). Add `as const` only when a readonly tuple is needed (e.g. Drizzle's `text({ enum })`), with `satisfies` if a narrower type than `string` fits (`as const satisfies readonly ReasonCode[]`), else bare (`userRoles`).
 - Declare a derived type right above its source: `export type UserRole = …;` then `export const userRoles = …`.
 - Separate steps with a blank line, and put one around multi-line statements. Keep related one-liners (e.g. a group of `expect`s) together.
-- Assert invariants the schema guarantees (`ok`). Return falsy only for guards.
+- Assert invariants the schema guarantees (`ok`). Procedures return `ProcedureResult` from guards ([06](./specs/06-query-layer.md)); elsewhere, return falsy only for guards.
 - Names:
   - Name what a value is, not its shape: `loginIds`, `activeUser`, `actorId`, not `ids`, `current`, `by`, `r`. Booleans read as predicates (`isValid`).
   - Keep an object when it has a natural name, and read its fields: a row from `userTable` is `user`, read as `user.id` and `user.contact`, so each field carries its context. Destructure only when no such name exists, e.g. a query or procedure's argument object (`{ closedBy, userId }`, see [06](./specs/06-query-layer.md)) or `{ default: x }` from a dynamic import. Don't destructure just to shorten access.

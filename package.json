@@ -5,7 +5,9 @@
 	"imports": {
 		"#cli/*": "./cli/*",
 		"#db/*": "./src/db/server/*",
-		"#lib/*": "./src/lib/*"
+		"#lib/*": "./src/lib/*",
+		"#routes/*": "./src/routes/*",
+		"#tests/*": "./tests/*"
 	},
 	"scripts": {
 		"build": "vp build",
@@ -16,6 +18,7 @@
 		"db:migrate:e2e": "MODE=e2e drizzle-kit migrate --config cli/db/drizzle-kit/app.ts && MODE=e2e drizzle-kit migrate --config cli/db/drizzle-kit/audit.ts",
 		"db:migrate:production": "MODE=production drizzle-kit migrate --config cli/db/drizzle-kit/app.ts && MODE=production drizzle-kit migrate --config cli/db/drizzle-kit/audit.ts",
 		"db:push": "MODE=development drizzle-kit push --config cli/db/drizzle-kit/app.ts",
+		"db:reset:e2e": "MODE=e2e node --import=#cli/lib/preload.ts cli/db/reset-e2e.ts && vpr db:migrate:e2e",
 		"db:studio": "MODE=development drizzle-kit studio --config cli/db/drizzle-kit/app.ts",
 		"dev": "vp dev",
 		"format": "vp fmt",

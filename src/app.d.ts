@@ -1,12 +1,14 @@
-import type { UserSelect } from '#db/app/schema.ts';
-
 // See https://svelte.dev/docs/kit/types#app.d.ts
 declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			// Placeholder until specs/08-auth.md sets it
-			user?: Pick<UserSelect, 'id'>;
+			// Set by handleSession (#lib/server/auth/session.ts)
+			session?: {
+				id: number;
+				isOnboarded: boolean;
+				userId: number;
+			};
 		}
 		// interface PageData {}
 		// interface PageState {}

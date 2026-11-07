@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/node-sqlite';
 import { migrate } from 'drizzle-orm/node-sqlite/migrator';
 import { afterEach, beforeEach, expect, test } from 'vite-plus/test';
 import { openDbs } from '#cli/db/client.ts';
-import { ROOT } from '#cli/shared.ts';
+import { ROOT } from '#cli/lib/shared.ts';
 import { userTable } from '#db/app/schema.ts';
 import { entryTable } from '#db/audit/schema.ts';
 import { openConnection } from '#db/shared/connection.ts';

@@ -1,5 +1,5 @@
 import { relative } from 'node:path';
-import { ROOT } from '#cli/shared.ts';
+import { ROOT } from '#cli/lib/shared.ts';
 import { createAppDb } from '#db/app/drizzle.ts';
 import { createAuditDb } from '#db/audit/drizzle.ts';
 import { auditConnection, type AuditContext } from '#db/audit/logger.ts';

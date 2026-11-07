@@ -23,7 +23,7 @@ const cliScripts = {
 		'cli/db/*/*/queries.{js,ts}',
 		'cli/db/client.ts',
 		'cli/db/drizzle-kit/*',
-		'cli/shared.ts',
+		'cli/lib/*',
 	],
 };
 

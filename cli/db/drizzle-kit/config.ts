@@ -1,9 +1,8 @@
 import { equal, ok } from 'node:assert/strict';
-import { existsSync } from 'node:fs';
-import { cwd, env, loadEnvFile } from 'node:process';
+import { cwd, env } from 'node:process';
 import { defineConfig } from 'drizzle-kit';
 import { parse } from 'valibot';
-import { ROOT } from '#cli/shared.ts';
+import { loadModeEnv, ROOT } from '#cli/lib/shared.ts';
 import { type DatabaseName, isAuditEnabled, prepareDatabasePath } from '#db/shared/database.ts';
 import { DbEnvSchema, ModeSchema } from '#lib/env.ts';
 
@@ -13,15 +12,7 @@ export const defineDatabaseConfig = (database: DatabaseName) => {
 	const mode = parse(ModeSchema, env.MODE);
 	if (database === 'audit') ok(isAuditEnabled(mode));
 
-	for (const file of [
-		// Match Vite
-		`.env.${mode}.local`,
-		`.env.${mode}`,
-		'.env.local',
-		'.env',
-	]) {
-		if (existsSync(file)) loadEnvFile(file);
-	}
+	loadModeEnv(mode);
 
 	const dataDir = parse(DbEnvSchema.entries.DATA_DIR, env.DATA_DIR);
 	const url = prepareDatabasePath(dataDir, mode, database);

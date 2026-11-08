@@ -23,7 +23,7 @@
 		"dev": "vp dev",
 		"format": "vp fmt",
 		"lint": "vp fmt --check && eslint .",
-		"prepare": "(vp config --no-agent || echo '') && (svelte-kit sync || echo '')",
+		"prepare": "(vp config || echo '') && (svelte-kit sync || echo '')",
 		"preview": "vp preview",
 		"test": "vp test",
 		"test:e2e": "playwright test"

@@ -25,6 +25,8 @@
 		"lint": "vp fmt --check && eslint .",
 		"prepare": "(vp config || echo '') && (svelte-kit sync || echo '')",
 		"preview": "vp preview",
+		"release:activate": "node cli/release/activate.ts",
+		"release:build": "node cli/release/build.ts",
 		"test": "vp test",
 		"test:e2e": "playwright test"
 	},

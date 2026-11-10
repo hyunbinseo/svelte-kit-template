@@ -34,7 +34,7 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 00  | Toolchain (no spec)                      |
 | 01  | [Conventions](./01-conventions.md)       |
 | 02  | [CLI Separation](./02-cli-separation.md) |
-| 03  | Environment                              |
+| 03  | [Environment](./03-environment.md)       |
 | 04  | Build Output                             |
 | 05  | Database                                 |
 | 06  | Procedures                               |

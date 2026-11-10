@@ -36,16 +36,16 @@ test('sets a title and noindex on every page', async ({ context, db, page }) => 
 
 test('shows the login state on the prerendered home page', async ({ context, db, page }) => {
 	await page.goto('/');
-	await expect(page.getByRole('link', { name: '로그인' })).toBeVisible();
+	await expect(page.locator('main a[href="/login"]')).toBeVisible();
 
 	await logIn(context, db);
 	await page.goto('/');
-	await expect(page.getByRole('link', { name: '내 계정' })).toBeVisible();
+	await expect(page.locator('main a[href="/account"]')).toBeVisible();
 
 	await context.clearCookies();
 	await logIn(context, db, false);
 	await page.goto('/');
-	await page.getByRole('link', { name: '내 계정' }).click();
+	await page.locator('main a[href="/account"]').click();
 	await expect(page).toHaveURL('/onboarding');
 });
 
@@ -68,7 +68,7 @@ test('shows a toast for a new version, and navigates with a full load', async ({
 	await page.evaluate(() => window.dispatchEvent(new Event('focus')));
 	await expect(page.getByRole('status')).toContainText('새 버전이 있습니다.');
 
-	await page.getByRole('link', { name: '로그인' }).click();
+	await page.locator('main a[href="/login"]').click();
 	await expect(page).toHaveURL('/login');
 	expect(await page.evaluate(() => Reflect.get(window, 'isSameDocument'))).toBeUndefined();
 });

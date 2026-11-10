@@ -93,7 +93,7 @@ test.describe('session', () => {
 		await page.goto('/account');
 		await expect(page.getByRole('banner').getByText(contact)).toBeVisible();
 
-		await page.getByRole('button', { name: '로그아웃' }).click();
+		await page.getByRole('banner').getByRole('button').click();
 		await expect(page).toHaveURL('/');
 
 		expect(

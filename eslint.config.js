@@ -34,11 +34,18 @@ const procedureModuleGlobs = [
 ];
 
 const testModuleGlobs = ['**/*.{test,spec}.{js,ts}']; // as in vite.config.ts
+const e2eModuleGlobs = ['**/*.e2e.{js,ts}']; // as in playwright.config.ts
 
 const restrictedImports = {
 	paths: [
 		{ message: 'Use node:assert/strict.', name: 'assert' },
 		{ message: 'Use node:assert/strict.', name: 'node:assert' },
+		{ message: 'Use vite-plus/test.', name: 'vitest' },
+		{
+			importNames: ['default', 'expect', 'test'],
+			message: 'Use #tests/fixtures.ts.',
+			name: '@playwright/test',
+		},
 	],
 	patterns: [
 		{
@@ -46,8 +53,22 @@ const restrictedImports = {
 			group: ['./*', '../*', '!./$types.ts'],
 			message: 'Use a subpath import.',
 		},
+		{ group: ['vitest/*', '@vitest/*'], message: 'Use vite-plus/test.' },
 	],
 };
+
+// Escaped: gitignore syntax reads a leading # as a comment.
+const e2eOnlyPattern = { group: [String.raw`\#tests/*`], message: 'E2E only.' };
+
+// Tests assert with expect, which requireAssertions counts; ok only narrows.
+const testImportPaths = [
+	{
+		allowImportNames: ['AssertionError', 'ok'],
+		message: 'Use expect.',
+		name: 'node:assert/strict',
+	},
+	{ importNames: ['assert'], message: 'Use expect, or ok to narrow.', name: 'vite-plus/test' },
+];
 
 export default defineConfig(
 	includeIgnoreFile(resolve(import.meta.dirname, '.gitignore')),
@@ -70,6 +91,15 @@ export default defineConfig(
 		},
 	},
 	{
+		files: ['cli/**'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{ ...restrictedImports, patterns: [...restrictedImports.patterns, e2eOnlyPattern] },
+			],
+		},
+	},
+	{
 		// CLI-only code stays in cli/, see specs/02-cli-separation.md
 		files: ['src/**'],
 		rules: {
@@ -79,12 +109,18 @@ export default defineConfig(
 					...restrictedImports,
 					patterns: [
 						...restrictedImports.patterns,
+						e2eOnlyPattern,
 						// Escaped: gitignore syntax reads a leading # as a comment.
 						{ group: [String.raw`\#cli/*`], message: 'Move shared code to src/.' },
 					],
 				},
 			],
 		},
+	},
+	{
+		// The typescript-eslint rule, so the bans above still apply. No other block sets it for tests.
+		files: [...testModuleGlobs, ...e2eModuleGlobs],
+		rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths: testImportPaths }] },
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.js', '**/*.svelte.ts'],

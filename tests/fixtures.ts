@@ -1,11 +1,12 @@
-import { test as base } from '@playwright/test';
+// eslint-disable-next-line no-restricted-imports -- the one place tests import them
+import { test as base, expect } from '@playwright/test';
 import { parse } from 'valibot';
 import { type AppDb, createAppDb } from '#db/app/drizzle.ts';
 import { openConnection } from '#db/shared/connection.ts';
 import { prepareDatabasePath } from '#db/shared/database.ts';
 import { DbEnvSchema } from '#lib/env.ts';
 
-export { expect } from '@playwright/test';
+export { expect };
 
 // The server's database, shared by the worker's tests (seed unique values)
 export const test = base.extend<object, { db: AppDb }>({

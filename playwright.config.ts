@@ -1,11 +1,12 @@
 import { defineConfig } from '@playwright/test';
 import { loadModeEnv } from '#cli/lib/shared.ts';
 
-loadModeEnv('e2e'); // for the `db` fixture
+loadModeEnv('e2e'); // for the `db` fixture and teardown
 
 const PORT = 6526;
 
 export default defineConfig({
+	globalTeardown: './tests/teardown.ts',
 	testMatch: '**/*.e2e.{js,ts}',
 	use: { baseURL: `http://localhost:${PORT}` },
 	webServer: {

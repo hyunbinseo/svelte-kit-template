@@ -59,4 +59,4 @@ Editor config (`.vscode/`) is left as scaffolded until [00](./00-bootstrap.md) s
 - Korean UI copy. English code, comments, and docs.
 - Privacy first: no PII in logs, errors, or telemetry.
 - No new runtime dependency without asking.
-- `vpr check`, `vpr lint`, `vpr test` pass after every spec. Until [11](./11-testing.md), `vpr test` may cover unit tests only.
+- `vpr check`, `vpr lint`, `vpr test` pass after every spec.

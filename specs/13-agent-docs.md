@@ -13,6 +13,7 @@ Write `AGENTS.md` (plus `CLAUDE.md` → `@AGENTS.md`) and `README.md` last, desc
 - [ ] Every convention in `AGENTS.md` matches the code.
 - [ ] Every spec's `## Decisions` is reflected where relevant.
 - [ ] Agents are told to use `vp`/`vpr`/`vpx`, and to ask before running migrations.
+- [ ] `AGENTS.md` lists where the UI language is set, so switching it is one task ([09](./09-app-shell.md)).
 - [ ] README: features, stack, development setup, production setup, and how to upgrade a project scaffolded from an older version.
 - [ ] Decisions worth keeping are moved to `docs/` or `AGENTS.md`.
 - [ ] `specs/` removed once all checklists are ticked (ask first).

@@ -29,22 +29,22 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 
 ## Specs
 
-| #   | Spec                               |
-| --- | ---------------------------------- |
-| 00  | Toolchain (no spec)                |
-| 01  | [Conventions](./01-conventions.md) |
-| 02  | CLI Separation                     |
-| 03  | Environment                        |
-| 04  | Build Output                       |
-| 05  | Database                           |
-| 06  | Procedures                         |
-| 07  | Named Queries                      |
-| 08  | Audit Logging                      |
-| 09  | E2E Harness                        |
-| 10  | Sessions                           |
-| 11  | Login and Onboarding               |
-| 12  | App Shell                          |
-| 13  | Observability                      |
+| #   | Spec                                     |
+| --- | ---------------------------------------- |
+| 00  | Toolchain (no spec)                      |
+| 01  | [Conventions](./01-conventions.md)       |
+| 02  | [CLI Separation](./02-cli-separation.md) |
+| 03  | Environment                              |
+| 04  | Build Output                             |
+| 05  | Database                                 |
+| 06  | Procedures                               |
+| 07  | Named Queries                            |
+| 08  | Audit Logging                            |
+| 09  | E2E Harness                              |
+| 10  | Sessions                                 |
+| 11  | Login and Onboarding                     |
+| 12  | App Shell                                |
+| 13  | Observability                            |
 
 Specs are linked as they're drafted.
 

@@ -22,7 +22,7 @@ test.describe('session', () => {
 		await setCookie(context, 'session', token);
 
 		await page.goto('/account');
-		await expect(page.getByText(contact)).toBeVisible();
+		await expect(page.getByRole('banner').getByText(contact)).toBeVisible();
 		expect((await getCookie(context, 'session'))?.value).toBe(token);
 	});
 
@@ -78,7 +78,7 @@ test.describe('session', () => {
 		const { token } = seedUserSession(db, { userId });
 		await setCookie(context, 'session', token);
 		await page.goto('/account');
-		await expect(page.getByText(contact)).toBeVisible();
+		await expect(page.getByRole('banner').getByText(contact)).toBeVisible();
 
 		closeUser(db, { closedBy: userId, closedReason: 'user_requested', userId });
 
@@ -91,9 +91,9 @@ test.describe('session', () => {
 		const { token, userSessionId } = seedUserSession(db, { userId });
 		await setCookie(context, 'session', token);
 		await page.goto('/account');
-		await expect(page.getByText(contact)).toBeVisible();
+		await expect(page.getByRole('banner').getByText(contact)).toBeVisible();
 
-		await page.locator('main form').getByRole('button').click();
+		await page.getByRole('button', { name: '로그아웃' }).click();
 		await expect(page).toHaveURL('/');
 
 		expect(
@@ -137,7 +137,7 @@ test.describe('login', () => {
 		await page.locator(codeForm).getByRole('button').click();
 
 		await expect(page).toHaveURL('/account?a=1');
-		await expect(page.getByText(contact)).toBeVisible();
+		await expect(page.getByRole('banner').getByText(contact)).toBeVisible();
 		expect(await getCookie(context, 'login')).toBeUndefined();
 	});
 
@@ -155,7 +155,7 @@ test.describe('login', () => {
 		await page.locator('main form').getByRole('button').click();
 
 		await expect(page).toHaveURL('/account');
-		await expect(page.getByText(contact)).toBeVisible();
+		await expect(page.getByRole('banner').getByText(contact)).toBeVisible();
 	});
 
 	test('sends a code bound to the browser, with 2 attempts', async ({ context, db, page }) => {

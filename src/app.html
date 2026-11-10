@@ -23,6 +23,11 @@
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">%sveltekit.body%</div>
+		<noscript>
+			<p class="bg-amber-100 p-4 text-center">
+				정상적인 이용을 위해 자바스크립트를 활성화해 주세요.
+			</p>
+		</noscript>
+		<div class="contents">%sveltekit.body%</div>
 	</body>
 </html>

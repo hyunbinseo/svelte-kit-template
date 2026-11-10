@@ -5,5 +5,5 @@ import { form } from '$app/server';
 
 export const logout = form(() => {
 	revokeAndClear();
-	redirect(303, resolve('/'));
+	redirect(303, resolve(''));
 });

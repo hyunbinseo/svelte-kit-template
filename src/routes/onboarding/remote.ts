@@ -13,5 +13,5 @@ export const onboard = form(OnboardSchema, ({ birthDate, returnTo }) => {
 	// Ignores user_already_onboarded, e.g. from another tab
 	onboardUser(db, { birthDate, userId: session.userId });
 
-	redirect(303, parseReturnTo(returnTo) ?? resolve('/'));
+	redirect(303, parseReturnTo(returnTo) ?? resolve(''));
 });

@@ -76,11 +76,11 @@ export const verifyCode = form(VerifyCodeSchema, ({ code, returnTo }, issue) => 
 	setSessionCookie(result.userSessionId, sessionSecret, result.expiresAt);
 
 	const target = parseReturnTo(returnTo);
-	if (result.isOnboarded) redirect(303, target ?? resolve('/'));
+	if (result.isOnboarded) redirect(303, target ?? resolve(''));
 	redirect(
 		303,
 		target === undefined
-			? resolve('/onboarding')
-			: resolve(`/onboarding?${new URLSearchParams({ returnTo: target })}`),
+			? resolve('onboarding')
+			: resolve(`onboarding?returnTo=${encodeURIComponent(target)}`),
 	);
 });

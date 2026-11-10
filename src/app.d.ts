@@ -10,7 +10,10 @@ declare global {
 				userId: number;
 			};
 		}
-		// interface PageData {}
+		interface PageData {
+			// Overrides the root layout's noindex, e.g. from a page's load
+			robots?: string;
+		}
 		// interface PageState {}
 		// interface Platform {}
 	}

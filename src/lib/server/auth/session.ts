@@ -77,17 +77,17 @@ export const requireSession = () => {
 };
 
 export const requireLoggedOut = () => {
-	if (getRequestEvent().locals.session) redirect(303, resolve('/'));
+	if (getRequestEvent().locals.session) redirect(303, resolve(''));
 };
 
 export const requireOnboarded = () => {
 	const session = requireSession();
-	if (!session.isOnboarded) redirect(303, resolve('/onboarding'));
+	if (!session.isOnboarded) redirect(303, resolve('onboarding'));
 	return session;
 };
 
 export const requireNotOnboarded = () => {
 	const session = requireSession();
-	if (session.isOnboarded) redirect(303, resolve('/'));
+	if (session.isOnboarded) redirect(303, resolve(''));
 	return session;
 };

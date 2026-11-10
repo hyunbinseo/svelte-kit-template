@@ -95,6 +95,13 @@ export default defineConfig(
 				projectService: true,
 			},
 		},
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				'ImportNamespaceSpecifier',
+				{ message: 'Use a declaration tag ({const …}).', selector: 'SvelteConstTag' },
+			],
+		},
 	},
 	{
 		files: ['cli/db/*/*/*.ts', 'src/db/**/*.ts'],

@@ -9,7 +9,7 @@ export const POST: RequestHandler = () => {
 	return new Response(null, {
 		headers: {
 			'Clear-Site-Data': '"cache", "cookies", "storage"',
-			Location: resolve('/'),
+			Location: resolve(''),
 		},
 		status: 303,
 	});

@@ -28,6 +28,11 @@
 		scrollbar-width: thin;
 	}
 
+	/* The gutter keeps the layout from shifting when the lock hides the scrollbar. */
+	html:has(dialog:modal) {
+		scrollbar-gutter: stable;
+	}
+
 	body:has(dialog:modal) {
 		overflow: hidden;
 	}
@@ -46,9 +51,21 @@
 /* Prettier follows the same order, so the rightmost conflicting class wins. */
 /* See https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities */
 
+/* The root layout's column; set --page-background (e.g. url(...)) for an image. */
 @utility page-container {
-	@apply h-svh; /* not min-h, so the background image doesn't rescale */
-	@apply flex items-start justify-center-safe overflow-y-auto bg-slate-300 bg-cover bg-center xs:items-center-safe xs:px-4 xs:py-16;
+	@apply flex min-h-svh flex-col;
+
+	/* A fixed layer with body scrolling: lvh, so the image doesn't rescale as browser bars move */
+	&::before {
+		@apply fixed top-0 left-0 -z-10 h-lvh w-full bg-slate-300 bg-cover bg-center;
+		background-image: var(--page-background, none);
+		content: '';
+	}
+}
+
+/* A page's main, filling the rest of page-container (e.g. below a header) */
+@utility page-content {
+	@apply flex flex-1 items-start justify-center-safe xs:items-center-safe xs:px-4 xs:py-16;
 }
 
 @utility page-card {
@@ -56,7 +73,7 @@
 }
 
 @utility toast {
-	@apply rounded-lg bg-slate-800 px-4 py-2 text-white shadow-lg;
+	@apply flex items-center gap-3 rounded-lg bg-slate-800 px-4 py-2 text-white shadow-lg;
 }
 
 @utility btn {

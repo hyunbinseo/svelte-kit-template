@@ -1,0 +1,68 @@
+{
+	"languages": {
+		"CSS": {
+			"format_on_save": "on",
+			"formatter": { "language_server": { "name": "oxfmt" } },
+			"prettier": { "allowed": false }
+		},
+		"HTML": {
+			"format_on_save": "on",
+			"formatter": { "language_server": { "name": "oxfmt" } },
+			"prettier": { "allowed": false }
+		},
+		"JavaScript": {
+			"format_on_save": "on",
+			"formatter": [
+				{ "code_action": "source.fixAll.eslint" },
+				{ "language_server": { "name": "oxfmt" } }
+			],
+			"language_servers": ["eslint", "!oxlint", "..."],
+			"prettier": { "allowed": false }
+		},
+		"JSON": {
+			"format_on_save": "on",
+			"formatter": { "language_server": { "name": "oxfmt" } },
+			"prettier": { "allowed": false }
+		},
+		"JSONC": {
+			"format_on_save": "on",
+			"formatter": { "language_server": { "name": "oxfmt" } },
+			"prettier": { "allowed": false }
+		},
+		"Markdown": {
+			"format_on_save": "on",
+			"formatter": { "language_server": { "name": "oxfmt" } },
+			"prettier": { "allowed": false }
+		},
+		"Svelte": {
+			"format_on_save": "on",
+			"formatter": [
+				{ "code_action": "source.fixAll.eslint" },
+				{ "language_server": { "name": "oxfmt" } }
+			],
+			"language_servers": ["svelte-language-server", "eslint", "!oxlint", "..."],
+			"prettier": { "allowed": false }
+		},
+		"TypeScript": {
+			"format_on_save": "on",
+			"formatter": [
+				{ "code_action": "source.fixAll.eslint" },
+				{ "language_server": { "name": "oxfmt" } }
+			],
+			"language_servers": ["eslint", "!oxlint", "..."],
+			"prettier": { "allowed": false }
+		},
+		"YAML": {
+			"format_on_save": "on",
+			"formatter": { "language_server": { "name": "oxfmt" } },
+			"prettier": { "allowed": false }
+		}
+	},
+	"lsp": {
+		"oxfmt": {
+			"initialization_options": {
+				"settings": { "fmt.configPath": "./vite.config.ts", "run": "onSave" }
+			}
+		}
+	}
+}

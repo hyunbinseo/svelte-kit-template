@@ -6,7 +6,7 @@
 		// Environment Settings
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
-		// "lib": [/* TODO: specs/01-language-target.md */],
+		"lib": ["ES2023", "DOM", "DOM.Iterable"], // the browser target, see vite.config.ts
 		"types": ["$app/types", "node"],
 
 		// Stricter Typechecking Options
@@ -23,5 +23,5 @@
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false
 	},
-	"include": ["src", "vite.config.ts", "playwright.config.ts", "drizzle.config.ts"]
+	"include": ["src", "*.js", "*.ts"]
 }

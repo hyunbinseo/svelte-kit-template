@@ -1,3 +1,15 @@
 allowBuilds:
   esbuild: false
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.1
+  vite-plus: 1.5.1
 engineStrict: true
+overrides:
+  vite@*: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'
+pmOnFail: ignore
+runtimeOnFail: ignore

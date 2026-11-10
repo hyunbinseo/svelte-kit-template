@@ -1,33 +1,62 @@
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vitest/config';
-import adapter from '@sveltejs/adapter-node';
-import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
-	plugins: [
-		tailwindcss(),
-		sveltekit({
-			compilerOptions: {
-				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
-				runes: ({ filename }) =>
-					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
-				experimental: { async: true }
-			},
-			adapter: adapter(),
-			experimental: { remoteFunctions: true }
-		})
-	],
+	build: {
+		// The browser target, also in:
+		// - src/app.html check
+		// - tsconfig.json `lib`
+		target: 'es2023',
+	},
+	fmt: {
+		ignorePatterns: ['/drizzle/'],
+		printWidth: 100,
+		singleQuote: true,
+		sortImports: {
+			internalPattern: ['#', '$'],
+			newlinesBetween: false,
+		},
+		sortPackageJson: { sortScripts: true },
+		sortTailwindcss: { stylesheet: './src/routes/layout.css' },
+		svelte: true,
+		useTabs: true,
+	},
+	// See https://viteplus.dev/guide/troubleshooting#slow-config-loading-caused-by-heavy-plugins
+	plugins:
+		lazyPlugins(async () => {
+			const { default: tailwindcss } = await import('@tailwindcss/vite');
+			const { sveltekit } = await import('@sveltejs/kit/vite');
+			const { default: adapter } = await import('@sveltejs/adapter-node');
+			return [
+				tailwindcss(),
+				sveltekit({
+					adapter: adapter(),
+					compilerOptions: {
+						experimental: { async: true },
+						runes: ({ filename }) =>
+							filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
+					},
+					experimental: { remoteFunctions: true },
+				}),
+			];
+		}) ?? [],
+	preview: { port: 4526 },
+	server: { port: 5526 },
+	staged: {
+		'!(*.{cjs,cts,js,mjs,mts,svelte,ts})': 'vp fmt --no-error-on-unmatched-pattern',
+		'*.{cjs,cts,js,mjs,mts,svelte,ts}': ['eslint --fix', 'vp fmt'],
+	},
 	test: {
 		expect: { requireAssertions: true },
+		passWithNoTests: true, // TODO Remove with the first test
 		projects: [
 			{
 				extends: './vite.config.ts',
 				test: {
-					name: 'server',
 					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}']
-				}
-			}
-		]
-	}
+					include: ['src/**/*.{test,spec}.{js,ts}'],
+					name: 'server',
+				},
+			},
+		],
+	},
 });

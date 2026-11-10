@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/sveltekit';
 import { invalid, redirect } from '@sveltejs/kit';
 import { db } from '#db/app/client.ts';
 import {
@@ -38,7 +39,8 @@ export const sendCode = form(SendCodeSchema, async ({ contact }, issue) => {
 	try {
 		({ sendId } = await sendLoginCode({ code, contact }));
 	} catch (error) {
-		console.error(error); // TODO Sentry, see specs/10-observability.md
+		console.error(error);
+		captureException(error);
 		discardLogin(db, { loginId: started.loginId });
 		invalid(issue.contact(authErrorMessages.code_send_failed));
 	}

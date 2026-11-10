@@ -1,4 +1,5 @@
 import { relative } from 'node:path';
+import { captureException } from '@sentry/node';
 import { ROOT } from '#cli/lib/shared.ts';
 import { createAppDb } from '#db/app/drizzle.ts';
 import { createAuditDb } from '#db/audit/drizzle.ts';
@@ -34,7 +35,10 @@ export const openDbs = ({
 	const auditOptions = auditDb && {
 		auditDb,
 		getContext: () => context,
-		report: console.error, // TODO Sentry, see specs/10-observability.md
+		report: (error: unknown) => {
+			console.error(error);
+			captureException(error);
+		},
 	};
 
 	const db = createAppDb(

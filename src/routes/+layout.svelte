@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { setUser } from '@sentry/sveltekit';
+	import { isSentryEnabled } from '#lib/sentry/kit.ts';
+	import { getSessionUserId } from '#routes/remote.ts';
 	import { beforeNavigate } from '$app/navigation';
 	import { page, updated } from '$app/state';
 	import type { LayoutProps } from './$types.ts';
@@ -7,6 +10,14 @@
 	let { children }: LayoutProps = $props();
 
 	let isOnline = $state(true);
+
+	// Client-only, and refreshed after login and logout forms. Skips the request when disabled.
+	if (isSentryEnabled) {
+		$effect(() => {
+			const userId = getSessionUserId().current;
+			setUser(userId == null ? null : { id: userId });
+		});
+	}
 
 	// A full load picks up the new version's code.
 	beforeNavigate(({ to, willUnload }) => {

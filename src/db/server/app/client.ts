@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/sveltekit';
 import { parse } from 'valibot';
 import { createAppDb } from '#db/app/drizzle.ts';
 import { createAuditDb } from '#db/audit/drizzle.ts';
@@ -46,7 +47,10 @@ const getAuditContext = (): AuditContext => {
 const auditOptions = auditDb && {
 	auditDb,
 	getContext: getAuditContext,
-	report: console.error, // TODO Sentry, see specs/10-observability.md
+	report: (error: unknown) => {
+		console.error(error);
+		captureException(error);
+	},
 };
 
 // Writes are always audited.

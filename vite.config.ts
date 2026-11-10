@@ -4,6 +4,9 @@ import { copyFileSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
+// The release: SvelteKit's version and Sentry's release, see specs/04-build-output.md
+const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+
 export default defineConfig({
 	build: {
 		// Keep target in sync with:
@@ -29,9 +32,19 @@ export default defineConfig({
 			const { default: tailwindcss } = await import('@tailwindcss/vite');
 			const { sveltekit } = await import('@sveltejs/kit/vite');
 			const { default: adapter } = await import('@sveltejs/adapter-node');
+			const { sentrySvelteKit } = await import('@sentry/sveltekit/vite');
 			const nodeAdapter = adapter();
 			return [
 				tailwindcss(),
+				// Before sveltekit(). Uploads source maps when SENTRY_AUTH_TOKEN, SENTRY_ORG,
+				// and SENTRY_PROJECT are set, see specs/10-observability.md
+				...(await sentrySvelteKit({
+					adapter: 'node',
+					autoInstrument: false, // SvelteKit's own tracing covers load functions
+					autoUploadSourceMaps: !!process.env.SENTRY_AUTH_TOKEN,
+					release: { name: commitSha },
+					telemetry: false,
+				})),
 				sveltekit({
 					adapter: {
 						...nodeAdapter,
@@ -60,9 +73,7 @@ export default defineConfig({
 					// Old pages still load their chunks, see specs/04-build-output.md
 					paths: { relative: false },
 					tracing: { server: true },
-					version: {
-						name: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-					},
+					version: { name: commitSha },
 				}),
 			];
 		}) ?? [],

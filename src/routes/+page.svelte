@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getIsLoggedIn } from '#routes/remote.ts';
+	import { getSessionUserId } from '#routes/remote.ts';
 	import { SITE_NAME } from '$app/env/public';
 	import { resolve } from '$app/paths';
 
@@ -9,7 +9,7 @@
 
 	// The account page sends a user who isn't onboarded to onboarding.
 	onMount(async () => {
-		isLoggedIn = await getIsLoggedIn();
+		isLoggedIn = (await getSessionUserId()) !== null;
 	});
 </script>
 

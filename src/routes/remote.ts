@@ -1,4 +1,5 @@
 import { getRequestEvent, query } from '$app/server';
 
-// For the prerendered home page, which can't read the session while rendering
-export const getIsLoggedIn = query(() => !!getRequestEvent().locals.session);
+// Read client-side: the prerendered home page can't read the session while rendering,
+// and Sentry tags client events with it.
+export const getSessionUserId = query(() => getRequestEvent().locals.session?.userId ?? null);

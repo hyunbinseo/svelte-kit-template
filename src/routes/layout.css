@@ -51,13 +51,20 @@
 /* Utility declaration order does not ensure priority, since they are sorted by property count. */
 /* See https://github.com/tailwindlabs/tailwindcss/discussions/14363#discussioncomment-10578813 */
 
-@utility page-container {
-	/* Fixed height keeps the optional background image from resizing on content height change. */
-	@apply flex h-svh items-start justify-center-safe overflow-y-auto bg-slate-300 bg-cover bg-center xs:items-center-safe xs:px-4 xs:py-16;
+/* Usage: .page-background + .page-wrapper > .page-card */
+
+@utility page-background {
+	@apply fixed inset-x-0 top-0 h-lvh bg-cover bg-center;
+	@apply bg-slate-300; /* avoids white-on-white (e.g. image loading) */
+	@apply -z-10; /* avoids needing position: relative on page-wrapper */
+}
+
+@utility page-wrapper {
+	@apply flex min-h-svh items-start justify-center xs:items-center xs:px-4 xs:py-16;
 }
 
 @utility page-card {
-	@apply w-full bg-white p-6 xs:w-sm xs:rounded-lg;
+	@apply w-full max-w-full bg-white p-6 xs:w-sm xs:rounded-lg;
 }
 
 @utility toast {

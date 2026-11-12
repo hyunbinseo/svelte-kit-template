@@ -9,7 +9,9 @@
 	const json = $derived(JSON.stringify(user, null, 2));
 </script>
 
-<div class="page-container">
+<div class="page-background"></div>
+
+<div class="page-wrapper">
 	<main class="page-card">
 		<h1 class="font-bold">{data.title}</h1>
 		<pre class="mt-4 overflow-x-auto rounded bg-slate-50 p-2 text-sm">{json}</pre>

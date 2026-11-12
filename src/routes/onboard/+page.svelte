@@ -11,7 +11,9 @@
 	const setupProfile = _setupProfile.for(uid);
 </script>
 
-<div class="page-container">
+<div class="page-background"></div>
+
+<div class="page-wrapper">
 	<main class="page-card">
 		<header class="mt-2">
 			<p class="text-sm text-gray-600">{SITE_NAME}</p>

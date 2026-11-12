@@ -6,7 +6,9 @@
 	let { data } = $props();
 </script>
 
-<div class="page-container">
+<div class="page-background"></div>
+
+<div class="page-wrapper">
 	<main class="page-card">
 		<h1 class="font-bold">{data.title}</h1>
 		<nav class="mt-4 flex gap-x-4">

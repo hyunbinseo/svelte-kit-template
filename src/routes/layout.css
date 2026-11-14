@@ -33,6 +33,10 @@
 		touch-action: none;
 	}
 
+	dialog {
+		overscroll-behavior: contain;
+	}
+
 	button:not(:disabled),
 	[role='button']:not(:disabled) {
 		cursor: pointer;

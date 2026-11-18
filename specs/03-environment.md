@@ -23,7 +23,7 @@
 ### Redaction
 
 11. `parseRedacted` parses like Valibot's `parse`, but its thrown `ValiError` holds no input value, in any field or message. Path keys stay, for `flatten`. Why: Valibot's errors hold the input, even with custom messages ([open-circle/valibot#1440](https://github.com/open-circle/valibot/issues/1440)).
-12. Lint bans importing `parse` from `valibot`, pointing to `parseRedacted`. `safeParse` stays allowed: its issues are returned, not thrown.
+12. Lint bans importing Valibot's throwing APIs (`assert`, `parse`, `parser`, their async variants, and the `args` and `returns` actions), pointing to `parseRedacted`. `safeParse` stays allowed: its issues are returned, not thrown.
 13. A test fails `parseRedacted` if any input value appears in the fully inspected error (`node:util`'s `inspect` at unlimited depth), for object, pipe, and union schemas, and for a message set with `setSpecificMessage`.
 
 ### Schemas
@@ -35,8 +35,14 @@
 
 ### CLI
 
-18. Scripts run as `MODE=[mode] node [script]`, from a `package.json` script. Why `MODE`, not `--mode`: drizzle-kit takes no such flag, and one spelling should serve both.
-19. On import, `cli/lib/env.ts` validates `MODE`, loads its env files into `process.env` with Vite's `loadEnv`, then exports `mode` and each schema the CLI reads, parsed with `parseRedacted` (e.g. `appEnv`). Scripts and tool configs (e.g. drizzle-kit, Playwright) import it, and lint bans `process.env` elsewhere in both. Why on import: ESM runs imports before the importer's body.
+18. Scripts that read env run as `MODE=[mode] node [script]`, from a `package.json` script. Why `MODE`, not `--mode`: drizzle-kit takes no such flag, and one spelling should serve both.
+19. On import, `cli/lib/env.ts` validates `MODE`, loads its env files into `process.env` with Vite's `loadEnv`, then exports `mode` and each schema the CLI reads, parsed with `parseRedacted` (e.g. `appEnv`). Scripts that read env and tool configs (e.g. drizzle-kit, Playwright) import it, and lint bans `process.env` elsewhere in `cli/` and tool configs. Why on import: ESM runs imports before the importer's body.
+20. `vite.config.ts` doesn't import `cli/lib/env.ts`: Vite loads it in every mode, without `MODE`. It reads only variables its parent process sets, never env-file values. An inline disable marks each `process.env` use there, and in a script that extends a child process's env.
+
+### Server
+
+21. The production server runs `node` with `--env-file-if-exists` for each env file of mode `production`, in Vite's order, so it reads the files the build read. A process env value wins, as in Vite. `vpr start` runs it. Why flags, not rule 19's `loadEnv`: the server shouldn't depend on build tooling, and neither Node's config file nor `NODE_OPTIONS` accepts env-file options.
+22. Secrets are never `static`, so a changed secret applies on restart, without a rebuild. A test fails when a variable in `.env.local.example` is `static`.
 
 ## Files
 
@@ -48,12 +54,14 @@
 
 ## Checks
 
-- [ ] A missing or empty `SITE_NAME` fails `vpr build` and `node build`, and the first dev request (try each, then revert).
+- [ ] A missing or empty `SITE_NAME` fails `vpr build` and the first dev request (try each, then revert).
 - [ ] A sample script run with `MODE=e2e` reads `.env` and `.env.e2e.local` values through `appEnv`, and a process env value wins over both (try it, then revert).
 - [ ] An unknown or missing `MODE` fails importing `cli/lib/env.ts`.
 - [ ] Reading `process.env` in a `cli/` script fails lint.
 - [ ] A `.env.local` file is untracked.
 - [ ] The rule 13 test fails when any redaction step is removed (try each, then revert).
-- [ ] Importing `parse` from `valibot` fails lint.
+- [ ] Importing `parse`, `parser`, or `assert` from `valibot` fails lint.
 - [ ] The rule 16 tests fail when `src/env.ts` misses a variable (try it, then revert).
+- [ ] `vpr start` reads `.env` and `.env.production.local` values, and a process env value wins over both (try it, then revert).
+- [ ] The rule 22 test fails when a secret is `static` (try it, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

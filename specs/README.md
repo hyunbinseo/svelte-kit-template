@@ -12,7 +12,7 @@
 Each spec has:
 
 - **Goal**: one sentence.
-- **Rules**: one ordered list, one decision per item, numbered across subsections. Cited as "05 rule 3". A why appears only where a rule looks arbitrary.
+- **Rules**: one ordered list, one decision per item, numbered across subsections. Cited as "05 rule 3". A why appears only where a rule looks arbitrary. A known limitation the spec leaves unhandled ends with "accepted".
 - **Files** (when the spec adds modules): paths and their exports. Names match exactly; function bodies are free.
 - **Checks**: acceptance criteria, ticked when they hold.
 

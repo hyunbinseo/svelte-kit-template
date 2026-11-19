@@ -36,7 +36,7 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 02  | [CLI Separation](./02-cli-separation.md) |
 | 03  | [Environment](./03-environment.md)       |
 | 04  | [Build Output](./04-build-output.md)     |
-| 05  | Database                                 |
+| 05  | [Database](./05-database.md)             |
 | 06  | Procedures                               |
 | 07  | Named Queries                            |
 | 08  | Audit Logging                            |

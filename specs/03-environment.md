@@ -6,7 +6,7 @@
 
 ### Modes
 
-1. Modes are `development`, `e2e`, and `production`. Why `e2e`, not `test`: Vitest runs in mode `test` and would load `.env.test`.
+1. Modes are `development`, `preview`, `e2e`, and `production`. `preview` tries a production build locally, without production's env files or data; `vpr preview` builds and serves in it. Why `e2e`, not `test`: Vitest runs in mode `test` and would load `.env.test`.
 2. Schemas don't depend on the mode. Where modes must differ for safety (e.g. e2e never opening the production database), code derives it from the mode, not from a variable.
 
 ### Env Files
@@ -57,6 +57,7 @@
 - [ ] A missing or empty `SITE_NAME` fails `vpr build` and the first dev request (try each, then revert).
 - [ ] A sample script run with `MODE=e2e` reads `.env` and `.env.e2e.local` values through `appEnv`, and a process env value wins over both (try it, then revert).
 - [ ] An unknown or missing `MODE` fails importing `cli/lib/env.ts`.
+- [ ] `vpr preview` builds and serves in mode `preview`, reading `.env.preview` values (try it, then revert).
 - [ ] Reading `process.env` in a `cli/` script fails lint.
 - [ ] A `.env.local` file is untracked.
 - [ ] The rule 13 test fails when any redaction step is removed (try each, then revert).

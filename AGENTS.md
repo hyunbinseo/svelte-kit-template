@@ -4,6 +4,7 @@
 
 Beyond lint (`eslint.config.js`):
 
+- Modules are `.js` or `.ts`. Exception: a config a tool reads only as CommonJS (e.g. PM2's) is `.cjs`.
 - Build file paths with `node:path`.
 - Read `user.id`, not `const { id } = user`. Destructure only where no such name exists: an argument object, `$props()`, `{ default }` from a dynamic import.
 - No single-call wrappers. A helper must hide logic.

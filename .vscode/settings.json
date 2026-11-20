@@ -18,6 +18,8 @@
 	"editor.formatOnSaveMode": "file",
 	"eslint.validate": ["javascript", "svelte", "typescript"],
 	"files.associations": { "*.css": "tailwindcss" },
+	"javascript.preferences.importModuleSpecifier": "non-relative",
 	"oxc.enable.oxlint": false,
-	"oxc.fmt.disableNestedConfig": true
+	"oxc.fmt.disableNestedConfig": true,
+	"typescript.preferences.importModuleSpecifier": "non-relative"
 }

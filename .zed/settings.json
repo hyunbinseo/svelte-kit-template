@@ -63,6 +63,18 @@
 			"initialization_options": {
 				"settings": { "fmt.configPath": "./vite.config.ts", "run": "onSave" }
 			}
+		},
+		"svelte-language-server": {
+			"settings": {
+				"javascript": { "preferences": { "importModuleSpecifier": "non-relative" } },
+				"typescript": { "preferences": { "importModuleSpecifier": "non-relative" } }
+			}
+		},
+		"vtsls": {
+			"settings": {
+				"javascript": { "preferences": { "importModuleSpecifier": "non-relative" } },
+				"typescript": { "preferences": { "importModuleSpecifier": "non-relative" } }
+			}
 		}
 	}
 }

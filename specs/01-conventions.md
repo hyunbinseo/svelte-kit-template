@@ -12,8 +12,8 @@
 
 ## Checks
 
-- [ ] Each lint rule fails on a sample violation (try it, then revert): `./` import, `../` import, namespace import, `node:assert`, `vite`, `vitest`, function declaration, `function` callback, unsorted object keys, `{@const}`, floating promise, misused promise, `switch` missing a union member, lowercase comment, top-level `test`, unawaited `expect(…).resolves`, duplicate test title.
-- [ ] A `.cjs` file, `./$types.ts`, and an inline-disabled `./` import pass lint.
+- [x] Each lint rule fails on a sample violation (try it, then revert): `./` import, `../` import, namespace import, `node:assert`, `vite`, `vitest`, function declaration, `function` callback, unsorted object keys, `{@const}`, floating promise, misused promise, `switch` missing a union member, lowercase comment, top-level `test`, unawaited `expect(…).resolves`, duplicate test title.
+- [x] A `.cjs` file, `./$types.ts`, and an inline-disabled `./` import pass lint.
 - [ ] Auto-import in VS Code inserts a `#…` specifier.
-- [ ] `AGENTS.md` holds the style lint can't enforce, and `CLAUDE.md` imports it.
-- [ ] `vpr check`, `vpr lint`, and `vpr test` pass.
+- [x] `AGENTS.md` holds the style lint can't enforce, and `CLAUDE.md` imports it.
+- [x] `vpr check`, `vpr lint`, and `vpr test` pass.

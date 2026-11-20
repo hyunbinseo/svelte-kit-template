@@ -42,7 +42,7 @@
 ### Server
 
 21. The production server runs `node` with `--env-file-if-exists` for each env file of mode `production`, in Vite's order, so it reads the files the build read. A process env value wins, as in Vite. `vpr start` runs it. Why flags, not rule 19's `loadEnv`: the server shouldn't depend on build tooling, and neither Node's config file nor `NODE_OPTIONS` accepts env-file options.
-22. Secrets are never `static`, so a changed secret applies on restart, without a rebuild. A test fails when a variable in `.env.local.example` is `static`.
+22. Secrets are never `static`, so a changed secret applies on restart, without a rebuild ([12-Factor config](https://12factor.net/config)). A test fails when a variable in `.env.local.example` is `static`.
 
 ## Files
 

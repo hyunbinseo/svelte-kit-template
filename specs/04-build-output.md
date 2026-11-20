@@ -1,6 +1,6 @@
 # 04 Build Output
 
-**Goal**: Production runs releases: immutable builds of one commit, each with its own Node.js, switched and rolled back by activating a SHA.
+**Goal**: Production runs releases ([build, release, run](https://12factor.net/build-release-run)): immutable builds of one commit, each with its own Node.js, switched and rolled back by activating a SHA.
 
 ## Rules
 
@@ -10,7 +10,7 @@
 
 ### Release
 
-2. A release is `[deploy root]/releases/[sha]/`: that commit's tree, exported with `git archive`, as Capistrano does. It holds no `.git`, so releases don't depend on the checkout. The deploy root is an argument, outside the checkout. Submodules and LFS files aren't exported; accepted.
+2. A release is `[deploy root]/releases/[sha]/`: that commit's tree, exported with `git archive`, as [Capistrano](https://capistranorb.com/documentation/getting-started/structure/) does. It holds no `.git`, so releases don't depend on the checkout. The deploy root is an argument, outside the checkout. Submodules and LFS files aren't exported; accepted.
 3. `vpr release:build [deploy root]` fails on a dirty tree (untracked files included) or a complete release (rule 6). Otherwise it installs with a frozen lockfile, builds, and prints the SHA as the only line on stdout; child output goes to stderr.
 4. Before building, `release:build` links the release's `.env.production.local` to `[deploy root]/shared/.env.production.local` by a relative path, whether or not it exists yet. Only this file comes from outside: the others are committed or, like `.env.local`, absent from a release. Why a link: a changed secret applies on restart ([03](./03-environment.md) rule 22). A rollback reads the current secrets; accepted, so secret names change only by adding. A changed `static` value still needs a rebuild; accepted.
 5. The release holds a copy of the Node.js that ran `release:build` (`process.execPath`) at `releases/[sha]/node`, and production runs that binary. It only runs on hosts like the builder; accepted.
@@ -22,7 +22,7 @@
 8. `vpr release:activate [deploy root] [sha]` fails unless the release is complete. It renames a new `current` link over the old one, so `current` always exists. Links point relative to the deploy root. Rolling back is activating `previous`, or building and activating an older commit. Concurrent activations may race; accepted.
 9. Activation also points `previous` at the release `current` pointed to, renamed into place the same way. Re-activating the current release leaves `previous` unchanged.
 10. When `previous` changes, activation then removes the release it pointed to, unless it's the new `current`, so only `current` and `previous` remain of activated releases. Builds never activated stay. A server still running the removed release breaks; accepted, since the operator restarts after each activation (rule 13).
-11. Requests for `/_app/immutable/*` are served from `current`, falling back to `previous`, so pages of the replaced build still load their chunks. Older pages rely on SvelteKit's reload (12 App Shell).
+11. Requests for `/_app/immutable/*` are served from `current`, falling back to `previous`, so pages of the replaced build still load their chunks ([skew protection](https://vercel.com/docs/skew-protection)). Older pages rely on SvelteKit's reload (12 App Shell).
 12. `deploy/Caddyfile` is a sample config for rule 11: it serves those chunks from the deploy root and proxies everything else to the server.
 13. `deploy/app.service` is a sample systemd unit: it runs `current/node` from `current`, with [03](./03-environment.md) rule 21's flags, and restarts on failure. Activation doesn't restart the server; the operator restarts the unit.
 

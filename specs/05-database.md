@@ -35,7 +35,7 @@
 18. Starting the server never migrates. A production deploy migrates by hand, between building a release and activating it, using that release's migrations (rule 20).
 19. The SvelteKit client fails on open, in every mode but while `building` (rule 9), when a migration in `drizzle/[database]/` isn't applied, so a skipped migration fails the restart instead of a request. Applied migrations the release doesn't ship pass: a rollback runs on the newer schema (rule 21).
 20. `deploy/app-migrate@.service` is a sample oneshot unit, instanced by SHA: it runs `cli/db/migrate.ts` with that release's `node`, from that release, with `app.service`'s `DATA_DIR` and env files. Why a unit: the migration reads the same database and env as the server, without retyping them.
-21. A migration runs while the previous release still serves, so it stays compatible with that release (expand, then contract). Not checked; accepted.
+21. A migration runs while the previous release still serves, so it stays compatible with that release ([expand, then contract](https://martinfowler.com/bliki/ParallelChange.html)). Not checked; accepted.
 
 ### Tables
 

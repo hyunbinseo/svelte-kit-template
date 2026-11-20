@@ -31,7 +31,7 @@
 
 ### Pages
 
-14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getSessionUserId` reports the session, and the home page's one button switches from login to `/account` in place, so nothing shifts.
+14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getIsLoggedIn` reports whether there's a session, and the home page's one button switches from login to `/account` in place, so nothing shifts.
 15. Pages for onboarded users sit in the `(user)` group, `/account` included. Its layout's header shows the user's name, linking to `/account`, and the logout form, from `getCurrentUser`, which guards with `requireOnboarded` ([11](./11-login-and-onboarding.md) rule 24).
 16. A layout's guard protects neither its pages' `load`s, which run alongside it, nor their remote functions, which SvelteKit calls directly. Each `load` and remote function in `(user)` guards itself (e.g. `/account` keeps `requireOnboarded`).
 17. Links use `resolve()` with a pathname (`resolve('account')`). A route ID only when a parameter needs filling. Why: a route ID carries groups like `/(user)/account` ([sveltejs/kit#14529](https://github.com/sveltejs/kit/issues/14529)).
@@ -57,7 +57,7 @@
 - `src/routes/+layout.svelte`
 - `src/routes/+error.svelte`
 - `src/routes/+page.svelte`, `src/routes/+page.ts`
-- `src/routes/remote.ts`: `getSessionUserId`.
+- `src/routes/remote.ts`: `getIsLoggedIn`.
 - `src/routes/(user)/+layout.svelte`
 - `src/routes/(user)/remote.ts`: `getCurrentUser`.
 - `src/routes/(user)/account/`: moved from `src/routes/account/`.

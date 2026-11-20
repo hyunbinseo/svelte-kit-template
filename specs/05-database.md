@@ -8,7 +8,7 @@
 
 1. Database code is server-only, in `src/db/server/[database]/`, reached through `#db/*` (e.g. `#db/app/user/schema.ts`). Why `server/`: SvelteKit rejects client imports from any `server` directory ([server-only modules](https://svelte.dev/docs/kit/server-only-modules)). Code shared by every database sits in `src/db/server/shared/`.
 2. `app` is the only database here. Code is written per database name, so 08 Audit Logging adds `audit` beside it.
-3. Inside a database folder, one folder per table name prefix (e.g. `user/` for `user`, `user_session`) holds that prefix's `schema.ts` and its test. Later specs add their queries and procedures there.
+3. Inside a database folder, one folder per table name prefix (e.g. `user/` for `user`, `user_session`) holds that prefix's `schema.ts` and its test. Later specs add their queries and commands there.
 
 ### Files on Disk
 
@@ -41,14 +41,14 @@
 21. Tables are `snakeCase.table`. Each table exports `[Name]Insert` and `[Name]Select`.
 22. A table whose ID reaches clients (URLs, forms, cookies) has a UUIDv7 primary key: `text`, defaulting to `node:crypto`'s `randomUUIDv7` in the schema. Why: client IDs reveal no row counts and can't be guessed in sequence. They reveal creation time; accepted. Other tables use `integer().primaryKey({ autoIncrement: true })`. Either way, a deleted ID is never reused, since audit entries that outlive a purged row would otherwise point at a new one. 1:1 tables use the parent's ID as their primary key.
 23. Columns stay in table order: schema files opt out of lint's sorted keys.
-24. Foreign keys don't cascade or set null, so deleting a row that others still reference fails. A delete across tables is a procedure that deletes children first (06 Procedures), so each table's delete is its own audited statement.
+24. Foreign keys don't cascade or set null, so deleting a row that others still reference fails. A delete across tables is a command that deletes children first (06 Commands), so each table's delete is its own audited statement.
 25. `user` holds `id` (a UUID) and `createdAt`. Later specs add the columns they need.
 
 ### Columns
 
-26. Timestamps are `[verb]At`, `integer({ mode: 'timestamp_ms' })`, with no SQL default: procedures pass the time they read (06 Procedures).
+26. Timestamps are `[verb]At`, `integer({ mode: 'timestamp_ms' })`, with no SQL default: commands pass the time they read (06 Commands).
 27. Actors are `[verb]By`, a nullable foreign key to `user`. `null` means the system, or no user yet. Since foreign keys don't cascade (rule 24), a user referenced as an actor can't be deleted.
-28. Soft delete is a final `[verb]At`/`[verb]By`/`[verb]Reason` group: `Reason` is set exactly when `At` is, and `By` requires `At`. A soft-deleted row is never restored; restoring means inserting a new row. Updates to a group match only rows whose `At` is null (06 Procedures). No trigger enforces it: drizzle-kit can't declare one, and drops it unnoticed when it rebuilds a table. Raw SQL can still restore a row; accepted. One helper declares a group's `CHECK`s, added with the first group.
+28. Soft delete is a final `[verb]At`/`[verb]By`/`[verb]Reason` group: `Reason` is set exactly when `At` is, and `By` requires `At`. A soft-deleted row is never restored; restoring means inserting a new row. Updates to a group match only rows whose `At` is null (06 Commands). No trigger enforces it: drizzle-kit can't declare one, and drops it unnoticed when it rebuilds a table. Raw SQL can still restore a row; accepted. One helper declares a group's `CHECK`s, added with the first group.
 29. Enums are `text({ enum })` with no `CHECK`: SQLite can't alter a `CHECK`, so a new value would rebuild the table. Renaming or removing a stored value needs a data migration; accepted. Each list is one `as const` array, so the schema, Valibot, and UI labels share it.
 
 ### Constraints
@@ -59,7 +59,7 @@
 
 ### Personal Data
 
-33. A user who leaves keeps their `user` row, closed (rule 28), and rows referencing it stay. Closing erases their personal data, so the rest no longer identifies them. Where a project needs more, a procedure may delete a user's rows, children first, then the user; it fails while another row references them as an actor.
+33. A user who leaves keeps their `user` row, closed (rule 28), and rows referencing it stay. Closing erases their personal data, so the rest no longer identifies them. Where a project needs more, a command may delete a user's rows, children first, then the user; it fails while another row references them as an actor.
 34. Personal data lives only where closing can erase it: nullable columns on `user` (e.g. `contact`), set to null, or tables keyed to the user (e.g. `user_profile`), whose rows are deleted. Free text a user writes into other tables isn't erased; accepted.
 
 ### Tests

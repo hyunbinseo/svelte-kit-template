@@ -39,7 +39,7 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 05  | [Database](./05-database.md)             |
 | 06  | [Commands](./06-commands.md)             |
 | 07  | [Queries](./07-queries.md)               |
-| 08  | Audit Logging                            |
+| 08  | [Audit Logging](./08-audit-logging.md)   |
 | 09  | E2E Harness                              |
 | 10  | Sessions                                 |
 | 11  | Login and Onboarding                     |
@@ -55,5 +55,5 @@ Specs are linked as they're drafted.
 - Ask before adding a dependency.
 - Korean UI; English code and docs.
 - Keep `src/routes/layout.css`'s theme, base styles, and `btn*` utilities.
-- No PII in logs, errors, or telemetry.
+- No PII in logs, errors, or telemetry. Audit entries are a legal record, not a log ([08](./08-audit-logging.md) rule 3).
 - `vpr check`, `vpr lint`, and `vpr test` pass after every spec.

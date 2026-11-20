@@ -41,7 +41,7 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 07  | [Queries](./07-queries.md)               |
 | 08  | [Audit Logging](./08-audit-logging.md)   |
 | 09  | [E2E Harness](./09-e2e-harness.md)       |
-| 10  | Sessions                                 |
+| 10  | [Sessions](./10-sessions.md)             |
 | 11  | Login and Onboarding                     |
 | 12  | App Shell                                |
 | 13  | Observability                            |

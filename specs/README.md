@@ -40,7 +40,7 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 06  | [Commands](./06-commands.md)             |
 | 07  | [Queries](./07-queries.md)               |
 | 08  | [Audit Logging](./08-audit-logging.md)   |
-| 09  | E2E Harness                              |
+| 09  | [E2E Harness](./09-e2e-harness.md)       |
 | 10  | Sessions                                 |
 | 11  | Login and Onboarding                     |
 | 12  | App Shell                                |

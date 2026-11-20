@@ -15,7 +15,7 @@
 4. `.gitignore` ignores `*.local`, as Vite's does, not `.env*`.
 5. Committed: `.env`, with values shared by every mode. A mode file (e.g. `.env.production`) is added when a value first differs by mode.
 6. Committed values are non-secret.
-7. Values are quoted.
+7. Values are quoted. Why: Vite and Node.js both cut an unquoted value at `#`, so a secret containing one is silently truncated.
 8. Secrets go in `*.local` files. `.env.local.example` lists their names, added with the first secret.
 9. Values never contain `$`, even escaped. Why: Vite expands `$NAME` with no opt-out, and Node.js's `--env-file` reads `\$` literally. Stated in a `.env` comment, not checked.
 10. Empty values are invalid. An unset variable is commented out.
@@ -23,7 +23,7 @@
 ### Redaction
 
 11. `parseRedacted` parses like Valibot's `parse`, but its thrown `ValiError` holds no input value, in any field or message. Path keys stay, for `flatten`. Why: Valibot's errors hold the input, even with custom messages ([open-circle/valibot#1440](https://github.com/open-circle/valibot/issues/1440)).
-12. Lint bans importing Valibot's throwing APIs (`assert`, `parse`, `parser`, their async variants, and the `args` and `returns` actions), pointing to `parseRedacted`. `safeParse` stays allowed: its issues are returned, not thrown.
+12. Lint bans importing Valibot's throwing APIs (`assert`, `parse`, `parser`, their async variants, and the `args` and `returns` actions), pointing to `parseRedacted`. Lint's namespace import ban ([01](./01-conventions.md)) keeps `v.parse` from getting past it. `safeParse` stays allowed: its issues are returned, not thrown.
 13. A test fails `parseRedacted` if any input value appears in the fully inspected error (`node:util`'s `inspect` at unlimited depth), for object, pipe, and union schemas, and for a message set with `setSpecificMessage`.
 
 ### Schemas

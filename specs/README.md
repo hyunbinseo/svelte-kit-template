@@ -56,5 +56,4 @@ Specs are linked as they're drafted.
 - Korean UI; English code and docs.
 - Keep `src/routes/layout.css`'s theme, base styles, and `btn*` utilities.
 - No PII in logs, errors, or telemetry.
-- Comment only what neither the code nor its docs say. Where the docs explain it, link them instead.
 - `vpr check`, `vpr lint`, and `vpr test` pass after every spec.

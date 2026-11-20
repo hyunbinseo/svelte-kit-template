@@ -6,7 +6,7 @@
 
 ### Transactions
 
-1. `db.transaction` requires `behavior`, and only `immediate` and `deferred` type-check. The `tx` type follows it: `immediate` can write, `deferred` can only read. Why: a procedure reads before it writes, and a deferred transaction that takes the write lock late fails with `SQLITE_BUSY_SNAPSHOT`, which the busy timeout ([05](./05-database.md) rule 10) doesn't retry. A deferred one that only reads takes no write lock in WAL, so it doesn't block procedures.
+1. `db.transaction` requires `behavior`, and only `immediate` and `deferred` type-check. The `tx` type follows it: `immediate` can write, `deferred` can only read. Why: a procedure reads before it writes, and a deferred transaction that takes the write lock late fails with `SQLITE_BUSY_SNAPSHOT`, which the busy timeout ([05](./05-database.md) rule 9) doesn't retry. A deferred one that only reads takes no write lock in WAL, so it doesn't block procedures.
 2. A callback that returns a promise is a type error. Why: `node:sqlite` is sync, so an async callback would commit at its first `await`. A callback typed `any` or `unknown`, and casts, get past it; accepted.
 3. `tx.transaction` opens a savepoint. Its callback gets the same `tx` type and must be sync, and it takes no `config`.
 4. `createAppDb` casts Drizzle's client to `AppDb`; nothing is checked at runtime. `DrizzleDb` and `DrizzleTx` in `src/db/server/shared/` hold the restricted types, so 08 Audit Logging's db gets the same ones.
@@ -20,7 +20,7 @@
 9. An ID key is named after its target (`userId`, never `id`), so a swapped ID shows at the call site. Other keys are column names.
 10. Each key's type is its column's `Select` type (`closedBy: UserSelect['closedBy']`). Why not `Insert`: a nullable column would turn optional, and a left-out key would skip the column instead of writing `null`. A column that can't be `null` here uses `NonNullable<…>`; a narrower value uses its own type.
 11. Values the procedure derives (the clock, a cascade's actor and reason, foreign keys it reads) aren't keys.
-12. Names are `verbNoun` and name one intent (`closeUser`, `grantRole`), not a generic update. `create…` is fine when creating is the intent. Why: a procedure is a command in the [CQRS](https://martinfowler.com/bliki/CQRS.html) sense, named in the domain's [ubiquitous language](https://martinfowler.com/bliki/UbiquitousLanguage.html) (DDD), and a catch-all `updateUser` would mix several intents' guards.
+12. A procedure names one intent (`closeUser`, `grantRole`), not a generic update. Why: a procedure is a [CQRS](https://martinfowler.com/bliki/CQRS.html) command, and a catch-all `updateUser` would mix several intents' guards.
 13. Procedures never import `$app/*` or `#db/app/client.ts`, so `cli/` and tests can call them ([02](./02-cli-separation.md)).
 
 ### Placement
@@ -30,7 +30,7 @@
 
 ### Time
 
-16. A procedure reads the clock once, inside its transaction, and passes that value to every timestamp it writes ([05](./05-database.md) rule 27) and every expiry it compares.
+16. A procedure reads the clock once, inside its transaction, and passes that value to every timestamp it writes ([05](./05-database.md) rule 26) and every expiry it compares.
 17. Tests fake the clock the procedure reads.
 
 ### Guards
@@ -43,20 +43,20 @@
 
 ### Writes
 
-23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` ([05](./05-database.md) rule 29), even after a guard checked it.
-24. A delete across tables deletes children first, each table in its own statement ([05](./05-database.md) rule 25).
+23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` ([05](./05-database.md) rule 28), even after a guard checked it.
+24. A delete across tables deletes children first, each table in its own statement ([05](./05-database.md) rule 24).
 25. A cascade (closing a user revokes their roles) runs in the same transaction as the write that triggers it, with its clock and actor.
 
 ### Tests
 
-26. Each procedure has tests next to it, on `createTestAppDb` ([05](./05-database.md) rule 36), covering success and each guard's code, with no row changed on a failed guard.
+26. Each procedure has tests next to it, on `createTestAppDb` ([05](./05-database.md) rule 35), covering success and each guard's code, with no row changed on a failed guard.
 27. Tests seed inactive rows (soft-deleted, expired) beside active ones, and check that the procedure leaves them alone.
 
 ### Concurrency
 
 28. Procedures behave as if they ran one at a time: no other write lands between a guard's read and the writes that depend on it. On `node:sqlite`, rules 1 and 2 provide this.
 29. A transaction callback does database work only: no network, file, or queue calls. Side effects run in the caller after `ok`. Why: a callback that throws rolls back its writes but not its side effects, and drivers other than `node:sqlite` may retry a callback on a conflict, running them twice. Not checked; accepted.
-30. A guard on a rule that [05](./05-database.md) rules 31–32 make a constraint still runs: the guard returns the code, and the constraint holds even if rule 28 doesn't.
+30. A guard on a rule that [05](./05-database.md) rules 30–31 make a constraint still runs: the guard returns the code, and the constraint holds even if rule 28 doesn't.
 31. Another driver keeps rules 28–30 and replaces rules 1, 2, and 5. An async one (libSQL/Turso, Postgres) also makes every procedure and caller async; accepted.
 
 ## Files

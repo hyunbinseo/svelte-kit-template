@@ -6,7 +6,7 @@
 
 ### Layout
 
-1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the background. Each page's `<main>` fills the rest and centers its card, so a header above it doesn't push the page past the screen.
+1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the fixed background layer (rule 3). Each page's `<main>` fills the rest and centers its card, so a header above it doesn't push the page past the screen.
 2. Pages scroll on the body, not inside a container, so `layout.css`'s `body:has(dialog:modal)` lock stops page scroll under an open modal. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. Why not the current fixed-height container: scrolling inside it escapes the lock. `layout.css`'s `page-*` utilities change to match; the theme, base styles, and `btn*` stay.
 3. The background is a fixed layer sized to the large viewport height (`lvh`), so an image doesn't rescale as mobile browser bars move.
 4. `src/app.html` holds only the browser check and a `<noscript>` warning beyond the scaffold. Layout classes stay out of it.
@@ -19,27 +19,27 @@
 
 ### Copy
 
-8. UI copy is Korean, inline in the page or module that shows it. Hangul appears nowhere else in `src/`: not in identifiers, logs, or stored values (codes stay English, [10](./10-sessions.md) rule 3). So one search finds every string to translate.
-9. Valibot's default messages are Korean, set once in `src/hooks.ts`, which runs on the server and the client. It adds `@valibot/i18n`, which needs the user's approval before implementation. A form may still set its own message on an action.
-10. `AGENTS.md` lists what switching the UI language touches: the copy, `lang` in `src/app.html`, and Valibot's language.
+8. UI copy is Korean, inline in the page or module that shows it, or in `src/lib/auth/errors.ts` ([11](./11-login-and-onboarding.md) rule 29), `src/hooks.ts` (rule 9), and `src/app.html`. Hangul appears nowhere else in `src/`: not in identifiers, logs, or stored values (codes stay English, [10](./10-sessions.md) rule 3). So one search finds every string to translate.
+9. Valibot's messages are Korean, set once in `src/hooks.ts`, which runs on the server and the client: one generic global message, plus specific messages for the actions forms use (e.g. `email`), with `setGlobalMessage` and `setSpecificMessage`. No schema passes its own message, so `AGENTS.md`'s rule on default messages holds. Why not `@valibot/i18n`: a new dependency, and its messages echo the input. The messages hold no input value, and [03](./03-environment.md) rule 13's test also runs with them set.
+10. `AGENTS.md` lists what switching the UI language touches: the copy in each place rule 8 names, `lang` in `src/app.html`, and Valibot's messages.
 
 ### Error Page
 
 11. The error page's title comes from the status: one each for 400, 401, 403, and 404, one for other 4xx, and one for 5xx. Why not `page.error.message`: SvelteKit's own messages are English ([sveltejs/kit#11633](https://github.com/sveltejs/kit/issues/11633)). So an `error()` message is never shown; a page that must explain a failure renders it instead of throwing.
 12. Every status links home. A 401 adds a login link carrying the current path and query as `returnTo` ([11](./11-login-and-onboarding.md) rule 19). A 5xx adds a form posting to `/clear-site-data`.
-13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), then redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, so client state that keeps failing is dropped. It's `POST`, so SvelteKit's CSRF check blocks cross-site forms.
+13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), best-effort: if revoking throws, it reports the error and goes on, since a 5xx often comes from the database. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, so client state that keeps failing is dropped. It's `POST`, so SvelteKit's CSRF check blocks cross-site forms.
 
 ### Pages
 
 14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getSessionUserId` reports the session, and the home page's one button switches from login to `/account` in place, so nothing shifts.
 15. Pages for onboarded users sit in the `(user)` group, `/account` included. Its layout's header shows the user's name, linking to `/account`, and the logout form, from `getCurrentUser`, which guards with `requireOnboarded` ([11](./11-login-and-onboarding.md) rule 24).
-16. A layout's guard doesn't protect its pages' remote functions, which SvelteKit calls directly. Each remote function guards itself.
+16. A layout's guard protects neither its pages' `load`s, which run alongside it, nor their remote functions, which SvelteKit calls directly. Each `load` and remote function in `(user)` guards itself (e.g. `/account` keeps `requireOnboarded`).
 17. Links use `resolve()` with a pathname (`resolve('account')`). A route ID only when a parameter needs filling. Why: a route ID carries groups like `/(user)/account` ([sveltejs/kit#14529](https://github.com/sveltejs/kit/issues/14529)).
 
 ### Toasts
 
 18. The root layout has one toast stack, with `role="status"`: an offline toast while the browser is offline, and a new-version toast with a reload button once `updated.current` is set. SvelteKit polls for a new version.
-19. Once a new version is detected, a client navigation becomes a full load, so the page runs the new build's code. Why: the old client would call the new server's remote functions ([04](./04-build-output.md) rule 11 keeps its chunks, not its calls working).
+19. Once a new version is detected, a client navigation becomes a full load, so the page runs the new build's code. Why: the old client would call the new server's remote functions ([04](./04-build-output.md) rule 11 keeps its chunks, not its calls working). Until a reload, the old page's remote calls may fail; accepted.
 
 ### Forms
 
@@ -65,18 +65,19 @@
 - `src/routes/layout.css`: `page-*` utilities changed.
 - `src/lib/components/StyledForm.svelte`
 - `src/lib/components/FieldIssues.svelte`
-- `AGENTS.md`: the UI language list.
+- `AGENTS.md`: the UI language list; the default-message rule names `src/hooks.ts`.
 - `tests/app-shell.e2e.ts`
 
 ## Checks
 
 - [ ] Each page's title follows rule 5, and the default robots tag is `noindex, nofollow`; a sample page's `robots` replaces it (try it, then revert).
 - [ ] A 404, a 401 (with `returnTo`), and a 5xx (try it with a sample route, then revert) render their Korean titles and links.
-- [ ] `/clear-site-data` logs out and responds with the header; a cross-site `POST` is rejected.
+- [ ] `/clear-site-data` logs out and responds with the header; a cross-site `POST` is rejected. With revoking made to throw, it still sends the header, deletes the cookie, and redirects (try it, then revert).
 - [ ] Offline and new-version toasts appear, and a navigation after a new version is a full load.
 - [ ] Home is prerendered and switches its button for a session.
-- [ ] A remote function in `(user)` called without a session gets a `401`, though the layout guards.
-- [ ] A Valibot default message in a form is Korean.
+- [ ] A remote function and a sample `+page.server.ts` `load` in `(user)` without their own guard leak to a request without a session, and with it get a `401` (try it, then revert).
+- [ ] A form's Valibot issue shows a Korean message holding no input value.
+- [ ] [03](./03-environment.md) rule 13's test passes with `src/hooks.ts`'s messages set, and fails when one echoes the input (try it, then revert).
 - [ ] Under an open modal `<dialog>`, the page doesn't scroll or shift (by hand, at mobile and desktop widths).
 - [ ] The background doesn't rescale as mobile browser bars move (by hand).
 - [ ] With JS disabled, the `<noscript>` warning shows.

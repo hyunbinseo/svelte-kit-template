@@ -37,7 +37,7 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 03  | [Environment](./03-environment.md)       |
 | 04  | [Build Output](./04-build-output.md)     |
 | 05  | [Database](./05-database.md)             |
-| 06  | Procedures                               |
+| 06  | [Procedures](./06-procedures.md)         |
 | 07  | Named Queries                            |
 | 08  | Audit Logging                            |
 | 09  | E2E Harness                              |

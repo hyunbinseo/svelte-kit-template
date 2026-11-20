@@ -8,7 +8,7 @@
 
 1. It adds `@sentry/sveltekit` and `@sentry/node`. The user approves them before this spec is frozen; without approval, the spec is dropped. `cli/` uses only `@sentry/node`: `@sentry/sveltekit` declares SvelteKit's types, so the canary catches it ([02](./02-cli-separation.md) rule 7).
 2. `SENTRY_DSN` is optional, public, and static: it's no secret ([03](./03-environment.md) rule 22). Sentry is off in modes `development` and `e2e`, so test runs that fail on purpose send nothing, and while `SENTRY_DSN` is unset. `preview` and `production` send, with the mode as `environment`.
-3. One options object, `sentryOptions`, imports no `$app/*`, and every `init` (client, server, CLI) spreads it, adding only `dsn`, `environment`, and `release`. It `satisfies` both `@sentry/sveltekit`'s and `@sentry/node`'s option types, imported as types only, so no third Sentry package is imported. `cli/` never imports `src/lib/sentry/kit.ts`.
+3. One options object, `sentryOptions`, imports no `$app/*`, and every `init` (client, server, CLI) spreads it, adding only `dsn`, `environment`, and `release`. It `satisfies` only `@sentry/node`'s option type, since importing `@sentry/sveltekit`'s types, even as types, would reach `cli/` and break the canary ([02](./02-cli-separation.md) rules 6–7). `src/lib/sentry/kit.ts` checks the same object against `@sentry/sveltekit`'s type where it spreads it, and `cli/` never imports it. No third Sentry package is imported.
 
 ### Data
 
@@ -68,7 +68,7 @@
 - [ ] A validation failure's console warning and event hold only issue paths.
 - [ ] A thrown error in a sample CLI script reaches the mock ingest, exits non-zero, and with stderr piped its full stack arrives; an expected failure isn't sent (try each, then revert).
 - [ ] A send failure whose provider message holds the recipient's address reaches the console and Sentry without it (try it, then revert).
-- [ ] Importing `@sentry/sveltekit` in `cli/` fails `vpr check` (try it, then revert).
+- [ ] `cli/lib/sentry.ts` passes `vpr check`; importing `@sentry/sveltekit` in `cli/` fails it (try it, then revert).
 - [ ] With `SENTRY_AUTH_TOKEN` set, the build uploads source maps and leaves none in the output; without it, it uploads nothing.
 - [ ] An event's `release` and the uploaded source maps' release are the release's SHA.
 - [ ] `vpr check`, `vpr lint`, `vpr test`, and `vpr test:e2e` pass.

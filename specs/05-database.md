@@ -12,8 +12,8 @@
 
 ### Files on Disk
 
-4. A database's file is `[DATA_DIR]/[mode]/[database].db`, so modes never share a file ([03](./03-environment.md) rule 2). `DATA_DIR` defaults to `data`, resolved against the working directory, so development uses `data/development/app.db` in the checkout. `.gitignore` ignores `/data/`, so a checkout's databases stay untracked, `-wal` and `-shm` files included.
-5. In mode `production`, a relative `DATA_DIR` fails. Why: the server runs from a release directory ([04](./04-build-output.md) rule 7), and a relative path would give each release its own database, removed with it.
+4. A database's file is `[DATA_DIR]/[mode]/[database].db`, so modes never share a file ([03](./03-environment.md) rule 2). `DATA_DIR` defaults to `data`, resolved against the working directory, so development uses `data/development/app.db` in the checkout. `.gitignore` ignores `/data/`, so a checkout's databases stay untracked, `-wal` and `-shm` files included. `prepareDatabasePath` takes the mode as an argument, since `src/db/` can't read `import.meta.env` under `cli/`'s config ([02](./02-cli-separation.md) rule 6). The SvelteKit client parses `import.meta.env.MODE` with `ModeSchema`, so an unknown mode fails; `cli/` passes `mode` ([03](./03-environment.md) rule 19).
+5. In mode `production`, a relative `DATA_DIR` fails. Why: the server runs from a release directory ([04](./04-build-output.md) rule 7), and a relative path would give each release its own database, removed with it. So `vpr start` in a checkout needs an absolute `DATA_DIR` in `.env.production.local`, and that database migrated with `MODE=production node cli/db/migrate.ts`; accepted.
 6. The mode's directory is created owner-only (`700`). An existing one with other permissions fails, except on Windows.
 7. `deploy/app.service` sets an absolute `DATA_DIR`: a directory systemd creates for the service, outside the deploy root. Every release shares it. Why not the deploy root's `shared/`: app state stays out of the deploy tree, and systemd gives the directory the service's owner.
 8. While `building`, the SvelteKit client opens `:memory:`, so a build creates no files. Prerendered pages can't read the database; accepted.
@@ -28,11 +28,11 @@
 
 12. Migrations live in `drizzle/[database]/`. The template ships the app's migrations, so a fresh clone and a fresh deployment work without generating.
 13. Until the template's first release, a spec that changes the schema regenerates the single `init` migration instead of adding one.
-14. `cli/db/drizzle-kit/[database].ts` is the drizzle-kit config for one database, reading env through `cli/lib/env.ts` ([03](./03-environment.md) rule 19). `vpr db:generate` and `vpr db:studio` run it in mode `development`. drizzle-kit loads `.env` into `process.env` first ([drizzle-kit v0.20.0](https://github.com/drizzle-team/drizzle-kit-mirror/releases/tag/v0.20.0)), so a `.env` value outranks the other env files there. A variable drizzle-kit reads is never set in `.env`, stated in a `.env` comment; accepted.
+14. `cli/db/drizzle-kit/[database].ts` is the drizzle-kit config for one database, reading env through `cli/lib/env.ts` ([03](./03-environment.md) rule 19). `vpr db:generate` and `vpr db:studio` run it in mode `development`. drizzle-kit loads `.env` into `process.env` first ([drizzle-kit v0.20.0](https://github.com/drizzle-team/drizzle-kit-mirror/releases/tag/v0.20.0)), so a `.env` value outranks the other env files there. A variable the drizzle-kit config uses (`DATA_DIR`) is never set in `.env`, stated in a `.env` comment; accepted.
 15. No `db:push`: the schema changes only through migrations, which tests and production apply.
 16. `cli/db/migrate.ts` applies every database's migrations for its mode, through `openConnection`, so it waits for the server's writes instead of failing. `vpr db:migrate:development` and `vpr db:migrate:preview` run it; production uses rule 19's unit.
 17. Starting the server never migrates. A production deploy migrates by hand, between building a release and activating it, using that release's migrations (rule 19).
-18. The SvelteKit client fails on open, in every mode but while `building` (rule 8), when a migration in `drizzle/[database]/` isn't applied, so a skipped migration fails the restart instead of a request. Applied migrations the release doesn't ship pass: a rollback runs on the newer schema (rule 20).
+18. The SvelteKit client fails on open, in every mode but while `building` (rule 8), when a migration in `drizzle/[database]/` isn't applied, so a skipped migration fails the restart instead of a request. Applied migrations the release doesn't ship pass: a rollback runs on the newer schema (rule 20). `hooks.server.ts` imports `#db/app/client.ts`, so the check runs when the server starts, not on the first request that reaches the database. Dev loads hooks on its first request; accepted.
 19. `deploy/app-migrate@.service` is a sample oneshot unit, instanced by SHA: it runs `cli/db/migrate.ts` with that release's `node`, from that release, with `app.service`'s `DATA_DIR` and env files. Why a unit: the migration reads the same database and env as the server, without retyping them.
 20. A migration runs while the previous release still serves, so it stays compatible with that release ([expand, then contract](https://martinfowler.com/bliki/ParallelChange.html)). Not checked; accepted.
 
@@ -98,6 +98,7 @@
 - [ ] A new `CHECK` without a regenerated migration fails its schema test (try it, then revert).
 - [ ] `vpr db:generate` on an unchanged schema generates nothing.
 - [ ] With `deploy/app.service`, the server opens its database under the service's state directory.
-- [ ] With a pending migration, `vpr dev` and the production server fail on start; after migrating, they start (try it, then revert).
+- [ ] With a pending migration, `vpr dev` fails on its first request and the production server on start, even for a route that doesn't read the database; after migrating, both serve (try it, then revert).
 - [ ] `app-migrate@[sha]` migrates that database from a built, unactivated release, while the server keeps serving the previous one.
+- [ ] The production server built with an unknown mode fails on start (try it, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

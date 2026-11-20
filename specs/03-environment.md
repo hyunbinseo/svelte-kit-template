@@ -29,7 +29,7 @@
 ### Schemas
 
 14. `src/lib/env.ts` holds the mode schema and one Valibot object schema per consumer (e.g. `AppEnvSchema`), named per [Valibot's convention](https://valibot.dev/guides/naming-convention/). It imports neither SvelteKit nor Vite, so `cli/` can import it ([02](./02-cli-separation.md)).
-15. `src/env.ts` declares each variable SvelteKit reads, validated with `parseRedacted` and its schema from `src/lib/env.ts`. `description`, `public`, and `static` live only here.
+15. `src/env.ts` declares each variable SvelteKit reads, validated with `parseRedacted` and its schema from `src/lib/env.ts`. `description`, `public`, and `static` live only here. Adapter-node's own variables (`ORIGIN`, `PORT`, `ADDRESS_HEADER`, …) aren't app env: the deploy unit sets them, and no schema declares them.
 16. Tests check that no variable is in two schemas, that every variable rejects an empty value, and that `src/env.ts` declares every variable of the schemas SvelteKit reads.
 17. `SITE_NAME` is the first variable: required, public, and static.
 

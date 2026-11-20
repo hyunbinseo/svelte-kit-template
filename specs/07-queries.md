@@ -20,7 +20,7 @@
 9. A query reads no clock: the caller passes `now` ([06](./06-commands.md) rule 16).
 10. A query states its soft-delete and expiry filters inline, and its name states the state it narrows to (`findActiveUser`). Why: Drizzle has no global scopes, so a hidden default couldn't be enforced.
 11. Row access (is this order the viewer's?) is a filter in the query, not a check after it: `findCustomerOrder(db, { customerId, orderId })` returns `undefined` for a missing, cancelled, or another customer's order alike. Why: a missed check can't leak the row, and one 404 for all three reveals no IDs.
-12. Queries live in the `queries.ts` of the prefix folder ([05](./05-database.md) rule 3) of the table they select `from`, whoever calls them.
+12. Queries live in the `queries.ts` of the prefix folder ([05](./05-database.md) rule 3) of the table they select `from`, whoever calls them. Query files follow [06](./06-commands.md) rule 13, its lint ban included, so a command can call them from the CLI.
 13. Each query has tests next to it, on `createTestAppDb`, seeding inactive rows beside active ones, and rows the access filter excludes (rule 11).
 
 ## Files
@@ -35,4 +35,5 @@
 - [ ] A sample query accepts `db`, an immediate `tx`, and a deferred `tx`, and `db.insert` inside it fails `vpr check` (try it, then revert).
 - [ ] In a query file, a deferred transaction passes lint and an immediate one fails (try each, then revert).
 - [ ] `sql.raw` and `inlineParams` fail lint (try each, then revert).
+- [ ] A `$app/*` or `#db/app/client.ts` import in a query file fails lint (try each, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

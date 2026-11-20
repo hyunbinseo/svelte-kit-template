@@ -21,12 +21,12 @@
 10. Each key's type is its column's `Select` type (`closedBy: UserSelect['closedBy']`). Why not `Insert`: a nullable column would turn optional, and a left-out key would skip the column instead of writing `null`. A column that can't be `null` here uses `NonNullable<…>`; a narrower value uses its own type.
 11. Values the command derives (the clock, a cascade's actor and reason, foreign keys it reads) aren't keys.
 12. A command names one intent (`closeUser`, `grantRole`), not a generic update. Why: a catch-all `updateUser` would mix several intents' guards.
-13. Commands never import `$app/*` or `#db/app/client.ts`, so `cli/` and tests can call them ([02](./02-cli-separation.md)).
+13. Commands never import `$app/*` or `#db/app/client.ts`, so `cli/` and tests can call them ([02](./02-cli-separation.md)). Lint bans importing `$app/*` and any database's `client.ts` in command files.
 
 ### Placement
 
 14. A command lives in a prefix folder's `commands.ts` ([05](./05-database.md) rule 3).
-15. A command only CLI scripts call lives in a `commands.ts` under `cli/db/[database]/`, so SvelteKit can't import it. It moves to `src/db/` once SvelteKit needs it.
+15. A command only CLI scripts call lives in `cli/db/[database]/[prefix]/commands.ts`, mirroring [05](./05-database.md) rule 3, so SvelteKit can't import it. It moves to `src/db/` once SvelteKit needs it.
 
 ### Time
 
@@ -73,4 +73,5 @@
 - [ ] `await` under `src/db/` or `cli/db/` fails lint (try it, then revert).
 - [ ] A `transaction` call outside a command file fails lint, on `db` and on an alias of it; a `deferred` one in a command file fails lint (try each, then revert).
 - [ ] A sample command with a guard returns the guard's code, writes nothing, and its result narrows on `ok` in a caller (try it, then revert).
+- [ ] A `$app/*` or `#db/app/client.ts` import in a command file fails lint (try each, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

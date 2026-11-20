@@ -24,7 +24,7 @@
 10. When `previous` changes, activation then removes the release it pointed to, unless it's the new `current`, so only `current` and `previous` remain of activated releases. Builds never activated stay. A server still running the removed release breaks; accepted, since the operator restarts after each activation (rule 13).
 11. Requests for `/_app/immutable/*` are served from `current`, falling back to `previous`, so pages of the replaced build still load their chunks ([skew protection](https://vercel.com/docs/skew-protection)). Older pages rely on SvelteKit's reload (12 App Shell).
 12. `deploy/Caddyfile` is a sample config for rule 11: it serves those chunks from the deploy root and proxies everything else to the server.
-13. `deploy/app.service` is a sample systemd unit: it runs `current/node` from `current`, with [03](./03-environment.md) rule 21's flags, and restarts on failure. Activation doesn't restart the server; the operator restarts the unit.
+13. `deploy/app.service` is a sample systemd unit: it runs `current/node` from `current`, with [03](./03-environment.md) rule 21's flags, and restarts on failure. Activation doesn't restart the server; the operator restarts the unit. It sets adapter-node's `ORIGIN`, since behind Caddy the server sees `http://`, and SvelteKit's CSRF check would reject HTTPS form posts.
 
 ### Scripts
 
@@ -52,4 +52,5 @@
 - [ ] Behind `deploy/Caddyfile`, a chunk only B has still loads after activating A, and an unknown chunk is a 404 (try it, then revert).
 - [ ] `release:activate` fails for an unbuilt SHA and an incomplete release.
 - [ ] With `deploy/app.service`, the server starts from `current`, reads the shared `.env.production.local`, and serves the activated release after a restart.
+- [ ] Behind `deploy/Caddyfile` with `deploy/app.service`, an HTTPS form POST passes SvelteKit's CSRF check (try it with a sample form action, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

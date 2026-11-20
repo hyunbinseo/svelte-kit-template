@@ -7,12 +7,12 @@
 ### Scope
 
 1. `audit` is a second database ([05](./05-database.md) rule 2), laid out, migrated, and checked on open as `app` is ([05](./05-database.md) rules 1 and 3–19). Named `audit`, not `access`: "access log" usually means web server request logs.
-2. Entries are stored in every mode but `development`, derived from the mode ([03](./03-environment.md) rule 2), so e2e runs exercise it. In `development`, the logger still runs and reads the context (rule 16) but stores nothing, so a statement that would fail unlogged in production fails in dev too. No audit database is opened there: `cli/db/migrate.ts` and the open check ([05](./05-database.md) rules 16 and 18) skip `audit`. While `building`, nothing is wrapped, since the app database is `:memory:` then ([05](./05-database.md) rule 8). `createTestAppDb` isn't wrapped.
+2. Entries are stored in every mode but `development`, derived from the mode ([03](./03-environment.md) rule 2), so e2e runs exercise it. In `development`, the logger still runs and reads the context (rule 16) but stores nothing, so a statement that would fail unlogged in production fails in dev too. No audit database is opened there: `cli/db/migrate.ts` and the open check ([05](./05-database.md) rules 16 and 18) skip `audit`. While `building`, nothing is wrapped, since the app database is `:memory:` then ([05](./05-database.md) rule 8). `createTestAppDb` isn't wrapped. There, `cli/db/audit/purge.ts` fails as an expected failure ([02](./02-cli-separation.md) rule 14), and `db:studio` doesn't open `audit`.
 3. Audit entries are a legal record, not a log, so the global PII rule doesn't cover them. They hold bound params and the client IP unmasked, since 접속기록 must show whose data a statement touched (`WHERE user_id = ?`). They stay in the local audit database, never reach third parties (13 Observability), and are read only for their audit purpose, never joined into app queries. Secrets are hashed before binding, so they never reach params (10 Sessions). Why no masking: the law asks for access control and tamper protection (rule 23), not masking, and a masked entry can't show whose data was touched.
 
 ### Logger
 
-4. `auditConnection` wraps a `node:sqlite` connection in a `Proxy`, and Drizzle gets the wrapped one. Drizzle's node-sqlite driver prepares every statement through it, `begin`, `commit`, `rollback`, and savepoints included. The wrapper exposes only the members Drizzle's driver uses; any other (`exec`, `applyChangeset`, `function`, …) throws, since it could run SQL unlogged. Why not Drizzle's `logger`: it runs before execution, so it can't see failures ([drizzle-orm#387](https://github.com/drizzle-team/drizzle-orm/issues/387)), and it doesn't see transaction control.
+4. `auditConnection` wraps a `node:sqlite` connection in a `Proxy`, and Drizzle gets the wrapped one. Drizzle's node-sqlite driver prepares every statement through it, `begin`, `commit`, `rollback`, and savepoints included. The wrapper exposes only the members Drizzle's driver uses; any other (`exec`, `applyChangeset`, `function`, …) throws, since it could run SQL unlogged. Why not Drizzle's `logger`: it runs before execution, so it can't see failures ([drizzle-orm#387](https://github.com/drizzle-team/drizzle-orm/issues/387)), and it doesn't see transaction control. A connection is wrapped after `openConnection`'s pragmas and the migration check ([05](./05-database.md) rule 18) run on it, since a pragma counts as a write (rule 5), and a logged statement outside a request throws (rule 16).
 5. A statement is a read only if its first keyword is `select`; everything else, pragmas included, is a write. Why: a misread can only over-log. `node:sqlite` doesn't expose `sqlite3_stmt_readonly`, and parsing SQL is out of scope.
 6. Every write is logged. A read is logged through `auditedDb` (rule 12), while the context's `isStaff` is true (rule 15), and in the CLI (rule 14). A read on `db` outside a request has no context, so it isn't logged. Why staff: 접속기록 cover what 개인정보취급자 read, so their reads can't depend on a caller opting in.
 7. Each run of a statement is logged (an audit entry is stored) before it runs, so a prepared statement run twice logs twice. If logging fails, the statement doesn't run and the error is thrown, so a transaction rolls back. If the statement then fails, its entry is marked failed.
@@ -29,8 +29,8 @@
 
 ### Context
 
-15. Each logged statement reads its context: `userId`, `ip`, `pathname`, and `isStaff` (개인정보취급자).
-16. In SvelteKit, the context comes from `getRequestEvent()`: `getClientAddress()` and `url.pathname`. `userId` is `null` and `isStaff` is `false` until 10 Sessions sets the user and a later spec adds roles. A logged statement outside a request throws, so nothing writes unlogged, and the server can't write in the background (at startup, on a timer); a later spec that needs to gives it a context. `deploy/app.service` sets adapter-node's `ADDRESS_HEADER` and `XFF_DEPTH` to match `deploy/Caddyfile` ([04](./04-build-output.md) rule 12), so `ip` is the client's, not Caddy's.
+15. Each logged statement reads its context: `userId`, `ip`, `pathname`, and `isStaff` (개인정보취급자), from a getter `auditConnection` takes, so `logger.ts` imports no `$app/*` and `cli/` can use it ([02](./02-cli-separation.md) rule 6). `isAuditEnabled` takes the mode, as `prepareDatabasePath` does ([05](./05-database.md) rule 4).
+16. In SvelteKit, `client.ts`'s getter reads `getRequestEvent()`: `getClientAddress()` and `url.pathname`. `userId` is `null` and `isStaff` is `false` until 10 Sessions sets the user and a later spec adds roles. A logged statement outside a request throws, so nothing writes unlogged, and the server can't write in the background (at startup, on a timer); a later spec that needs to gives it a context. `deploy/app.service` sets adapter-node's `ADDRESS_HEADER` and `XFF_DEPTH` to match `deploy/Caddyfile` ([04](./04-build-output.md) rule 12), so `ip` is the client's, not Caddy's.
 17. In the CLI, `pathname` is the script's path relative to the project root, `userId` and `ip` are `null`, and `isStaff` is `true`. Why staff: CLI operators are 개인정보취급자.
 
 ### Schema
@@ -38,8 +38,8 @@
 18. `entry_sql` holds each statement's SQL text once, unique by its SHA-256 `hash`. It's never purged: SQL text holds no values ([07](./07-queries.md) rule 4), and `createEntry` caches its IDs.
 19. `entry` holds one logged statement: its SQL, `params` as JSON, `loggedAt`, the context (rule 15), `connectionId`, and `hasFailed`. `userId` has no foreign key, since users live in the app database, so it isn't a `[verb]By` actor ([05](./05-database.md) rule 27).
 20. `params` encodes every value `node:sqlite` binds: a `bigint` as its decimal string, a `Uint8Array` as base64. Why: `JSON.stringify` throws on a `bigint`, which would block the write (rule 7). An encoded value and a string param look alike; accepted.
-21. `connectionId` is a UUIDv7 per wrapped app connection, shared by `db` and `auditedDb` (rule 12). Why: transactions on one connection don't interleave (`node:sqlite` is sync), so a `begin`, its statements, and its `commit` or `rollback` are the entries between them with the same `connectionId`, even while another process logs too.
-22. Entries are written by commands ([06](./06-commands.md)), each in its own immediate transaction on the audit database: `createEntry` takes the SQL text, reads the clock, and finds or creates the SQL row, caching its ID by hash; `markEntryFailed` sets `hasFailed`.
+21. `connectionId` is a UUIDv7 per app connection, shared by its two wrappers, `db` and `auditedDb` (rule 12). Why: transactions on one connection don't interleave (`node:sqlite` is sync), so a `begin`, its statements, and its `commit` or `rollback` are the entries between them with the same `connectionId`, even while another process logs too.
+22. Entries are written by commands ([06](./06-commands.md)), each in its own immediate transaction on the audit database: `createEntry` takes the SQL text, reads the clock, and finds or creates the SQL row, caching its ID by hash per `AuditDb` once its transaction commits, so a rollback or another database leaves no stale ID; `markEntryFailed` sets `hasFailed`.
 
 ### Protection
 
@@ -79,7 +79,7 @@
 - [ ] A command stores `begin`, its statements, and `commit`, sharing one `connectionId`; a snapshot query on `db` stores nothing.
 - [ ] A prepared statement run twice stores two entries.
 - [ ] A `bigint` and a `Uint8Array` param are stored encoded, and the write runs.
-- [ ] In mode `development`, `vpr db:migrate:development` and `vpr dev` create no `audit.db`, and a write outside a request still throws (try it, then revert). `vpr build` creates none either.
+- [ ] In mode `development`, `vpr db:migrate:development` and `vpr dev` create no `audit.db`, and a write outside a request still throws (try it, then revert). `vpr build` creates none either, and the purge script fails without creating one.
 - [ ] A failing statement's entry has `hasFailed` set.
 - [ ] While logging fails, a write doesn't run and throws, and a rollback still runs and reports (try each, then revert).
 - [ ] When logging a `commit` fails, the transaction rolls back (try it, then revert).
@@ -91,4 +91,5 @@
 - [ ] `purgeEntries` deletes only expired entries, clamping month ends, on a faked clock.
 - [ ] A property of `auditedDb` fails lint in a remote file (try it, then revert).
 - [ ] With the sample units, the purge runs and its count reaches the journal.
+- [ ] After a rolled-back `createEntry`, the next one for the same SQL creates its row; a second `AuditDb` doesn't reuse the first one's IDs (try each, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

@@ -29,22 +29,22 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 
 ## Specs
 
-| #   | Spec                                     |
-| --- | ---------------------------------------- |
-| 00  | Toolchain (no spec)                      |
-| 01  | [Conventions](./01-conventions.md)       |
-| 02  | [CLI Separation](./02-cli-separation.md) |
-| 03  | [Environment](./03-environment.md)       |
-| 04  | [Build Output](./04-build-output.md)     |
-| 05  | [Database](./05-database.md)             |
-| 06  | [Commands](./06-commands.md)             |
-| 07  | [Queries](./07-queries.md)               |
-| 08  | [Audit Logging](./08-audit-logging.md)   |
-| 09  | [E2E Harness](./09-e2e-harness.md)       |
-| 10  | [Sessions](./10-sessions.md)             |
-| 11  | Login and Onboarding                     |
-| 12  | App Shell                                |
-| 13  | Observability                            |
+| #   | Spec                                                 |
+| --- | ---------------------------------------------------- |
+| 00  | Toolchain (no spec)                                  |
+| 01  | [Conventions](./01-conventions.md)                   |
+| 02  | [CLI Separation](./02-cli-separation.md)             |
+| 03  | [Environment](./03-environment.md)                   |
+| 04  | [Build Output](./04-build-output.md)                 |
+| 05  | [Database](./05-database.md)                         |
+| 06  | [Commands](./06-commands.md)                         |
+| 07  | [Queries](./07-queries.md)                           |
+| 08  | [Audit Logging](./08-audit-logging.md)               |
+| 09  | [E2E Harness](./09-e2e-harness.md)                   |
+| 10  | [Sessions](./10-sessions.md)                         |
+| 11  | [Login and Onboarding](./11-login-and-onboarding.md) |
+| 12  | App Shell                                            |
+| 13  | Observability                                        |
 
 Specs are linked as they're drafted.
 

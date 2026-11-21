@@ -6,44 +6,44 @@
 
 ### Layout
 
-1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the fixed background layer (rule 3). Each page's `<main>` fills the rest and centers its card, so a header above it doesn't push the page past the screen.
-2. Pages scroll on the body, not inside a container, so `layout.css`'s `body:has(dialog:modal)` lock stops page scroll under an open modal. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. Why not the current fixed-height container: scrolling inside it escapes the lock. `layout.css`'s `page-*` utilities change to match; the theme, base styles, and `btn*` stay.
+1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the fixed background layer (rule 3). Each page's `<main>` fills the rest and centers its card, so a header doesn't push the page past the screen.
+2. Pages scroll on the body, not inside a container, so `layout.css`'s `body:has(dialog:modal)` lock stops page scroll under an open modal; scrolling inside the current fixed-height container escapes it. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. `layout.css`'s `page-*` utilities change to match.
 3. The background is a fixed layer sized to the large viewport height (`lvh`), so an image doesn't rescale as mobile browser bars move.
 4. `src/app.html` holds only the browser check and a `<noscript>` warning beyond the scaffold. Layout classes stay out of it.
 
 ### Head
 
 5. Each page's `<title>` is `[page] - [SITE_NAME]`; home's is `SITE_NAME` alone.
-6. The root layout renders the one robots tag: `noindex, nofollow`, unless a page's `load` returns `robots` (typed in `App.PageData`). Why one tag: crawlers take the most restrictive of several, so a page couldn't relax a second one.
-7. Fonts aren't preloaded; they load with `font-display: swap`. Why: the variable font is large, and a first visit would wait on it.
+6. The root layout renders the one robots tag: `noindex, nofollow`, unless a page's `load` returns `robots` (typed in `App.PageData`). One tag, since crawlers take the most restrictive of several.
+7. Fonts aren't preloaded; they load with `font-display: swap`, since the variable font is large.
 
 ### Copy
 
-8. UI copy is Korean, inline in the page or module that shows it, or in `src/lib/auth/errors.ts` ([11](./11-login-and-onboarding.md) rule 29), `src/hooks.ts` (rule 9), and `src/app.html`. Hangul appears nowhere else in `src/`: not in identifiers, logs, or stored values (codes stay English, [10](./10-sessions.md) rule 3). So one search finds every string to translate.
-9. Valibot's messages are Korean, set once in `src/hooks.ts`, which runs on the server and the client: one generic global message, plus specific messages for the actions forms use (e.g. `email`), with `setGlobalMessage` and `setSpecificMessage`. No schema passes its own message, so `AGENTS.md`'s rule on default messages holds. Why not `@valibot/i18n`: a new dependency, and its messages echo the input. The messages hold no input value, and [03](./03-environment.md) rule 13's test also runs with them set.
+8. UI copy is Korean, inline in the page or module that shows it, or in `src/lib/auth/errors.ts` ([11](./11-login-and-onboarding.md) rule 29), `src/hooks.ts` (rule 9), and `src/app.html`. Hangul appears nowhere else in `src/` (not in identifiers, logs, or stored values), so one search finds every string to translate.
+9. Valibot's messages are Korean, set once in `src/hooks.ts`, which runs on the server and the client: one generic global message, plus specific messages for the actions forms use (e.g. `email`). No schema passes its own message, so `AGENTS.md`'s default-message rule holds. Not `@valibot/i18n`: a new dependency, and its messages echo the input. The messages hold no input value, and [03](./03-environment.md) rule 13's test also runs with them set.
 10. `AGENTS.md` lists what switching the UI language touches: the copy in each place rule 8 names, `lang` in `src/app.html`, and Valibot's messages.
 
 ### Error Page
 
-11. The error page's title comes from the status: one each for 400, 401, 403, and 404, one for other 4xx, and one for 5xx. Why not `page.error.message`: SvelteKit's own messages are English ([sveltejs/kit#11633](https://github.com/sveltejs/kit/issues/11633)). So an `error()` message is never shown; a page that must explain a failure renders it instead of throwing.
+11. The error page's title comes from the status: one each for 400, 401, 403, and 404, one for other 4xx, and one for 5xx, since SvelteKit's own messages are English ([sveltejs/kit#11633](https://github.com/sveltejs/kit/issues/11633)). So an `error()` message is never shown; a page that must explain a failure renders it instead of throwing.
 12. Every status links home. A 401 adds a login link carrying the current path and query as `returnTo` (11 rule 19). A 5xx adds a form posting to `/clear-site-data`.
-13. `POST /clear-site-data` logs out as `logout` does (10 rule 16), best-effort: `handle` skips its session check for this path, and the endpoint checks the cookie itself; if checking or revoking throws, it reports the error and goes on, since a 5xx often comes from the database. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, so client state that keeps failing is dropped. It's `POST`, so SvelteKit's CSRF check blocks cross-site forms.
+13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), best-effort: `handle` skips its session check for this path, and the endpoint checks the cookie itself; if checking or revoking throws, it reports the error and goes on, since a 5xx often comes from the database. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, dropping client state that keeps failing. Being `POST`, it's covered by SvelteKit's CSRF check.
 
 ### Pages
 
 14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getSessionUserId` returns the session's user ID, or `null` without one, and the home page's one button switches from login to `/account` in place, so nothing shifts.
 15. Pages for onboarded users sit in the `(user)` group, `/account` included. Its layout's header shows the user's name, linking to `/account`, and the logout form, from `getCurrentUser`, which guards with `requireOnboarded` (11 rule 24).
-16. A layout's guard protects neither its pages' `load`s, which run alongside it, nor their remote functions, which SvelteKit calls directly. Each `load` and remote function in `(user)` guards itself (e.g. `/account` keeps `requireOnboarded`).
-17. Links use `resolve()` with a pathname (`resolve('account')`). A route ID only when a parameter needs filling. Why: a route ID carries groups like `/(user)/account` ([sveltejs/kit#14529](https://github.com/sveltejs/kit/issues/14529)).
+16. A layout's guard protects neither its pages' `load`s, which run alongside it, nor their remote functions, which SvelteKit calls directly. Each `load` and remote function in `(user)` guards itself.
+17. Links use `resolve()` with a pathname (`resolve('account')`), and a route ID only when a parameter needs filling, since a route ID carries groups like `/(user)/account` ([sveltejs/kit#14529](https://github.com/sveltejs/kit/issues/14529)).
 
 ### Toasts
 
-18. The root layout has one toast stack, with `role="status"`: an offline toast while the browser is offline, and a new-version toast with a reload button once `updated.current` is set. SvelteKit polls for a new version.
-19. Once a new version is detected, a client navigation becomes a full load, so the page runs the new build's code. Why: the old client would call the new server's remote functions ([04](./04-build-output.md) rule 11 keeps its chunks, not its calls working). Until a reload, the old page's remote calls may fail; accepted.
+18. The root layout has one toast stack, with `role="status"`: an offline toast while the browser is offline, and a new-version toast with a reload button once `updated.current` is set.
+19. Once a new version is detected, a client navigation becomes a full load, since the old client would call the new server's remote functions ([04](./04-build-output.md) rule 11 keeps only its chunks working). Until a reload, the old page's remote calls may fail; accepted.
 
 ### Forms
 
-20. `StyledForm` takes a remote form's attributes and lays out its labels, text-like controls, and `aria-invalid` controls. Its styles sit in the base layer, so utilities on a control still win. `FieldIssues` renders a field's issues after its label. 11's forms use both.
+20. `StyledForm` takes a remote form's attributes and lays out its labels, text-like controls, and `aria-invalid` controls, with styles a control's utilities still override. `FieldIssues` renders a field's issues after its label. 11's forms use both.
 
 ### Tests
 

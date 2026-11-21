@@ -17,7 +17,7 @@
 6. Every URL in an event, breadcrumb, or span loses its query and hash, since some keep the full URL whatever the query option says.
 7. Console breadcrumbs are dropped, since console output can hold values (e.g. a failed parse's input).
 8. SQL text is sent: its values are bound ([07](./07-queries.md) rule 4), and errors hold none ([05](./05-database.md) rule 11). Audit entries never reach Sentry ([08](./08-audit-logging.md) rule 3).
-9. The user ID is the one user field: set on the server after `handleSession` ([10](./10-sessions.md) rule 10), scoped to the request, and on the client by the root layout from `getSessionUserId`, only while Sentry is on. Why: it links an error to a user's report and counts the users an error affects. It's pseudonymous 개인정보, since the app database links it to a person, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), with the technical data (browser, OS, paths) it also processes; not checked, accepted.
+9. The user ID is the one user field: set on the server after `handleSession` ([10](./10-sessions.md) rule 10), scoped to the request, and on the client by the root layout from `getSessionUserId`, only while Sentry is on. The client re-reads it after every navigation and form submission, since the root layout outlives login, logout, and closing; `getSessionUserId` returns `null` without a session, which clears the user. Why: it links an error to a user's report and counts the users an error affects. It's pseudonymous 개인정보, since the app database links it to a person, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), with the technical data (browser, OS, paths) it also processes; not checked, accepted. IDs already sent outlive closing ([05](./05-database.md) rule 33) until Sentry's retention ends, which `docs/sentry.md` sets short; accepted.
 10. Paths are sent as route IDs (`/posts/[postId]`), not filled paths, in transaction names, span names, and URLs. Why: a route parameter may be another user's ID, which rule 9 doesn't allow.
 
 ### Errors
@@ -66,6 +66,7 @@
 
 - [ ] In modes `development` and `e2e`, and with `SENTRY_DSN` unset in other modes, nothing is sent.
 - [ ] Against a local mock ingest, a `preview` build's envelopes, with a DSN pointing at it, from a signed-in request with a query, a client navigation and fetch with queries (breadcrumbs), a route with a UUID parameter, a cookie, `X-Forwarded-For`, `X-Real-IP`, and `Referer`, a 404, a validation failure, and server and client errors hold no query values, filled route parameters, IPs, cookie or session values, contact, or submitted input. They hold the signed-in user's ID, and every header but `User-Agent` is filtered.
+- [ ] After login, a client error carries the user's ID; after logout, none (try it, then revert).
 - [ ] A 4xx sends nothing; an unknown server error and a client error each send one event.
 - [ ] A validation failure's console warning and event hold only issue paths.
 - [ ] A thrown error in a sample CLI script reaches the mock ingest, exits non-zero, and with stderr piped its full stack arrives; an expected failure isn't sent (try each, then revert).

@@ -41,11 +41,10 @@
 ## Checks
 
 - [ ] `vpr check` type-checks `cli/` under its own config.
-- [ ] Each canary probe errors. Adding the DOM lib, `$app/types`, or `vite/client` to `cli/tsconfig.json` fails `vpr check` (try each, then revert).
-- [ ] A sample `cli/` entry importing a `#cli/*` and a `#lib/*` module runs with plain `node` and passes `vpr check` (try it, then revert, subpaths included).
-- [ ] The sample fails `vpr check` when it imports `$app/env` or `@sveltejs/kit`, or reads `import.meta.env`, directly or through a `src/` file (try each, then revert).
+- [ ] Each canary probe errors. Adding the DOM lib, `$app/types`, or `vite/client` to `cli/tsconfig.json` fails `vpr check`.
+- [ ] A sample `cli/` entry importing a `#cli/*` and a `#lib/*` module runs with plain `node` and passes `vpr check`.
+- [ ] The sample fails `vpr check` when it imports `$app/env` or `@sveltejs/kit`, or reads `import.meta.env`, directly or through a `src/` file.
 - [ ] A `#cli/*` import under `src/` fails lint.
-- [ ] A sample script fails with a non-zero exit on an unknown option and on an extra positional, printing its message without a stack (try each, then revert).
-- [ ] With stderr piped, a sample script's long failure message arrives in full (try it, then revert).
-- [ ] A sample `cli/` test runs in the `cli` Vitest project (try it, then revert).
-- [ ] `vpr check`, `vpr lint`, and `vpr test` pass.
+- [ ] A sample script fails with a non-zero exit on an unknown option and on an extra positional, printing its message without a stack.
+- [ ] With stderr piped, a sample script's long failure message arrives in full.
+- [ ] A sample `cli/` test runs in the `cli` Vitest project.

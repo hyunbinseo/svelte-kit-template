@@ -25,12 +25,12 @@
 
 ### Placement
 
-14. A command lives in a prefix folder's `commands.ts` ([05](./05-database.md) rule 3).
-15. A command only CLI scripts call lives in `cli/db/[database]/[prefix]/commands.ts`, mirroring [05](./05-database.md) rule 3, so SvelteKit can't import it. It moves to `src/db/` once SvelteKit needs it.
+14. A command lives in a prefix folder's `commands.ts` (05 rule 3).
+15. A command only CLI scripts call lives in `cli/db/[database]/[prefix]/commands.ts`, mirroring 05 rule 3, so SvelteKit can't import it. It moves to `src/db/` once SvelteKit needs it.
 
 ### Time
 
-16. A command reads the clock once, inside its transaction, and passes that value to every timestamp it writes ([05](./05-database.md) rule 26) and every expiry it compares.
+16. A command reads the clock once, inside its transaction, and passes that value to every timestamp it writes (05 rule 26) and every expiry it compares.
 17. Tests fake the clock the command reads.
 
 ### Guards
@@ -43,20 +43,20 @@
 
 ### Writes
 
-23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` ([05](./05-database.md) rule 28), even after a guard checked it.
-24. A delete across tables deletes children first, each table in its own statement ([05](./05-database.md) rule 24).
+23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` (05 rule 28), even after a guard checked it.
+24. A delete across tables deletes children first, each table in its own statement (05 rule 24).
 25. A cascade (closing a user revokes their roles) runs in the same transaction as the write that triggers it, with its clock and actor.
 
 ### Tests
 
-26. Each command has tests next to it, on `createTestAppDb` ([05](./05-database.md) rule 35), covering success and each guard's code, with no row changed on a failed guard.
+26. Each command has tests next to it, on `createTestAppDb` (05 rule 35), covering success and each guard's code, with no row changed on a failed guard.
 27. Tests seed inactive rows (soft-deleted, expired) beside active ones, and check that the command leaves them alone.
 
 ### Concurrency
 
 28. Commands behave as if they ran one at a time: no other write lands between a guard's read and the writes that depend on it. On `node:sqlite`, rules 1 and 2 provide this.
 29. A transaction callback does database work only: no network, file, or queue calls. Side effects run in the caller after `ok`. Why: a callback that throws rolls back its writes but not its side effects, and drivers other than `node:sqlite` may retry a callback on a conflict, running them twice. Not checked; accepted.
-30. A guard on a rule that [05](./05-database.md) rules 30–31 make a constraint still runs: the guard returns the code, and the constraint holds even if rule 28 doesn't.
+30. A guard on a rule that 05 rules 30–31 make a constraint still runs: the guard returns the code, and the constraint holds even if rule 28 doesn't.
 31. Another driver keeps rules 28–30 and replaces rules 1, 2, and 5. An async one (libSQL/Turso, Postgres) also makes all database code and its callers async; accepted.
 
 ## Files
@@ -67,11 +67,10 @@
 
 ## Checks
 
-- [ ] A transaction without `behavior`, with `exclusive`, or with an async callback fails `vpr check` (try each, then revert).
-- [ ] A write method on a deferred `tx` fails `vpr check`, and a write method on an immediate `tx` passes (try each, then revert).
-- [ ] A write in a savepoint inside a deferred `tx`, and an async savepoint callback, fail `vpr check` (try each, then revert).
-- [ ] `await` under `src/db/` or in a `cli/db/` `commands.ts` fails lint, and passes in a `cli/db/` script (try each, then revert).
-- [ ] A `transaction` call outside a command file fails lint, on `db` and on an alias of it; a `deferred` one in a command file fails lint (try each, then revert).
-- [ ] A sample command with a guard returns the guard's code, writes nothing, and its result narrows on `ok` in a caller (try it, then revert).
-- [ ] A `$app/*` or `#db/app/client.ts` import in a command file fails lint (try each, then revert).
-- [ ] `vpr check`, `vpr lint`, and `vpr test` pass.
+- [ ] A transaction without `behavior`, with `exclusive`, or with an async callback fails `vpr check`.
+- [ ] A write method on a deferred `tx` fails `vpr check`, and a write method on an immediate `tx` passes.
+- [ ] A write in a savepoint inside a deferred `tx`, and an async savepoint callback, fail `vpr check`.
+- [ ] `await` under `src/db/` or in a `cli/db/` `commands.ts` fails lint, and passes in a `cli/db/` script.
+- [ ] A `transaction` call outside a command file fails lint, on `db` and on an alias of it; a `deferred` one in a command file fails lint.
+- [ ] A sample command with a guard returns the guard's code, writes nothing, and its result narrows on `ok` in a caller.
+- [ ] A `$app/*` or `#db/app/client.ts` import in a command file fails lint.

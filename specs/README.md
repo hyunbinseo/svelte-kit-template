@@ -12,9 +12,9 @@
 Each spec has:
 
 - **Goal**: one sentence.
-- **Rules**: one ordered list, one decision per item, numbered across subsections. Cited as "05 rule 3". A why appears only where a rule looks arbitrary. A known limitation the spec leaves unhandled ends with "accepted".
+- **Rules**: one ordered list, one decision per item, numbered across subsections. Cited as "05 rule 3"; a spec links another only at its first mention. A why appears only where a rule looks arbitrary. A known limitation the spec leaves unhandled ends with "accepted".
 - **Files** (when the spec adds modules): paths and their exports. Names match exactly; function bodies are free.
-- **Checks**: acceptance criteria, ticked when they hold.
+- **Checks**: acceptance criteria, ticked when they hold. A check that needs a temporary change (a sample file, a broken config) tries each case separately, then reverts it. The global checks (Global Constraints) aren't repeated.
 
 Specs say what must hold, not how. Config values and option names live in the code.
 

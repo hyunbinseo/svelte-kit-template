@@ -43,8 +43,8 @@ Stop and ask when a rule is unclear, wrong, or conflicts with another. An approv
 | 09  | [E2E Harness](./09-e2e-harness.md)                   |
 | 10  | [Sessions](./10-sessions.md)                         |
 | 11  | [Login and Onboarding](./11-login-and-onboarding.md) |
-| 12  | App Shell                                            |
-| 13  | Observability                                        |
+| 12  | [App Shell](./12-app-shell.md)                       |
+| 13  | [Observability](./13-observability.md)               |
 
 Specs are linked as they're drafted.
 

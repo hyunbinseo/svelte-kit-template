@@ -1,6 +1,6 @@
 # 13 Observability
 
-**Goal**: Errors and sampled traces from the client, the server, and CLI scripts reach Sentry, with no personal data.
+**Goal**: Errors and sampled traces from the client, the server, and CLI scripts reach Sentry, with no personal data beyond the internal user ID.
 
 ## Rules
 
@@ -17,8 +17,8 @@
 6. Every URL in an event, breadcrumb, or span loses its query and hash, since some keep the full URL whatever the query option says.
 7. Console breadcrumbs are dropped, since console output can hold values (e.g. a failed parse's input).
 8. SQL text is sent: its values are bound ([07](./07-queries.md) rule 4), and errors hold none ([05](./05-database.md) rule 11). Audit entries never reach Sentry ([08](./08-audit-logging.md) rule 3).
-9. No user field is sent, not even the user ID. Why: a user ID is 개인정보 once joined with the app database, and the global constraint bans PII in telemetry. An error is matched to a user's report by time and path; accepted. Sentry still processes technical data (browser, OS, paths) abroad, so `docs/sentry.md` tells projects to disclose it in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8); not checked, accepted.
-10. Paths are sent as route IDs (`/posts/[postId]`), not filled paths, in transaction names, span names, and URLs. Why: a route parameter may be a user ID (rule 9).
+9. The user ID is the one user field: set on the server after `handleSession` ([10](./10-sessions.md) rule 10), scoped to the request, and on the client by the root layout from `getSessionUserId`, only while Sentry is on. Why: it links an error to a user's report and counts the users an error affects. It's pseudonymous 개인정보, since the app database links it to a person, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), with the technical data (browser, OS, paths) it also processes; not checked, accepted.
+10. Paths are sent as route IDs (`/posts/[postId]`), not filled paths, in transaction names, span names, and URLs. Why: a route parameter may be another user's ID, which rule 9 doesn't allow.
 
 ### Errors
 
@@ -56,6 +56,8 @@
 - `src/instrumentation.server.ts`
 - `src/hooks.server.ts`: `handle` and `handleError` changed.
 - `src/hooks.client.ts`: `handleError`.
+- `src/routes/remote.ts`: `getSessionUserId` added.
+- `src/routes/+layout.svelte`: the client's user ID.
 - `cli/lib/sentry.ts`
 - `vite.config.ts`: the Sentry plugin.
 - `docs/sentry.md`
@@ -63,7 +65,7 @@
 ## Checks
 
 - [ ] In modes `development` and `e2e`, and with `SENTRY_DSN` unset in other modes, nothing is sent.
-- [ ] Against a local mock ingest, a `preview` build's envelopes, with a DSN pointing at it, from a signed-in request with a query, a client navigation and fetch with queries (breadcrumbs), a route with a UUID parameter, a cookie, `X-Forwarded-For`, `X-Real-IP`, and `Referer`, a 404, a validation failure, and server and client errors hold no query values, filled route parameters, IPs, cookie or session values, contact, or submitted input. They hold no user ID, and every header but `User-Agent` is filtered.
+- [ ] Against a local mock ingest, a `preview` build's envelopes, with a DSN pointing at it, from a signed-in request with a query, a client navigation and fetch with queries (breadcrumbs), a route with a UUID parameter, a cookie, `X-Forwarded-For`, `X-Real-IP`, and `Referer`, a 404, a validation failure, and server and client errors hold no query values, filled route parameters, IPs, cookie or session values, contact, or submitted input. They hold the signed-in user's ID, and every header but `User-Agent` is filtered.
 - [ ] A 4xx sends nothing; an unknown server error and a client error each send one event.
 - [ ] A validation failure's console warning and event hold only issue paths.
 - [ ] A thrown error in a sample CLI script reaches the mock ingest, exits non-zero, and with stderr piped its full stack arrives; an expected failure isn't sent (try each, then revert).

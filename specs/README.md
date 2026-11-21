@@ -55,5 +55,5 @@ Specs are linked as they're drafted.
 - Ask before adding a dependency.
 - Korean UI; English code and docs.
 - Keep `src/routes/layout.css`'s theme, base styles, and `btn*` utilities.
-- No PII in logs, errors, or telemetry. Audit entries are a legal record, not a log ([08](./08-audit-logging.md) rule 3).
+- No PII in logs, errors, or telemetry, except the internal user ID in telemetry ([13](./13-observability.md) rule 9). Audit entries are a legal record, not a log ([08](./08-audit-logging.md) rule 3).
 - `vpr check`, `vpr lint`, and `vpr test` pass after every spec, and `vpr test:e2e` from [09](./09-e2e-harness.md) on.

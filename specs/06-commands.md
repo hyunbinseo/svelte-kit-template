@@ -10,7 +10,7 @@
 2. A callback that returns a promise is a type error. Why: `node:sqlite` is sync, so an async callback would commit at its first `await`. A callback typed `any` or `unknown`, and casts, get past it; accepted.
 3. `tx.transaction` opens a savepoint. Its callback gets the same `tx` type and must be sync, and it takes no `config`.
 4. `createAppDb` casts Drizzle's client to `AppDb`; nothing is checked at runtime. `DrizzleDb` and `DrizzleTx` in `src/db/server/shared/` hold the restricted types, so 08 Audit Logging's db gets the same ones.
-5. Database code uses Drizzle's sync API only: statements end in `.run()`, `.all()`, or `.get()`. Lint bans `await` under `src/db/` and `cli/db/`.
+5. Database code uses Drizzle's sync API only: statements end in `.run()`, `.all()`, or `.get()`. Lint bans `await` under `src/db/` and in `cli/db/`'s `commands.ts` files. CLI scripts in `cli/db/` may await.
 6. A deferred `tx` has no `insert`, `update`, `delete`, `run`, or `with` (its builder can write). Raw SQL through `all`, `get`, or `values` gets past it; accepted.
 
 ### Shape
@@ -70,7 +70,7 @@
 - [ ] A transaction without `behavior`, with `exclusive`, or with an async callback fails `vpr check` (try each, then revert).
 - [ ] A write method on a deferred `tx` fails `vpr check`, and a write method on an immediate `tx` passes (try each, then revert).
 - [ ] A write in a savepoint inside a deferred `tx`, and an async savepoint callback, fail `vpr check` (try each, then revert).
-- [ ] `await` under `src/db/` or `cli/db/` fails lint (try it, then revert).
+- [ ] `await` under `src/db/` or in a `cli/db/` `commands.ts` fails lint, and passes in a `cli/db/` script (try each, then revert).
 - [ ] A `transaction` call outside a command file fails lint, on `db` and on an alias of it; a `deferred` one in a command file fails lint (try each, then revert).
 - [ ] A sample command with a guard returns the guard's code, writes nothing, and its result narrows on `ok` in a caller (try it, then revert).
 - [ ] A `$app/*` or `#db/app/client.ts` import in a command file fails lint (try each, then revert).

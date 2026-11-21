@@ -27,11 +27,11 @@
 
 11. The error page's title comes from the status: one each for 400, 401, 403, and 404, one for other 4xx, and one for 5xx. Why not `page.error.message`: SvelteKit's own messages are English ([sveltejs/kit#11633](https://github.com/sveltejs/kit/issues/11633)). So an `error()` message is never shown; a page that must explain a failure renders it instead of throwing.
 12. Every status links home. A 401 adds a login link carrying the current path and query as `returnTo` ([11](./11-login-and-onboarding.md) rule 19). A 5xx adds a form posting to `/clear-site-data`.
-13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), best-effort: if revoking throws, it reports the error and goes on, since a 5xx often comes from the database. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, so client state that keeps failing is dropped. It's `POST`, so SvelteKit's CSRF check blocks cross-site forms.
+13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), best-effort: `handle` skips its session check for this path, and the endpoint checks the cookie itself; if checking or revoking throws, it reports the error and goes on, since a 5xx often comes from the database. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, so client state that keeps failing is dropped. It's `POST`, so SvelteKit's CSRF check blocks cross-site forms.
 
 ### Pages
 
-14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getIsLoggedIn` reports whether there's a session, and the home page's one button switches from login to `/account` in place, so nothing shifts.
+14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getSessionUserId` returns the session's user ID, or `null` without one, and the home page's one button switches from login to `/account` in place, so nothing shifts.
 15. Pages for onboarded users sit in the `(user)` group, `/account` included. Its layout's header shows the user's name, linking to `/account`, and the logout form, from `getCurrentUser`, which guards with `requireOnboarded` ([11](./11-login-and-onboarding.md) rule 24).
 16. A layout's guard protects neither its pages' `load`s, which run alongside it, nor their remote functions, which SvelteKit calls directly. Each `load` and remote function in `(user)` guards itself (e.g. `/account` keeps `requireOnboarded`).
 17. Links use `resolve()` with a pathname (`resolve('account')`). A route ID only when a parameter needs filling. Why: a route ID carries groups like `/(user)/account` ([sveltejs/kit#14529](https://github.com/sveltejs/kit/issues/14529)).
@@ -57,7 +57,7 @@
 - `src/routes/+layout.svelte`
 - `src/routes/+error.svelte`
 - `src/routes/+page.svelte`, `src/routes/+page.ts`
-- `src/routes/remote.ts`: `getIsLoggedIn`.
+- `src/routes/remote.ts`: `getSessionUserId`.
 - `src/routes/(user)/+layout.svelte`
 - `src/routes/(user)/remote.ts`: `getCurrentUser`.
 - `src/routes/(user)/account/`: moved from `src/routes/account/`.
@@ -72,7 +72,7 @@
 
 - [ ] Each page's title follows rule 5, and the default robots tag is `noindex, nofollow`; a sample page's `robots` replaces it (try it, then revert).
 - [ ] A 404, a 401 (with `returnTo`), and a 5xx (try it with a sample route, then revert) render their Korean titles and links.
-- [ ] `/clear-site-data` logs out and responds with the header; a cross-site `POST` is rejected. With revoking made to throw, it still sends the header, deletes the cookie, and redirects (try it, then revert).
+- [ ] `/clear-site-data` logs out and responds with the header; a cross-site `POST` is rejected. With the session query or revoking made to throw, it still sends the header, deletes the cookie, and redirects (try each, then revert).
 - [ ] Offline and new-version toasts appear, and a navigation after a new version is a full load.
 - [ ] Home is prerendered and switches its button for a session.
 - [ ] A remote function and a sample `+page.server.ts` `load` in `(user)` without their own guard leak to a request without a session, and with it get a `401` (try it, then revert).

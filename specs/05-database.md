@@ -33,7 +33,7 @@
 16. `cli/db/migrate.ts` applies every database's migrations for its mode, through `openConnection`, so it waits for the server's writes instead of failing. `vpr db:migrate:development` and `vpr db:migrate:preview` run it; production uses rule 19's unit.
 17. Starting the server never migrates. A production deploy migrates by hand, between building a release and activating it, using that release's migrations (rule 19).
 18. The SvelteKit client fails on open, in every mode but while `building` (rule 8), when a migration in `drizzle/[database]/` isn't applied, so a skipped migration fails the restart instead of a request. Applied migrations the release doesn't ship pass: a rollback runs on the newer schema (rule 20). `hooks.server.ts` imports `#db/app/client.ts`, so the check runs when the server starts, not on the first request that reaches the database. Dev loads hooks on its first request; accepted.
-19. `deploy/app-migrate@.service` is a sample oneshot unit, instanced by SHA: it runs `cli/db/migrate.ts` with that release's `node`, from that release, with `app.service`'s `DATA_DIR` and env files. Why a unit: the migration reads the same database and env as the server, without retyping them.
+19. `deploy/app-migrate@.service` is a sample oneshot unit, instanced by SHA: it runs `cli/db/migrate.ts` with that release's `node`, from that release, with `app.service`'s user, `DATA_DIR`, and env files. Every sample unit that opens a database runs as `app.service`'s user, so the files it creates (`-wal` and `-shm` included) stay openable by the server. Why a unit: the migration reads the same database and env as the server, without retyping them.
 20. A migration runs while the previous release still serves, so it stays compatible with that release ([expand, then contract](https://martinfowler.com/bliki/ParallelChange.html)). Not checked; accepted.
 
 ### Tables
@@ -100,5 +100,6 @@
 - [ ] With `deploy/app.service`, the server opens its database under the service's state directory.
 - [ ] With a pending migration, `vpr dev` fails on its first request and the production server on start, even for a route that doesn't read the database; after migrating, both serve (try it, then revert).
 - [ ] `app-migrate@[sha]` migrates that database from a built, unactivated release, while the server keeps serving the previous one.
+- [ ] On a fresh state directory, the database files `app-migrate@[sha]` creates are owned by `app.service`'s user, and the server opens them.
 - [ ] The production server built with an unknown mode fails on start (try it, then revert).
 - [ ] `vpr check`, `vpr lint`, and `vpr test` pass.

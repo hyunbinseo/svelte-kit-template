@@ -17,7 +17,7 @@
 6. Every URL in an event, breadcrumb, or span loses its query and hash, since some keep the full URL whatever the query option says.
 7. Console breadcrumbs are dropped, since console output can hold values (e.g. a failed parse's input).
 8. SQL text is sent: its values are bound ([07](./07-queries.md) rule 4), and errors hold none ([05](./05-database.md) rule 11). Audit entries never reach Sentry ([08](./08-audit-logging.md) rule 3).
-9. The user ID is the one user field: set on the server after `handleSession` ([10](./10-sessions.md) rule 10), scoped to the request, and on the client by the root layout from `getSessionUserId`, only while Sentry is on. The client re-reads it after every navigation and form submission, since the root layout outlives login, logout, and closing; `getSessionUserId` returns `null` without a session, which clears the user. Why: it links an error to a user's report and counts the users an error affects. It's pseudonymous 개인정보, since the app database links it to a person, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), with the technical data (browser, OS, paths) it also processes; not checked, accepted. IDs already sent outlive closing ([05](./05-database.md) rule 33) until Sentry's retention ends, which `docs/sentry.md` sets short; accepted.
+9. The user ID is the one user field: set on the server after `handleSession` ([10](./10-sessions.md) rule 10), scoped to the request, and on the client by the root layout from `getSessionUserId` ([12](./12-app-shell.md) rule 14), only while Sentry is on. The client re-reads it after every navigation and form submission, since the root layout outlives login, logout, and closing; `getSessionUserId` returns `null` without a session, which clears the user. Why: it links an error to a user's report and counts the users an error affects. It's pseudonymous 개인정보, since the app database links it to a person, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), with the technical data (browser, OS, paths) it also processes; not checked, accepted. IDs already sent outlive closing ([05](./05-database.md) rule 33) until Sentry's retention ends, which `docs/sentry.md` sets short; accepted.
 10. Paths are sent as route IDs (`/posts/[postId]`), not filled paths, in transaction names, span names, and URLs. Why: a route parameter may be another user's ID, which rule 9 doesn't allow.
 
 ### Errors
@@ -36,12 +36,12 @@
 ### Releases
 
 18. `release` is SvelteKit's `version.name`, the commit SHA in a release build ([04](./04-build-output.md) rule 1).
-19. Source maps are uploaded only when `SENTRY_AUTH_TOKEN` is set in the build's environment, never an env file ([03](./03-environment.md) rule 20), and are then deleted from the build output, so they're never served. It's in `BuildEnvSchema` ([04](./04-build-output.md) rule 1), not app env. The plugin's telemetry is off, and its output goes to stderr ([04](./04-build-output.md) rule 3).
+19. Source maps are uploaded only in a release build: when `SENTRY_AUTH_TOKEN` is set in the build's environment, never an env file ([03](./03-environment.md) rule 20), and [04](./04-build-output.md) rule 1's SHA variable is set. Any other build (`vpr build`, `vpr preview`, the e2e build) uploads nothing. Uploaded maps are deleted from the build output, so they're never served. It's in `BuildEnvSchema` ([04](./04-build-output.md) rule 1), not app env. The plugin's telemetry is off, and its output goes to stderr ([04](./04-build-output.md) rule 3).
 20. The plugin's release name is [04](./04-build-output.md) rule 1's SHA variable, never detected from git, since a release holds no `.git`.
 
 ### CLI
 
-21. `cli/lib/sentry.ts` initializes `@sentry/node` on import, after `cli/lib/env.ts`, and every script that reads env imports it first. Uncaught errors are sent; expected failures ([02](./02-cli-separation.md) rule 14) aren't. After sending a fatal error, it sets `process.exitCode` instead of calling `process.exit`, as [02](./02-cli-separation.md) rule 14 requires. A script that forgets the import goes unreported; accepted. CLI events carry no `release`, since a release holds no `.git` ([04](./04-build-output.md) rule 2); accepted.
+21. `cli/lib/sentry.ts` initializes `@sentry/node` on import, after `cli/lib/env.ts`, and every script that reads env imports it first. Uncaught errors and unhandled rejections are sent, and both exit non-zero; expected failures ([02](./02-cli-separation.md) rule 14) aren't. After sending a fatal error, it sets `process.exitCode` instead of calling `process.exit`, as [02](./02-cli-separation.md) rule 14 requires. A script that forgets the import goes unreported; accepted. A release holds no `.git` ([04](./04-build-output.md) rule 2), so CLI events take `release` from the build output's `_app/version.json` when it exists. In a checkout, that's the last local build's version; accepted.
 
 ### Docs
 
@@ -56,7 +56,6 @@
 - `src/instrumentation.server.ts`
 - `src/hooks.server.ts`: `handle` and `handleError` changed.
 - `src/hooks.client.ts`: `handleError`.
-- `src/routes/remote.ts`: `getSessionUserId` added.
 - `src/routes/+layout.svelte`: the client's user ID.
 - `cli/lib/sentry.ts`
 - `vite.config.ts`: the Sentry plugin.
@@ -69,9 +68,10 @@
 - [ ] After login, a client error carries the user's ID; after logout, none (try it, then revert).
 - [ ] A 4xx sends nothing; an unknown server error and a client error each send one event.
 - [ ] A validation failure's console warning and event hold only issue paths.
-- [ ] A thrown error in a sample CLI script reaches the mock ingest, exits non-zero, and with stderr piped its full stack arrives; an expected failure isn't sent (try each, then revert).
+- [ ] A thrown error and an unhandled rejection in a sample CLI script each reach the mock ingest, exit non-zero, and with stderr piped their full stack arrives; an expected failure isn't sent (try each, then revert).
 - [ ] A send failure whose provider message holds the recipient's address reaches the console and Sentry without it (try it, then revert).
 - [ ] `cli/lib/sentry.ts` passes `vpr check`; importing `@sentry/sveltekit` in `cli/` fails it (try it, then revert).
-- [ ] With `SENTRY_AUTH_TOKEN` set, the build uploads source maps and leaves none in the output; without it, it uploads nothing.
-- [ ] An event's `release` and the uploaded source maps' release are the release's SHA.
+- [ ] With `SENTRY_AUTH_TOKEN` set, a release build uploads source maps and leaves none in the output; `vpr build` and the e2e build upload nothing, and neither does a release build without the token.
+- [ ] An event's `release`, a CLI script's event run from a release, and the uploaded source maps' release are the release's SHA.
+- [ ] A failed audit write reaches Sentry through `report` without its params (try it, then revert).
 - [ ] `vpr check`, `vpr lint`, `vpr test`, and `vpr test:e2e` pass.

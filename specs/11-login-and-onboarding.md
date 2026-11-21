@@ -59,7 +59,7 @@
 
 ### Purge
 
-30. `purgeLogins`, a CLI-only command, deletes logins more than 4 days past expiry ([10](./10-sessions.md) rule 18), attempts first, and returns the count. `cli/db/app/purge.ts` runs it ([10](./10-sessions.md) rule 19).
+30. `purgeLogins`, a CLI-only command, deletes logins more than 4 days past expiry ([10](./10-sessions.md) rule 18), attempts first, and returns the count. `cli/db/purge.ts` runs it ([08](./08-audit-logging.md) rule 26).
 
 ### Tests
 
@@ -88,7 +88,9 @@
 - `src/routes/onboarding/`: with the closing form.
 - `src/routes/account/`: the closing form added.
 - `cli/db/app/login/commands.ts`: `purgeLogins`.
+- `cli/db/purge.ts`: runs `purgeLogins`.
 - `tests/login.e2e.ts`
+- `tests/session.e2e.ts`: seeds a profile, since `/account` now requires onboarding.
 - `tests/account.e2e.ts`
 - `drizzle/app/[timestamp]_init/` regenerated ([05](./05-database.md) rule 13).
 

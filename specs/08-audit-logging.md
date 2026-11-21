@@ -7,7 +7,7 @@
 ### Scope
 
 1. `audit` is a second database ([05](./05-database.md) rule 2), laid out, migrated, and checked on open as `app` is ([05](./05-database.md) rules 1 and 3–19). Named `audit`, not `access`: "access log" usually means web server request logs.
-2. Entries are stored in every mode but `development`, derived from the mode ([03](./03-environment.md) rule 2), so e2e runs exercise it. In `development`, the logger still runs and reads the context (rule 16) but stores nothing, so a statement that would fail unlogged in production fails in dev too. No audit database is opened there: `cli/db/migrate.ts` and the open check ([05](./05-database.md) rules 16 and 18) skip `audit`. While `building`, nothing is wrapped, since the app database is `:memory:` then ([05](./05-database.md) rule 8). `createTestAppDb` isn't wrapped. There, `cli/db/audit/purge.ts` fails as an expected failure ([02](./02-cli-separation.md) rule 14), and `db:studio` doesn't open `audit`.
+2. Entries are stored in every mode but `development`, derived from the mode ([03](./03-environment.md) rule 2), so e2e runs exercise it. In `development`, the logger still runs and reads the context (rule 16) but stores nothing, so a statement that would fail unlogged in production fails in dev too. No audit database is opened there: `cli/db/migrate.ts`, `cli/db/purge.ts` (rule 26), and the open check ([05](./05-database.md) rules 16 and 18) skip `audit`, and `db:studio` doesn't open it. While `building`, nothing is wrapped, since the app database is `:memory:` then ([05](./05-database.md) rule 8). `createTestAppDb` isn't wrapped.
 3. Audit entries are a legal record, not a log, so the global PII rule doesn't cover them. They hold bound params and the client IP unmasked, since 접속기록 must show whose data a statement touched (`WHERE user_id = ?`). They stay in the local audit database, never reach third parties (13 Observability), and are read only for their audit purpose, never joined into app queries. Secrets are hashed before binding, so they never reach params (10 Sessions). Why no masking: the law asks for access control and tamper protection (rule 23), not masking, and a masked entry can't show whose data was touched.
 
 ### Logger
@@ -24,7 +24,7 @@
 ### Clients
 
 12. `db` and `auditedDb` share one app connection, wrapped twice: `db` logs writes (and staff reads, rule 6), `auditedDb` logs every read too. A server module opts a read in by passing `auditedDb` to a query ([07](./07-queries.md) rule 7). While `building`, `auditedDb` is `db`. Lint extends [07](./07-queries.md) rule 1's `db` property ban to `auditedDb`. Why one connection: with two, a nested transaction would wait out the busy timeout, then fail.
-13. The audit database's own client is unwrapped, since logging an entry would log itself.
+13. The audit database's own client is unwrapped, since logging an entry would log itself. Its errors hold no bound values either ([05](./05-database.md) rule 11): `createEntry` binds every entry's params, and its errors reach `report` (rule 10). Rule 11's test also runs on a db from `createAuditDb`.
 14. CLI scripts open the app database through `openDbs`, whose client logs reads too, so every CLI statement is logged. Why: CLI operators are staff (rule 17), and a script has no request to opt in from. `cli/db/migrate.ts` runs migrations on a raw connection, so a data migration ([05](./05-database.md) rule 29) is unlogged; accepted.
 
 ### Context
@@ -49,8 +49,8 @@
 ### Retention
 
 25. Staff entries are kept 2 years; other entries, 3 months. Why: 접속기록 cover what 개인정보취급자 do, kept at least 1 year, and 2 for 50,000+ data subjects or sensitive or unique-ID data ([개인정보의 안전성 확보조치 기준](https://www.law.go.kr/행정규칙/개인정보의안전성확보조치기준) 제8조 ①), so the template keeps 2. Users' own actions aren't 접속기록; only their login records must be kept, for 3 months (통신비밀보호법), and keeping them longer without a basis breaches 개인정보 보호법 제21조 ①. Whether either binds a small service is uncertain; the fallback is 제15조 ① 6호 (정당한 이익). Verify against current law.
-26. `purgeEntries`, a CLI-only command ([06](./06-commands.md) rule 15), deletes staff entries logged more than 2 calendar years ago and others more than 3 calendar months ago, in UTC (3 months before May 31 is Feb 28), and returns the count. `cli/db/audit/purge.ts` runs it and prints the count, the destruction record (파기 기록).
-27. `deploy/app-audit-purge.service` and `deploy/app-audit-purge.timer` are sample units: daily, they run the purge script with `current/node` from `current`, with `app.service`'s `DATA_DIR` and env files.
+26. `purgeEntries`, a CLI-only command ([06](./06-commands.md) rule 15), deletes staff entries logged more than 2 calendar years ago and others more than 3 calendar months ago, in UTC (3 months before May 31 is Feb 28), and returns the count. `cli/db/purge.ts` runs every database's purges and prints each count, the destruction record (파기 기록). Later specs add their purges to it. Why one script: one pair of units, and it skips `audit` in `development` as `cli/db/migrate.ts` does (rule 2).
+27. `deploy/app-purge.service` and `deploy/app-purge.timer` are sample units: daily, they run `cli/db/purge.ts` with `current/node` from `current`, with `app.service`'s user, `DATA_DIR`, and env files ([05](./05-database.md) rule 19).
 28. A closed user's params in entries outlive closing ([05](./05-database.md) rule 33) until the purge; accepted, since the law requires keeping them.
 
 ## Files
@@ -65,11 +65,11 @@
 - `cli/db/client.ts`: `openDbs`.
 - `cli/db/migrate.ts`: skips `audit` in `development`.
 - `cli/db/audit/entry/commands.ts`: `purgeEntries`.
-- `cli/db/audit/purge.ts`
+- `cli/db/purge.ts`
 - `cli/db/drizzle-kit/audit.ts`
 - `deploy/app.service`: `ADDRESS_HEADER` and `XFF_DEPTH` added.
-- `deploy/app-audit-purge.service`
-- `deploy/app-audit-purge.timer`
+- `deploy/app-purge.service`
+- `deploy/app-purge.timer`
 - `drizzle/audit/[timestamp]_init/`
 
 ## Checks
@@ -79,8 +79,9 @@
 - [ ] A command stores `begin`, its statements, and `commit`, sharing one `connectionId`; a snapshot query on `db` stores nothing.
 - [ ] A prepared statement run twice stores two entries.
 - [ ] A `bigint` and a `Uint8Array` param are stored encoded, and the write runs.
-- [ ] In mode `development`, `vpr db:migrate:development` and `vpr dev` create no `audit.db`, and a write outside a request still throws (try it, then revert). `vpr build` creates none either, and the purge script fails without creating one.
+- [ ] In mode `development`, `vpr db:migrate:development` and `vpr dev` create no `audit.db`, and a write outside a request still throws (try it, then revert). `vpr build` and `cli/db/purge.ts` create none either.
 - [ ] A failing statement's entry has `hasFailed` set.
+- [ ] The [05](./05-database.md) rule 11 test fails with `paramsInErrors` set in `createAuditDb` (try it, then revert).
 - [ ] While logging fails, a write doesn't run and throws, and a rollback still runs and reports (try each, then revert).
 - [ ] When logging a `commit` fails, the transaction rolls back (try it, then revert).
 - [ ] A `begin` on `auditedDb` inside a transaction on `db` throws, and the outer transaction rolls back.

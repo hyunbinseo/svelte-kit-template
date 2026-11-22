@@ -43,20 +43,20 @@
 
 ### Writes
 
-23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` (05 rule 28), even after a guard checked it.
-24. A delete across tables deletes children first, each table in its own statement (05 rule 24).
+23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` (05 rule 29), even after a guard checked it.
+24. A delete across tables deletes children first (05 rule 24).
 25. A cascade (closing a user revokes their roles) runs in the same transaction as the write that triggers it, with its clock and actor.
 
 ### Tests
 
-26. Each command has tests next to it, on `createTestAppDb` (05 rule 35), covering success and each guard's code, with no row changed on a failed guard.
+26. Each command has tests next to it, on `createTestAppDb` (05 rule 37), covering success and each guard's code, with no row changed on a failed guard.
 27. Tests seed inactive rows (soft-deleted, expired) beside active ones, and check that the command leaves them alone.
 
 ### Concurrency
 
 28. Commands behave as if they ran one at a time: no other write lands between a guard's read and the writes that depend on it. On `node:sqlite`, rules 1 and 2 provide this.
 29. A transaction callback does database work only; side effects (network, file, queue) run in the caller after `ok`, since a throwing callback rolls back its writes but not its side effects, and other drivers may retry a callback on a conflict. Not checked; accepted.
-30. A guard on a rule that 05 rules 30–31 make a constraint still runs: the guard returns the code, and the constraint holds even if rule 28 doesn't.
+30. A guard on a rule that 05 rules 31–32 make a constraint still runs: the guard returns the code, and the constraint holds even if rule 28 doesn't.
 31. Another driver keeps rules 28–30 and replaces rules 1, 2, and 5. An async one (libSQL/Turso, Postgres) also makes all database code and its callers async; accepted.
 
 ## Files

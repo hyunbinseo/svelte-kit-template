@@ -10,7 +10,7 @@
 2. `DrizzleDb` lacks the same write methods as a deferred `tx` (06 rule 6), so only an immediate `tx`, opened only in commands and tests (06 rule 8), can write. Raw SQL through `all`, `get`, or `values` gets past it; accepted. Without `with`, a query can't use a CTE; accepted.
 3. Commands and CLI scripts may build SQL: a command's SQL sits beside its guards.
 4. Lint bans `sql.raw` and `inlineParams` everywhere, so values stay bound and out of error text ([05](./05-database.md) rule 11). Identifiers use `sql.identifier`; a constant takes an inline disable.
-5. An enum's `as const` array (05 rule 29) lives outside `src/db/server/`, and `schema.ts` imports it, since remote files' Valibot schemas and the UI import it too.
+5. An enum's `as const` array (05 rule 30) lives outside `src/db/server/`, and `schema.ts` imports it, since remote files' Valibot schemas and the UI import it too.
 
 ### Queries
 

@@ -51,7 +51,7 @@
 25. Staff entries are kept 2 years; others, 3 months. 개인정보취급자's 접속기록 are kept at least 1 year, and 2 for 50,000+ data subjects or sensitive or unique-ID data (기준 제8조 ①), so the template keeps 2. Users' own actions aren't 접속기록: only their login records must be kept, for 3 months (통신비밀보호법), and keeping them longer without a basis breaches 개인정보 보호법 제21조 ①. Whether either binds a small service is uncertain; the fallback basis is 제15조 ① 6호 (정당한 이익). Verify against current law.
 26. `purgeEntries`, a CLI-only command (06 rule 15), deletes staff entries logged more than 2 calendar years ago and others more than 3 calendar months ago, in UTC (3 months before May 31 is Feb 28), and returns the count. `cli/db/purge.ts` runs every database's purges and prints each count as the destruction record (파기 기록); later specs add theirs.
 27. `deploy/app-purge.service` and `deploy/app-purge.timer` are sample units: daily, they run `cli/db/purge.ts` with `current/node` from `current`, with `app.service`'s user, `DATA_DIR`, and env files (05 rule 19).
-28. A closed user's params in entries outlive closing (05 rule 33) until the purge, as the law requires.
+28. A closed user's params in entries outlive closing (05 rule 35) until the purge, as the law requires.
 
 ## Files
 

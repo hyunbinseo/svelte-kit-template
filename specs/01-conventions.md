@@ -5,7 +5,7 @@
 ## Rules
 
 1. Project files import each other through subpath imports (`#…`), even within one folder, so each file has one spelling that later import bans (e.g. [02](./02-cli-separation.md)) can match. Lint bans `./` and `../` imports, except `./$types.ts`. Where no subpath fits, an inline disable marks the import.
-2. VS Code and Zed auto-import non-relative specifiers.
+2. VS Code and Zed settings make auto-import insert `#…` specifiers.
 3. Tests sit next to the file they test (`x.ts` → `x.test.ts`).
 4. Each lint ban's message names what to use instead.
 5. `AGENTS.md` holds the style lint can't enforce, and `CLAUDE.md` imports it.

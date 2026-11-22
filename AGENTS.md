@@ -10,7 +10,7 @@ Beyond lint (`eslint.config.js`):
 - A helper must hide logic; no single-call wrappers.
 - Build file paths with `node:path`.
 - Check with `node:assert/strict` or Valibot, keeping their default messages.
-  - No hand-rolled `if`/`throw`, except a CLI script's expected failure ([02](specs/02-cli-separation.md) rule 14).
+  - No hand-rolled `if`/`throw`, except a CLI script's expected failure ([02](specs/02-cli-separation.md) rule 13).
 - Write Drizzle queries and constraints with its builders and operators; `sql` only where none exists.
   - In DDL (`CHECK`, index `where`), write literals into `sql`'s text, not interpolated ([drizzle-orm#3144](https://github.com/drizzle-team/drizzle-orm/issues/3144)).
 - Group related one-liners; blank lines go between groups and around multi-line statements.

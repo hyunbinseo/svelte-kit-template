@@ -6,7 +6,7 @@
 
 ### Setup
 
-1. It adds `@sentry/sveltekit` and `@sentry/node`, pending the user's approval; without it, the spec is dropped. `cli/` uses only `@sentry/node`, since the canary catches `@sentry/sveltekit`'s SvelteKit types ([02](./02-cli-separation.md) rule 7).
+1. It adds `@sentry/sveltekit` and `@sentry/node`, pending the user's approval; without it, the spec is dropped. `cli/` uses only `@sentry/node`, since the canary catches `@sentry/sveltekit`'s SvelteKit types ([02](./02-cli-separation.md) rule 6).
 2. `SENTRY_DSN` is optional, public, and static, since it's no secret ([03](./03-environment.md) rule 22). Sentry sends only in modes `preview` and `production`, with the mode as `environment`, and only while `SENTRY_DSN` is set, so test runs that fail on purpose send nothing.
 3. Every `init` (client, server, CLI) spreads one options object, `sentryOptions`, adding only `dsn`, `environment`, and `release`. It imports no `$app/*` and `satisfies` `@sentry/node`'s option type, since even a type import of `@sentry/sveltekit` would break `cli/`'s canary. `src/lib/sentry/kit.ts` checks it against `@sentry/sveltekit`'s type. No third Sentry package is imported.
 
@@ -41,7 +41,7 @@
 
 ### CLI
 
-21. `cli/lib/sentry.ts` initializes `@sentry/node` on import, after `cli/lib/env.ts`. Every script that reads env imports it first; one that forgets goes unreported; accepted. Uncaught errors and unhandled rejections are sent and exit non-zero through `process.exitCode` (02 rule 14); expected failures aren't sent. `release` comes from the build output's `_app/version.json` when it exists, so a checkout reports its last local build's version; accepted.
+21. `cli/lib/sentry.ts` initializes `@sentry/node` on import, after `cli/lib/env.ts`. Every script that reads env imports it first; one that forgets goes unreported; accepted. Uncaught errors and unhandled rejections are sent and exit non-zero through `process.exitCode` (02 rule 13); expected failures aren't sent. `release` comes from the build output's `_app/version.json` when it exists, so a checkout reports its last local build's version; accepted.
 
 ### Docs
 

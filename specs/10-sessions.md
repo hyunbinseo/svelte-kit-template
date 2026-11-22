@@ -15,7 +15,7 @@
 4. The cookie value is `[userSessionId].[secret]`, the secret being 32 random bytes, base64url. Only the secret's SHA-256 hash is stored, compared with `timingSafeEqual` after the row is found by ID, so a leaked database holds no usable token.
 5. A token parses only in canonical form: a lowercase UUID, as `randomUUIDv7` produces, a dot, and 43 base64url characters that re-encode to themselves, so one secret has one cookie value. Anything else counts as no session.
 6. Secrets are stored only as hashes (08 rule 3).
-7. `token.ts` imports no `$app/*`, so commands, seeds, and the CLI use it ([02](./02-cli-separation.md) rule 6).
+7. `token.ts` imports no `$app/*`, so commands, seeds, and the CLI use it ([02](./02-cli-separation.md) rule 5).
 
 ### Cookie
 

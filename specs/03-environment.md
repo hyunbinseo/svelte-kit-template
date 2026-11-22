@@ -13,11 +13,11 @@
 
 3. Env files (`.env`, `.env.[mode]`, and their `.local` variants) follow [Vite's names and order](https://vite.dev/guide/env-and-mode#env-files).
 4. `.gitignore` ignores `*.local`, as Vite's does, not `.env*`.
-5. Committed: `.env`, with values shared by every mode. A mode file (e.g. `.env.production`) is added when a value first differs by mode.
+5. `.env` is committed, with values shared by every mode. A mode file (e.g. `.env.production`) is added once a value differs.
 6. Committed values are non-secret.
 7. Values are quoted, since Vite and Node.js both cut an unquoted value at `#`.
 8. Secrets go in `*.local` files. `.env.local.example` lists their names, added with the first secret.
-9. Values never contain `$`, even escaped: Vite expands `$NAME` with no opt-out, and Node.js's `--env-file` reads `\$` literally. Stated in a `.env` comment, not checked.
+9. Values never contain `$`, even escaped: Vite expands `$NAME` with no opt-out, and Node.js's `--env-file` reads `\$` literally. A `.env` comment states it. Not checked; accepted.
 10. Empty values are invalid. An unset variable is commented out.
 
 ### Redaction
@@ -36,7 +36,7 @@
 ### CLI
 
 18. Scripts that read env run as `MODE=[mode] node [script]`, from a `package.json` script. `MODE`, not `--mode`, since drizzle-kit takes no such flag.
-19. On import (so before the importer's body), `cli/lib/env.ts` validates `MODE`, loads its env files into `process.env` with Vite's `loadEnv`, then exports `mode` and each schema the CLI reads, parsed with `parseRedacted` (e.g. `appEnv`). Scripts that read env and tool configs (e.g. drizzle-kit, Playwright) import it, and lint bans `process.env` elsewhere in `cli/` and tool configs.
+19. On import, `cli/lib/env.ts` validates `MODE`, loads its env files into `process.env` with Vite's `loadEnv`, then exports `mode` and each schema the CLI reads, parsed with `parseRedacted` (e.g. `appEnv`). Scripts that read env and tool configs (e.g. drizzle-kit, Playwright) import it, and lint bans `process.env` elsewhere in `cli/` and tool configs.
 20. `vite.config.ts` doesn't import `cli/lib/env.ts`, since Vite loads it in every mode, without `MODE`. It reads only variables its parent process sets, never env-file values. An inline disable marks each `process.env` use there, and in a script that extends a child process's env.
 
 ### Server

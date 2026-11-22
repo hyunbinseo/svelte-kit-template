@@ -12,7 +12,7 @@
 
 ### Files on Disk
 
-4. A database's file is `[DATA_DIR]/[mode]/[database].db`, so modes never share one ([03](./03-environment.md) rule 2). `DATA_DIR` defaults to `data`, relative to the working directory, and `.gitignore` ignores `/data/`. `prepareDatabasePath` takes the mode as an argument, since `src/db/` can't read `import.meta.env` under `cli/`'s config ([02](./02-cli-separation.md) rule 6): the SvelteKit client passes `import.meta.env.MODE`, parsed with `ModeSchema` so an unknown mode fails, and `cli/` passes `mode`.
+4. A database's file is `[DATA_DIR]/[mode]/[database].db`, so modes never share one ([03](./03-environment.md) rule 2). `DATA_DIR` defaults to `data`, relative to the working directory, and `.gitignore` ignores `/data/`. `prepareDatabasePath` takes the mode as an argument, since `src/db/` can't read `import.meta.env` under `cli/`'s config ([02](./02-cli-separation.md) rule 5): the SvelteKit client passes `import.meta.env.MODE`, parsed with `ModeSchema` so an unknown mode fails, and `cli/` passes `mode`.
 5. In mode `production`, a relative `DATA_DIR` fails, since the database can't live inside a release directory ([04](./04-build-output.md) rule 7). So `vpr start` in a checkout needs an absolute `DATA_DIR` in `.env.production.local`, migrated with `MODE=production node cli/db/migrate.ts`; accepted.
 6. The mode's directory is created owner-only (`700`). An existing one with other permissions fails, except on Windows.
 7. `deploy/app.service` sets an absolute `DATA_DIR`: a directory systemd creates for the service, outside the deploy root, shared by every release. Not the deploy root's `shared/`, so app state stays out of the deploy tree and systemd gives the directory the service's owner.

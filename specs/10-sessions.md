@@ -6,16 +6,16 @@
 
 ### Table
 
-1. `user_session` sits in `user/schema.ts` ([05](./05-database.md) rule 3): `id` (a UUID, 05 rule 22, since the cookie holds it), `userId`, `secretHash`, `createdAt`, `expiresAt`, and a `revoked` soft-delete group (05 rule 28). `secretHash` is a `blob`. `CHECK`s: `secretHash` is 32 bytes, `expiresAt` is after `createdAt`, and `revokedAt` isn't before it. `userId` is indexed (05 rule 33).
+1. `user_session` sits in `user/schema.ts` ([05](./05-database.md) rule 3): `id` (a UUID, 05 rule 22, since the cookie holds it), `userId`, `secretHash`, `createdAt`, `expiresAt`, and a `revoked` soft-delete group (05 rule 28). `secretHash` is a `blob`. `CHECK`s: `secretHash` is 32 bytes, `expiresAt` is after `createdAt`, and `revokedAt` isn't before `createdAt`. `userId` is indexed (05 rule 33).
 2. Sessions store no IP or user agent, which closing would have to erase (05 rule 36); the insert's audit entry already holds the IP ([08](./08-audit-logging.md) rule 15).
-3. Reason codes are `[actor]_[verb]` in snake case, prefixed by who decided: `user_`, `admin_`, `system_` (no user acts), or `cascade_` (a parent row ended), so an audit entry shows who decided without resolving `[verb]By`. `revokedReason` starts with `user_logged_out`.
+3. Reason codes are snake-case `[actor]_[verb]`, the prefix naming who decided: `user_`, `admin_`, `system_` (no user acts), or `cascade_` (a parent row ended), so an audit entry shows it without resolving `[verb]By`. `revokedReason` starts with `user_logged_out`.
 
 ### Token
 
-4. The cookie value is `[userSessionId].[secret]`, the secret being 32 random bytes, base64url. Only the secret's SHA-256 hash is stored, compared with `timingSafeEqual` after the row is found by ID, so a leaked database holds no usable token.
-5. A token parses only in canonical form: a lowercase UUID, as `randomUUIDv7` produces, a dot, and 43 base64url characters that re-encode to themselves, so one secret has one cookie value. Anything else counts as no session.
+4. The cookie value is `[userSessionId].[secret]`, the secret being 32 random bytes in base64url. Only the secret's SHA-256 hash is stored, compared with `timingSafeEqual` after the row is found by ID, so a leaked database holds no usable token.
+5. A token parses only in canonical form: a lowercase UUID (as `randomUUIDv7` produces), a dot, and 43 base64url characters that re-encode to themselves, so one secret has one cookie value. Anything else counts as no session.
 6. Secrets are stored only as hashes (08 rule 3).
-7. `token.ts` imports no `$app/*`, so commands, seeds, and the CLI use it ([02](./02-cli-separation.md) rule 5).
+7. `token.ts` imports no `$app/*`, so commands, seeds, and the CLI can use it ([02](./02-cli-separation.md) rule 5).
 
 ### Cookie
 
@@ -26,10 +26,10 @@
 
 10. Without a cookie, `handle` reads nothing, so prerendering touches no database. Otherwise it reads the active session (unrevoked and unexpired at `now`) by ID with one query and compares the hash. On a match, it sets `locals.session` to `{ userId, userSessionId }`. Otherwise (malformed, unknown, wrong secret, expired, revoked), it deletes the cookie and leaves `locals.session` unset.
 11. Nothing about a session is cached across requests, so revocation and expiry apply to the next request.
-12. Sessions last 30 days and slide: once less than half is left, `extendUserSession` resets `expiresAt` to `now` plus the lifetime, and the cookie is set again, so a session writes at most once per half lifetime. If `extendUserSession` returns a code (the session ended meanwhile), the request has no session, as in rule 10. There's no absolute lifetime; accepted, since logout and closing revoke. The values live in `src/lib/auth/config.ts`, importable by client code.
-13. The audit context's `userId` (08 rule 16) is `locals.session?.userId`, set before the refresh, so the refresh's entry names its user.
-14. `requireSession` throws `error(401)` without a session and returns `locals.session`. `requireLoggedOut` redirects (`303`) home with one. Both read `getRequestEvent()`, so they work in loads and remote functions.
-15. `/account` is a page for signed-in users, guarded by `requireSession`, with the logout form.
+12. Sessions last 30 days and slide: once less than half is left, `extendUserSession` resets `expiresAt` to `now` plus the lifetime, and the cookie is set again, so a session writes at most once per half lifetime. If `extendUserSession` returns a code (the session ended meanwhile), the request has no session, as in rule 10. There's no absolute lifetime; accepted, since logout and closing revoke. The lifetime lives in `src/lib/auth/config.ts`, importable by client code.
+13. The audit context's `userId` (08 rule 16) is `locals.session?.userId`, set before the extension, so the extension's entry names its user.
+14. `requireSession` returns `locals.session`, throwing `error(401)` without one. `requireLoggedOut` redirects (`303`) home with one. Both read `getRequestEvent()`, so they work in loads and remote functions.
+15. `/account`, guarded by `requireSession`, holds the logout form.
 
 ### Logout
 
@@ -71,14 +71,14 @@
 ## Checks
 
 - [ ] A seeded session's cookie opens `/account`, and the cookie keeps its value.
-- [ ] A refreshed cookie is `HttpOnly`, `SameSite=Lax`, and `Path=/`, and expires at the row's `expiresAt`; on a non-localhost origin it's also `Secure` (a unit test of `setSessionCookie`).
+- [ ] A cookie from `setSessionCookie` is `HttpOnly`, `SameSite=Lax`, and `Path=/`, and expires at the row's `expiresAt`; on a non-localhost origin it's also `Secure` (a unit test).
 - [ ] A session with under half its lifetime left is extended in the database and its cookie's expiry moves.
 - [ ] A malformed cookie, a wrong secret, an expired session, and a revoked session each get a `401` on `/account` and a deleted cookie.
 - [ ] Logout revokes the session with `user_logged_out`, deletes the cookie, and the old cookie then gets a `401`. A logout whose session was revoked meanwhile still deletes the cookie and redirects.
 - [ ] A logout form posted from another origin is rejected.
 - [ ] `parseToken` rejects a non-UUID ID, an uppercase ID, a short or long secret, and a non-canonical last character.
 - [ ] No column or audit param holds a session secret: a seeded session's and the logout's entries hold only its hash.
-- [ ] In mode `e2e`, the refresh's audit entry has the session's `userId`.
+- [ ] In mode `e2e`, the extension's audit entry has the session's `userId`.
 - [ ] `requireLoggedOut` redirects a signed-in request from a sample route.
 - [ ] `purgeUserSessions` deletes sessions more than 4 days past expiry or revocation and keeps one at exactly 4 days, on a faked clock.
 - [ ] `cli/db/purge.ts` prints the session purge's count.

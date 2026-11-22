@@ -1,12 +1,12 @@
 # 06 Commands
 
-**Goal**: Every write runs in a command ([CQRS](https://martinfowler.com/bliki/CQRS.html)): a plain function that SvelteKit, CLI scripts, and tests call alike, and that runs in one synchronous immediate transaction, guards the rows it depends on, and returns which guard failed.
+**Goal**: Every write runs in a command ([CQRS](https://martinfowler.com/bliki/CQRS.html)): a plain function, called alike by SvelteKit, CLI scripts, and tests, that runs one synchronous immediate transaction, guards the rows it depends on, and returns which guard failed.
 
 ## Rules
 
 ### Transactions
 
-1. `db.transaction` requires `behavior`, `immediate` or `deferred`, and its `tx` type follows it: `immediate` can write, `deferred` only reads. A read-only deferred transaction takes no write lock in WAL, so 07 Queries uses it without blocking commands.
+1. `db.transaction` requires `behavior` (`immediate` or `deferred`), and its `tx` type follows it: `immediate` can write, `deferred` only reads. A read-only deferred transaction takes no write lock in WAL, so 07 Queries uses it without blocking commands.
 2. A callback that returns a promise is a type error, since `node:sqlite` is sync and an async callback would commit at its first `await`. Casts and callbacks typed `any` or `unknown` get past it; accepted.
 3. `tx.transaction` opens a savepoint: same `tx` type, sync callback, no `config`.
 4. `createAppDb` casts Drizzle's client to `AppDb`, unchecked at runtime. `DrizzleDb` and `DrizzleTx` in `src/db/server/shared/` hold the restricted types, so 08 Audit Logging's db shares them.
@@ -26,18 +26,18 @@
 ### Placement
 
 14. A command lives in a prefix folder's `commands.ts` (05 rule 3).
-15. A command only CLI scripts call lives in `cli/db/[database]/[prefix]/commands.ts`, so SvelteKit can't import it, and moves to `src/db/` once SvelteKit needs it.
+15. A command called only by CLI scripts lives in `cli/db/[database]/[prefix]/commands.ts`, so SvelteKit can't import it, and moves to `src/db/` once SvelteKit needs it.
 
 ### Time
 
-16. A command reads the clock once, inside its transaction, and passes that value to every timestamp it writes (05 rule 26) and every expiry it compares.
+16. A command reads the clock once, inside its transaction, and uses it for every timestamp it writes (05 rule 26) and every expiry it compares.
 17. Tests fake the clock the command reads.
 
 ### Guards
 
 18. A command checks every row it depends on inside its transaction (the target exists and is active, an actor is an active user or `null`, a state allows the change) and returns without writing when one fails.
 19. It returns `CommandResult<ErrorCode, Values>`: `{ ok: false, error }` naming the failed guard, or `{ ok: true, …values }`. Not a throw or a falsy return, so the caller picks the response (a form issue, a 404, a CLI message) without a second read, and a missed case can't become a 500. Values, which strict [CQS](https://martinfowler.com/bliki/CommandQuerySeparation.html) wouldn't return, save the caller a query (e.g. a created row's ID).
-20. The union of codes is written on the transaction callback's return type, so callers see every code.
+20. The transaction callback's return type declares the union of codes, so callers see every code.
 21. A failed guard writes nothing. A command whose failure must still write (a recorded login attempt) states it in a comment, and its test checks that write.
 22. Authorization (is the actor an admin?) stays in the caller, since commands also serve the CLI, where the actor is `null`.
 
@@ -45,7 +45,7 @@
 
 23. An update to a soft-delete group has `[verb]At IS NULL` in its `WHERE` (05 rule 29), even after a guard checked it.
 24. A delete across tables deletes children first (05 rule 24).
-25. A cascade (closing a user revokes their roles) runs in the same transaction as the write that triggers it, with its clock and actor.
+25. A cascade (closing a user revokes their roles) runs in the same transaction as the write that triggers it, with that write's clock and actor.
 
 ### Tests
 

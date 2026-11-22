@@ -6,33 +6,33 @@
 
 ### Layout
 
-1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the fixed background layer (rule 3). Each page's `<main>` fills the rest and centers its card, so a header doesn't push the page past the screen.
-2. Pages scroll on the body, not inside a container, so `layout.css`'s `body:has(dialog:modal)` lock stops page scroll under an open modal; a scrolling container would escape it. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. `layout.css`'s `page-*` utilities change to match.
+1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the background layer (rule 3). Each page's `<main>` fills the rest and centers its card, so a header doesn't push the page past the screen.
+2. Pages scroll on the body, not inside a container, which would escape `layout.css`'s `body:has(dialog:modal)` lock under an open modal. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. `layout.css`'s `page-*` utilities change to match.
 3. The background is a fixed layer sized to the large viewport height (`lvh`), so an image doesn't rescale as mobile browser bars move.
 4. `src/app.html` adds only the browser check and a `<noscript>` warning to the scaffold. Layout classes stay out of it.
 
 ### Head
 
 5. Each page's `<title>` is `[page] - [SITE_NAME]`; home's is `SITE_NAME` alone.
-6. The root layout renders the one robots tag: `noindex, nofollow`, unless a page's `load` returns `robots` (typed in `App.PageData`). One tag, since crawlers take the most restrictive of several.
-7. Fonts aren't preloaded; they load with `font-display: swap`, since the variable font is large.
+6. The root layout renders the only robots tag, since crawlers take the most restrictive of several: `noindex, nofollow`, unless a page's `load` returns `robots` (typed in `App.PageData`).
+7. Fonts aren't preloaded, since the variable font is large; they load with `font-display: swap`.
 
 ### Copy
 
-8. UI copy is Korean, inline in the page or module that shows it, or in `src/lib/auth/errors.ts` ([11](./11-login-and-onboarding.md) rule 29), `src/hooks.ts` (rule 9), and `src/app.html`. Hangul appears nowhere else in `src/` (not in identifiers, logs, or stored values), so one search finds every string to translate.
-9. Valibot's messages are Korean, set once in `src/hooks.ts`, which runs on the server and the client: one generic global message, plus specific messages for the actions forms use (e.g. `email`). No schema passes its own message, so `AGENTS.md`'s default-message rule holds. Not `@valibot/i18n`: a new dependency, and its messages echo the input. The messages hold no input value, and [03](./03-environment.md) rule 13's test also runs with them set.
+8. UI copy is Korean, inline in the page or module that shows it, or in `src/lib/auth/errors.ts` ([11](./11-login-and-onboarding.md) rule 29), `src/hooks.ts` (rule 9), or `src/app.html`. Hangul appears nowhere else in `src/` (not in identifiers, logs, or stored values), so one search finds every string to translate.
+9. Valibot's messages are Korean, set once in `src/hooks.ts`, which runs on the server and the client: one generic global message, plus specific messages for the actions forms use (e.g. `email`). They hold no input value, and [03](./03-environment.md) rule 13's test also runs with them set. No schema passes its own message, so `AGENTS.md`'s default-message rule holds. Not `@valibot/i18n`, a new dependency whose messages echo the input.
 10. `AGENTS.md` lists what switching the UI language touches: the copy in each place rule 8 names, `lang` in `src/app.html`, and Valibot's messages.
 
 ### Error Page
 
 11. The error page's title comes from the status: one each for 400, 401, 403, and 404, one for other 4xx, and one for 5xx, since SvelteKit's own messages are English ([sveltejs/kit#11633](https://github.com/sveltejs/kit/issues/11633)). So an `error()` message is never shown; a page that must explain a failure renders it instead of throwing.
 12. Every status links home. A 401 adds a login link carrying the current path and query as `returnTo` (11 rule 19). A 5xx adds a form posting to `/clear-site-data`.
-13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), best-effort: `handle` skips its session check for this path, and the endpoint checks the cookie itself; if checking or revoking throws, it reports the error and goes on, since a 5xx often comes from the database. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, dropping client state that keeps failing. Being `POST`, it's covered by SvelteKit's CSRF check.
+13. `POST /clear-site-data` logs out as `logout` does ([10](./10-sessions.md) rule 16), best-effort, since a 5xx often comes from the database: `handle` skips its session check for this path, the endpoint checks the cookie itself, and if checking or revoking throws, it reports the error and goes on. Then it deletes the cookie and redirects (`303`) home with `Clear-Site-Data: "cache", "cookies", "storage"`, dropping client state that keeps failing. As a `POST`, it's covered by SvelteKit's CSRF check.
 
 ### Pages
 
-14. Home is prerendered as logged out, so hooks don't run for it. On mount, `getSessionUserId` returns the session's user ID, or `null` without one, and the home page's one button switches from login to `/account` in place, so nothing shifts.
-15. Pages for onboarded users sit in the `(user)` group, `/account` included. Its layout's header shows the user's name, linking to `/account`, and the logout form, from `getCurrentUser`, which guards with `requireOnboarded` (11 rule 24).
+14. Home is prerendered as logged out, so hooks don't run for it. On mount, it calls `getSessionUserId` (the session's user ID, or `null`), and with a session its one button switches from login to `/account` in place, so nothing shifts.
+15. Pages for onboarded users sit in the `(user)` group, `/account` included. Its layout reads `getCurrentUser`, which guards with `requireOnboarded` (11 rule 24), and its header shows the user's name, linking to `/account`, and the logout form.
 16. A layout's guard protects neither its pages' `load`s, which run alongside it, nor their remote functions, which SvelteKit calls directly. Each `load` and remote function in `(user)` guards itself.
 17. Links use `resolve()` with a pathname (`resolve('account')`), and a route ID only when a parameter needs filling, since a route ID carries groups like `/(user)/account` ([sveltejs/kit#14529](https://github.com/sveltejs/kit/issues/14529)).
 
@@ -75,7 +75,7 @@
 - [ ] `/clear-site-data` logs out and responds with the header; a cross-site `POST` is rejected. With the session query or revoking made to throw, it still sends the header, deletes the cookie, and redirects.
 - [ ] Offline and new-version toasts appear, and a navigation after a new version is a full load.
 - [ ] Home is prerendered and switches its button for a session.
-- [ ] A remote function and a sample `+page.server.ts` `load` in `(user)` without their own guard leak to a request without a session, and with it get a `401`.
+- [ ] A remote function and a sample `+page.server.ts` `load` in `(user)` without their own guard leak to a request without a session; with their guard, they return a `401`.
 - [ ] A form's Valibot issue shows a Korean message holding no input value.
 - [ ] 03 rule 13's test passes with `src/hooks.ts`'s messages set, and fails when one echoes the input.
 - [ ] Under an open modal `<dialog>`, the page doesn't scroll or shift (by hand, at mobile and desktop widths).

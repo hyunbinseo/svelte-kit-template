@@ -1,13 +1,13 @@
 # 11 Login and Onboarding
 
-**Goal**: A person signs in with a code sent to their email, which creates their user on first success, completes onboarding once, and can close their account, erasing their personal data.
+**Goal**: A person signs in with a code sent to their email, becoming a user on first success, completes onboarding once, and can close their account, erasing their personal data.
 
 ## Rules
 
 ### Users
 
-1. `user` gains `contact`, an email: nullable and unique. A `CHECK` allows `null` only on a closed user.
-2. A contact is trimmed, lowercased, and at most 254 characters, by one Valibot schema outside `src/db/server/` ([07](./07-queries.md) rule 5), which every form and command input uses.
+1. `user` gains `contact`, a nullable, unique email. A `CHECK` allows `null` only on a closed user.
+2. One Valibot schema, outside `src/db/server/` ([07](./07-queries.md) rule 5), trims and lowercases a contact and caps it at 254 characters. Every form and command input uses it.
 3. `user` gains a `closed` soft-delete group ([05](./05-database.md) rule 28). `closedReason` starts with `user_requested` ([10](./10-sessions.md) rule 3).
 
 ### Logins
@@ -19,28 +19,28 @@
 ### Codes
 
 7. A code is random digits from `node:crypto`. Its length, lifetime, and attempt limit live in `src/lib/auth/config.ts`, with the sign-up switch (rule 13).
-8. The code is bound to the browser that requested it ([email code authentication](https://thecopenhagenbook.com/email-verification)): the login cookie holds `[loginId].[secret]` (10 rules 4–5), and `codeHash` is the SHA-256 of the secret, then the code, so neither a leaked database nor audit params can crack a code, and no server key is needed. A code is useless without the cookie, so there's no same-IP check.
+8. The code is bound to the browser that requested it ([email code authentication](https://thecopenhagenbook.com/email-verification)): the login cookie holds `[loginId].[secret]` (10 rules 4–5), and `codeHash` is the SHA-256 of the secret followed by the code, so neither a leaked database nor audit params can crack a code, and no server key is needed. A code is useless without the cookie, so there's no same-IP check.
 9. The login cookie is set as the session cookie is (10 rule 8), named `login`, with path `/` (remote functions post to `/_app/remote/…`) and a max age of the code's lifetime.
 
 ### Requesting a Code
 
 10. `/login` and both its forms are guarded by `requireLoggedOut`, so a signed-in browser can't orphan its session with a new one. It shows the contact form, and the code form while the login cookie exists, so a reload keeps the step.
-11. `startLogin` fails with `login_pending` while the contact has an unexpired login without a successful attempt, attempts left or not, so a contact gets at most one code, and so at most the attempt limit of guesses, per code lifetime. Not only pending ones, since spending the attempts would then allow a new code at once: an unbounded guessing loop. A user who loses the cookie waits out the lifetime, anyone can block a contact's login that way, and `login_pending` reveals a login in progress; accepted, as rate limits are a project's.
-12. `sendLoginCode` runs after `startLogin` commits ([06](./06-commands.md) rule 29). If it throws, `discardLogin` deletes the login while it has no attempts, the error is reported, and the form asks to retry, so the contact can request again at once.
+11. `startLogin` fails with `login_pending` while the contact has an unexpired login without a successful attempt, even one with no attempts left, so a contact gets at most one code, and so at most the attempt limit of guesses, per code lifetime. Checking only pending logins would let spent attempts unlock a new code at once: unbounded guessing. A user who loses the cookie waits out the lifetime, anyone can block a contact's login by requesting a code, and `login_pending` reveals a login in progress; accepted, as rate limits are a project's.
+12. `sendLoginCode` runs after `startLogin` commits ([06](./06-commands.md) rule 29). If it throws, `discardLogin` deletes the login if it has no attempts, the error is reported, and the form asks to retry, so the contact can request again at once.
 13. Sign-up is open by default. When closed, `startLogin` and `completeLogin` fail with `sign_up_closed` for a contact with no active user, so no code goes to a contact that can't sign up. That reveals whether a contact has an account; accepted.
-14. `sendLoginCode` prints the code, without the contact, to the console in every mode but `production`, where it throws until a project plugs in a provider, so a code can't silently land in production logs.
+14. `sendLoginCode` prints the code, without the contact, to the console in every mode but `production`, where it throws until a project adds an email provider, so a code can't silently land in production logs.
 
 ### Verifying a Code
 
-15. `completeLogin` returns `login_not_found` without writing when the login isn't pending. Otherwise it records the attempt, the one guard failure that writes (06 rule 21), then returns `code_mismatch` on a wrong code. Hashes are compared as 10 rule 4 compares them.
+15. `completeLogin` returns `login_not_found` without writing when the login isn't pending. Otherwise it records the attempt, then returns `code_mismatch` on a wrong code, the one guard failure that writes (06 rule 21). Hashes are compared as 10 rule 4 compares them.
 16. On a match, it creates a new session, first creating the user if the contact has no active one, so an unverified email never becomes a user. It returns the session and whether the user is onboarded.
 17. On `code_mismatch`, the login cookie stays, for the attempts left. Every other outcome deletes it. `login_not_found` reads as an expired code.
-18. On success, the session cookie is set, and the user goes (`303`) to `returnTo` or home, through `/onboarding` first if not onboarded, carrying `returnTo`.
+18. On success, the session cookie is set and the user is redirected (`303`) to `returnTo` or home, via `/onboarding` (carrying `returnTo`) if not onboarded.
 19. `returnTo` is kept only as a same-origin path: it starts with `/` but not `//`, holds no `\` or control character, resolves to the same origin, and its pathname isn't `/login`. Anything else is dropped, since browsers read `/\x` and `/\t/x` as `//x`, an open redirect. It travels as a query parameter and a hidden field.
 
 ### Onboarding
 
-20. `user_profile` holds `userId` (its primary key, 05 rule 22), `name`, and `createdAt`. A user is onboarded once it has a profile. `name` is the template's sample field, with a length `CHECK`.
+20. `user_profile` holds `userId` (its primary key, 05 rule 22), `name`, and `createdAt`. A user with a profile is onboarded. `name` is the template's sample field, with a length `CHECK`.
 21. The onboarding form asks for `name` and a required confirmation of being 14 or older, since [개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제22조의2 requires a guardian's consent under 14, which the template doesn't collect. The profile's `createdAt` records when it was confirmed. The privacy policy (처리방침, 제30조) is a project's.
 22. `onboardUser` fails with `user_not_found` for a missing or closed user and `user_already_onboarded` for an onboarded one.
 23. `findActiveUserSession` (10 rule 10) also excludes closed users, backing up the cascade (rule 27), and returns whether the user is onboarded, so `locals.session` gains `isOnboarded` with no second query.
@@ -48,7 +48,7 @@
 
 ### Closing
 
-25. `/account` and `/onboarding` have a closing form (탈퇴) with a required confirmation, so a user who never onboards (e.g. under 14) can still erase their contact. It calls `closeUser` with `user_requested`, by the user, then deletes the session cookie and redirects home.
+25. `/account` has a closing form (탈퇴) with a required confirmation, and so does `/onboarding`, so a user who never onboards (e.g. under 14) can still erase their contact. It calls `closeUser` with `user_requested`, by the user, then deletes the session cookie and redirects home.
 26. `closeUser` fails with `user_not_found` for a missing or closed user, and `actor_not_found` unless the actor is an active user or `null`.
 27. In one transaction (06 rule 25), it sets the closed group, sets `contact` to `null`, deletes the profile and the contact's logins (attempts first), and revokes the user's active sessions with `cascade_user_closed`.
 28. Closing is final. The same email can sign up again as a new user, since nothing links it to the closed one. Bans that keep a contact to block sign-up are a project's; accepted.
@@ -97,7 +97,7 @@
 ## Checks
 
 - [ ] A code request creates a pending login and a login cookie, and prints the code without the contact in mode `e2e`.
-- [ ] A second request for the same contact fails with the pending message, and creates no login, also after the first login's attempts are spent.
+- [ ] A second request for the same contact fails with the pending message, and creates no login, even after the first login's attempts are spent.
 - [ ] With a session, posting either login form redirects home and creates no session.
 - [ ] With a seeded login, a correct code creates the user and a session, and a new user lands on `/onboarding` with `returnTo` kept.
 - [ ] A wrong code keeps the cookie while attempts are left; after the last one, the correct code reads as expired.

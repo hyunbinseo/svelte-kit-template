@@ -17,7 +17,7 @@ For drafting and reviewing specs:
 
 ## Wording
 
-For specs and `AGENTS.md`. Review completed: 01–05.
+For specs and `AGENTS.md`. Review completed: 01–05. 06–13 had two AI wording passes, not yet reviewed by a human.
 
 - Shorter wins: cut any word that doesn't change the meaning.
 - Let an example carry what prose would explain.

@@ -19,13 +19,13 @@
 ### Codes
 
 7. A code is random digits from `node:crypto`. Its length, lifetime, and attempt limit live in `src/lib/auth/config.ts`, with the sign-up switch (rule 13).
-8. The code is bound to the browser that requested it ([email code authentication](https://thecopenhagenbook.com/email-verification)): the login cookie holds `[loginId].[secret]`, in 10 rules 4–5's format, and `codeHash` is the SHA-256 of the secret, then the code, so a code can't be cracked from a leaked database or audit params, with no server key needed. A code is useless without the cookie, so there's no same-IP check.
+8. The code is bound to the browser that requested it ([email code authentication](https://thecopenhagenbook.com/email-verification)): the login cookie holds `[loginId].[secret]` (10 rules 4–5), and `codeHash` is the SHA-256 of the secret, then the code, so neither a leaked database nor audit params can crack a code, and no server key is needed. A code is useless without the cookie, so there's no same-IP check.
 9. The login cookie is set as the session cookie is (10 rule 8), named `login`, with path `/` (remote functions post to `/_app/remote/…`) and a max age of the code's lifetime.
 
 ### Requesting a Code
 
 10. `/login` and both its forms are guarded by `requireLoggedOut`, so a signed-in browser can't orphan its session with a new one. It shows the contact form, and the code form while the login cookie exists, so a reload keeps the step.
-11. `startLogin` fails with `login_pending` while the contact has an unexpired login without a successful attempt, attempts left or not, so a contact gets at most one code, and so at most the attempt limit of guesses, per code lifetime. Why not only pending ones: spending the attempts would allow a new code at once, an unbounded guessing loop. A user who loses the cookie waits out the lifetime, anyone can block a contact's login that way, and `login_pending` reveals a login in progress; accepted, as rate limits are a project's.
+11. `startLogin` fails with `login_pending` while the contact has an unexpired login without a successful attempt, attempts left or not, so a contact gets at most one code, and so at most the attempt limit of guesses, per code lifetime. Not only pending ones, since spending the attempts would then allow a new code at once: an unbounded guessing loop. A user who loses the cookie waits out the lifetime, anyone can block a contact's login that way, and `login_pending` reveals a login in progress; accepted, as rate limits are a project's.
 12. `sendLoginCode` runs after `startLogin` commits ([06](./06-commands.md) rule 29). If it throws, `discardLogin` deletes the login while it has no attempts, the error is reported, and the form asks to retry, so the contact can request again at once.
 13. Sign-up is open by default. When closed, `startLogin` and `completeLogin` fail with `sign_up_closed` for a contact with no active user, so no code goes to a contact that can't sign up. That reveals whether a contact has an account; accepted.
 14. `sendLoginCode` prints the code, without the contact, to the console in every mode but `production`, where it throws until a project plugs in a provider, so a code can't silently land in production logs.
@@ -33,7 +33,7 @@
 ### Verifying a Code
 
 15. `completeLogin` returns `login_not_found` without writing when the login isn't pending. Otherwise it records the attempt, the one guard failure that writes (06 rule 21), then returns `code_mismatch` on a wrong code. Hashes are compared as 10 rule 4 compares them.
-16. On a match, it creates the user if the contact has no active one, so an unverified email never becomes a user, then a new session, and returns the session and whether the user is onboarded.
+16. On a match, it creates a new session, first creating the user if the contact has no active one, so an unverified email never becomes a user. It returns the session and whether the user is onboarded.
 17. On `code_mismatch`, the login cookie stays, for the attempts left. Every other outcome deletes it. `login_not_found` reads as an expired code.
 18. On success, the session cookie is set, and the user goes (`303`) to `returnTo` or home, through `/onboarding` first if not onboarded, carrying `returnTo`.
 19. `returnTo` is kept only as a same-origin path: it starts with `/` but not `//`, holds no `\` or control character, resolves to the same origin, and its pathname isn't `/login`. Anything else is dropped, since browsers read `/\x` and `/\t/x` as `//x`, an open redirect. It travels as a query parameter and a hidden field.

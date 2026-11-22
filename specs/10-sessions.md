@@ -8,7 +8,7 @@
 
 1. `user_session` sits in `user/schema.ts` ([05](./05-database.md) rule 3): `id` (a UUID, 05 rule 22, since the cookie holds it), `userId`, `secretHash`, `createdAt`, `expiresAt`, and a `revoked` soft-delete group (05 rule 28). `secretHash` is a `blob`. `CHECK`s: `secretHash` is 32 bytes, `expiresAt` is after `createdAt`, and `revokedAt` isn't before it. `userId` is indexed (05 rule 33).
 2. Sessions store no IP or user agent, which closing would have to erase (05 rule 36); the insert's audit entry already holds the IP ([08](./08-audit-logging.md) rule 15).
-3. Reason codes are `[actor]_[verb]` in snake case, prefixed by who decided: `user_`, `admin_`, `system_` (no user acts), or `cascade_` (a parent row ended), so an audit entry reads on its own, where `[verb]By` doesn't resolve. `revokedReason` starts with `user_logged_out`.
+3. Reason codes are `[actor]_[verb]` in snake case, prefixed by who decided: `user_`, `admin_`, `system_` (no user acts), or `cascade_` (a parent row ended), so an audit entry shows who decided without resolving `[verb]By`. `revokedReason` starts with `user_logged_out`.
 
 ### Token
 

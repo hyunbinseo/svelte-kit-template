@@ -7,9 +7,9 @@
 ### Layout
 
 1. Every page renders inside the root layout's container, which fills at least the small viewport height (`svh`) and holds the fixed background layer (rule 3). Each page's `<main>` fills the rest and centers its card, so a header doesn't push the page past the screen.
-2. Pages scroll on the body, not inside a container, so `layout.css`'s `body:has(dialog:modal)` lock stops page scroll under an open modal; scrolling inside the current fixed-height container escapes it. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. `layout.css`'s `page-*` utilities change to match.
+2. Pages scroll on the body, not inside a container, so `layout.css`'s `body:has(dialog:modal)` lock stops page scroll under an open modal; a scrolling container would escape it. The scrollbar's gutter is kept only while the lock is on, so the layout doesn't shift. `layout.css`'s `page-*` utilities change to match.
 3. The background is a fixed layer sized to the large viewport height (`lvh`), so an image doesn't rescale as mobile browser bars move.
-4. `src/app.html` holds only the browser check and a `<noscript>` warning beyond the scaffold. Layout classes stay out of it.
+4. `src/app.html` adds only the browser check and a `<noscript>` warning to the scaffold. Layout classes stay out of it.
 
 ### Head
 

@@ -6,18 +6,18 @@
 
 ### Setup
 
-1. It adds `@sentry/sveltekit` and `@sentry/node`, pending the user's approval; without it, the spec is dropped. `cli/` uses only `@sentry/node`, since the canary catches `@sentry/sveltekit`'s SvelteKit types ([02](./02-cli-separation.md) rule 6).
+1. It adds `@sentry/sveltekit` and `@sentry/node`, pending the user's approval; without approval, the spec is dropped. `cli/` uses only `@sentry/node`, since the canary catches `@sentry/sveltekit`'s SvelteKit types ([02](./02-cli-separation.md) rule 6).
 2. `SENTRY_DSN` is optional, public, and static, since it's no secret ([03](./03-environment.md) rule 22). Sentry sends only in modes `preview` and `production`, with the mode as `environment`, and only while `SENTRY_DSN` is set, so test runs that fail on purpose send nothing.
 3. Every `init` (client, server, CLI) spreads one options object, `sentryOptions`, adding only `dsn`, `environment`, and `release`. It imports no `$app/*` and `satisfies` `@sentry/node`'s option type, since even a type import of `@sentry/sveltekit` would break `cli/`'s canary. `src/lib/sentry/kit.ts` checks it against `@sentry/sveltekit`'s type. No third Sentry package is imported.
 
 ### Data
 
-4. Nothing personal is collected: no IPs or inferred user fields, cookies, bodies, query parameters, database query parameters, or stack frame variables, and no Session Replay. Sentry can still infer an IP on arrival, so `docs/sentry.md` requires the project's "Prevent Storing of IP Addresses" and server-side scrubbing; not checked, accepted.
+4. Nothing personal is collected: no IPs or inferred user fields, cookies, bodies, query parameters, database query parameters, or stack frame variables, and no Session Replay. Sentry can still infer an IP on arrival, so `docs/sentry.md` requires the project's "Prevent Storing of IP Addresses" and server-side scrubbing. Not checked; accepted.
 5. Headers are allowlisted to `User-Agent`; the rest are sent filtered, so a header added later (e.g. a new proxy's IP header) can't leak.
 6. Every URL in an event, breadcrumb, or span loses its query and hash, whatever the SDK's query options say.
 7. Console breadcrumbs are dropped, since console output can hold values.
 8. SQL text is sent: its values are bound ([07](./07-queries.md) rule 4) and kept out of errors ([05](./05-database.md) rule 11).
-9. The user ID is the one user field, sent while Sentry is on, so an error links to a user's report and counts affected users. The server sets it per request after `handleSession` ([10](./10-sessions.md) rule 10). The root layout sets it on the client from `getSessionUserId` ([12](./12-app-shell.md) rule 14), re-read after every navigation and form submission, since the layout outlives login, logout, and closing; `null` clears it. It's pseudonymous 개인정보, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), and sets a short retention, since sent IDs outlive closing (05 rule 35); not checked, accepted.
+9. The user ID is the one user field, sent while Sentry is on, so an error links to a user's report and counts affected users. The server sets it per request after `handleSession` ([10](./10-sessions.md) rule 10). The root layout sets it on the client from `getSessionUserId` ([12](./12-app-shell.md) rule 14), re-read after every navigation and form submission, since the layout outlives login, logout, and closing; `null` clears it. It's pseudonymous 개인정보, so `docs/sentry.md` tells projects to disclose Sentry in their privacy policy as 처리위탁 and 국외 이전 ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제26조, 제28조의8), and sets a short retention, since sent IDs outlive closing (05 rule 35). Not checked; accepted.
 10. Paths are sent as route IDs (`/posts/[postId]`), not filled paths, in transaction names, span names, and URLs, since a parameter may be another user's ID.
 
 ### Errors
@@ -41,7 +41,7 @@
 
 ### CLI
 
-21. `cli/lib/sentry.ts` initializes `@sentry/node` on import, after `cli/lib/env.ts`. Every script that reads env imports it first; one that forgets goes unreported; accepted. Uncaught errors and unhandled rejections are sent and exit non-zero through `process.exitCode` (02 rule 13); expected failures aren't sent. `release` comes from the build output's `_app/version.json` when it exists, so a checkout reports its last local build's version; accepted.
+21. `cli/lib/sentry.ts` initializes `@sentry/node` on import, after `cli/lib/env.ts`. Every script that reads env imports it first. One that forgets goes unreported; accepted. Uncaught errors and unhandled rejections are sent and exit non-zero through `process.exitCode` (02 rule 13); expected failures aren't sent. `release` comes from the build output's `_app/version.json` when it exists, so a checkout reports its last local build's version; accepted.
 
 ### Docs
 

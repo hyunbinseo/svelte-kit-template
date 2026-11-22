@@ -12,7 +12,7 @@
 
 ### Logger
 
-4. `auditConnection` wraps a `node:sqlite` connection, and Drizzle gets the wrapped one, so every statement, transaction control included, passes through it. It exposes only the members Drizzle's driver uses; any other (`exec`, `applyChangeset`, `function`, …) throws, since it could run SQL unlogged. Why not Drizzle's `logger`: it sees neither failures nor transaction control ([drizzle-orm#387](https://github.com/drizzle-team/drizzle-orm/issues/387)). A connection is wrapped after `openConnection`'s pragmas and the migration check (05 rule 18), which would otherwise log outside a request (rule 16).
+4. `auditConnection` wraps a `node:sqlite` connection, and Drizzle gets the wrapped one, so every statement, transaction control included, passes through it. It exposes only the members Drizzle's driver uses; any other (`exec`, `applyChangeset`, `function`, …) throws, since it could run SQL unlogged. Not Drizzle's `logger`, which sees neither failures nor transaction control ([drizzle-orm#387](https://github.com/drizzle-team/drizzle-orm/issues/387)). A connection is wrapped after `openConnection`'s pragmas and the migration check (05 rule 18), which would otherwise log outside a request (rule 16).
 5. A statement is a read only if its first keyword is `select`; anything else, pragmas included, is a write, so a misread only over-logs. `node:sqlite` doesn't expose `sqlite3_stmt_readonly`.
 6. Every write is logged. A read is logged through `auditedDb` (rule 12), in the CLI (rule 14), and while the context's `isStaff` is true, since 접속기록 cover what 개인정보취급자 read, opted in or not. A read on `db` outside a request isn't logged.
 7. Each run of a statement is stored as an entry before it runs, so a prepared statement run twice logs twice. If logging fails, the statement doesn't run and the error is thrown, rolling back its transaction. If the statement fails, its entry is marked failed.
@@ -23,7 +23,7 @@
 
 ### Clients
 
-12. `db` and `auditedDb` share one app connection, wrapped twice; `auditedDb` also logs every read. A server module opts a read in by passing `auditedDb` to a query. While `building`, `auditedDb` is `db`. Lint extends 07 rule 1's `db` ban to `auditedDb`. Why one connection: with two, a nested transaction would wait out the busy timeout, then fail.
+12. `db` and `auditedDb` share one app connection, wrapped twice; `auditedDb` also logs every read. A server module opts a read in by passing `auditedDb` to a query. While `building`, `auditedDb` is `db`. Lint extends 07 rule 1's `db` ban to `auditedDb`. One connection, since with two, a nested transaction would wait out the busy timeout, then fail.
 13. The audit database's client is unwrapped, since logging an entry would log itself. 05 rule 11's test also runs on a db from `createAuditDb`: `createEntry` binds every entry's params, and its errors reach `report`.
 14. CLI scripts open the app database through `openDbs`, whose client logs every read: CLI operators are staff (rule 17), and a script has no request to opt in from. `cli/db/migrate.ts` runs migrations unwrapped, so a data migration is unlogged; accepted.
 

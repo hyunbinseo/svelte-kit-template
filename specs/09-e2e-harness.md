@@ -7,10 +7,10 @@
 ### Server
 
 1. `vpr test:e2e` runs Playwright with `MODE=e2e` ([03](./03-environment.md) rule 18). `playwright.config.ts` imports `cli/lib/env.ts`, as tool configs do (03 rule 19).
-2. Playwright's `webServer` runs `vpr db:reset:e2e` (reset, then migrate), `vpr build:e2e` (build in mode `e2e`), and `vpr start:e2e`, which starts the built server as `vpr start` does, with mode `e2e`'s env files in place of production's (03 rule 21). Not `vpr dev` or `vpr preview`, so tests run the server production runs, its startup migration check included ([05](./05-database.md) rule 18). In `webServer`, since Playwright starts it before `globalSetup`.
+2. Playwright's `webServer` runs `vpr db:reset:e2e` (reset, then migrate), `vpr build:e2e` (build in mode `e2e`), and `vpr start:e2e`, which starts the built server as `vpr start` does, with mode `e2e`'s env files in place of production's (03 rule 21). Not `vpr dev` or `vpr preview`, so tests run the server production runs, its startup migration check included ([05](./05-database.md) rule 18). Not in `globalSetup`, which Playwright runs after starting the server.
 3. The server inherits the env files `cli/lib/env.ts` loaded into Playwright's process, so its own env-file flags add nothing; both read mode `e2e`'s files.
 4. The e2e build replaces a local `vpr build`'s output; accepted.
-5. A running server on the e2e port is never reused, since it may hold another run's database or build. The run fails before resetting.
+5. A running server on the e2e port is never reused, since it may hold another run's database or build; the run fails before resetting.
 6. `cli/db/reset-e2e.ts` deletes mode `e2e`'s data directory, resolved as `prepareDatabasePath` resolves it (05 rule 4). Run in any other mode, it fails as an expected failure ([02](./02-cli-separation.md) rule 13) and deletes nothing, so no script can delete another mode's data.
 7. The data stays after a run, for inspection, until the next run's reset.
 8. Playwright's output directories are gitignored.
@@ -24,7 +24,7 @@
 
 ### Layout
 
-13. E2E tests are `tests/**/*.e2e.ts`, outside [01](./01-conventions.md) rule 3's placement, since they test the app, not one file. `tests/` holds only E2E code.
+13. E2E tests are `tests/**/*.e2e.ts`, not next to a file ([01](./01-conventions.md) rule 3), since they test the app. `tests/` holds only E2E code.
 14. Every subpath into `tests/` starts with `#tests/`. Lint bans `#tests/*` under `src/` and `cli/`.
 15. `tests/tsconfig.json` extends `cli/tsconfig.json`, adding only the DOM lib for `page.evaluate` callbacks. `vpr check` type-checks `tests/` and `playwright.config.ts` with it, and the root config excludes both, so tests reach `src/` only through CLI-safe modules (02 rule 5). In editors, `playwright.config.ts` falls into an inferred project; accepted.
 16. Vitest doesn't collect `*.e2e.ts`.

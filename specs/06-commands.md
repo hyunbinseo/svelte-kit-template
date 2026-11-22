@@ -6,9 +6,9 @@
 
 ### Transactions
 
-1. `db.transaction` requires `behavior`, and only `immediate` and `deferred` type-check; the `tx` type follows it (`immediate` can write, `deferred` only reads). A command reads before it writes, and a deferred transaction that takes the write lock late fails with `SQLITE_BUSY_SNAPSHOT`, which the busy timeout ([05](./05-database.md) rule 9) doesn't retry. A read-only deferred one takes no write lock in WAL, so 07 Queries uses it without blocking commands.
-2. A callback that returns a promise is a type error, since `node:sqlite` is sync and an async callback would commit at its first `await`. A callback typed `any` or `unknown`, and casts, get past it; accepted.
-3. `tx.transaction` opens a savepoint. Its callback gets the same `tx` type and must be sync, and it takes no `config`.
+1. `db.transaction` requires `behavior`, `immediate` or `deferred`, and its `tx` type follows it: `immediate` can write, `deferred` only reads. A read-only deferred transaction takes no write lock in WAL, so 07 Queries uses it without blocking commands.
+2. A callback that returns a promise is a type error, since `node:sqlite` is sync and an async callback would commit at its first `await`. Casts and callbacks typed `any` or `unknown` get past it; accepted.
+3. `tx.transaction` opens a savepoint: same `tx` type, sync callback, no `config`.
 4. `createAppDb` casts Drizzle's client to `AppDb`, unchecked at runtime. `DrizzleDb` and `DrizzleTx` in `src/db/server/shared/` hold the restricted types, so 08 Audit Logging's db shares them.
 5. Database code uses Drizzle's sync API only: statements end in `.run()`, `.all()`, or `.get()`. Lint bans `await` under `src/db/` and in `cli/db/`'s `commands.ts` files. CLI scripts in `cli/db/` may await.
 6. A deferred `tx` has no `insert`, `update`, `delete`, `run`, or `with` (its builder can write). Raw SQL through `all`, `get`, or `values` gets past it; accepted.
@@ -16,9 +16,9 @@
 ### Shape
 
 7. A command takes `db: AppDb` first, then one object, so keys can't be swapped by position: `closeUser(db, { closedBy, closedReason, userId })`.
-8. It calls `db.transaction` once, with `behavior: 'immediate'`, and returns its result. Lint bans calling any `transaction` method outside command files and tests, matched by name, so an aliased client is caught, and bans `deferred` in command files. Bracket access and destructuring get past it; accepted. An unrelated `transaction` method (e.g. IndexedDB's) takes an inline disable.
+8. It calls `db.transaction` once, with `behavior: 'immediate'`, and returns its result. Not `deferred`: a command reads before it writes, and a deferred transaction that takes the write lock late fails with `SQLITE_BUSY_SNAPSHOT`, which the busy timeout ([05](./05-database.md) rule 9) doesn't retry. Lint bans calling any `transaction` method outside command files and tests, matched by name, so an aliased client is caught, and bans `deferred` in command files. Bracket access and destructuring get past it; accepted. An unrelated `transaction` method (e.g. IndexedDB's) takes an inline disable.
 9. An ID key is named after its target (`userId`, never `id`), so a swapped ID shows at the call site. Other keys are column names.
-10. Each key's type is its column's `Select` type (`closedBy: UserSelect['closedBy']`), not `Insert`, where a nullable column turns optional and a left-out key skips the column instead of writing `null`. A column that can't be `null` here uses `NonNullable<…>`; a narrower value uses its own type.
+10. Each key's type is its column's `Select` type (`closedBy: UserSelect['closedBy']`), not `Insert`, whose nullable columns are optional, so a forgotten key would skip the column instead of writing `null`. A column that can't be `null` here uses `NonNullable<…>`; a narrower value uses its own type.
 11. Values the command derives (the clock, a cascade's actor and reason, foreign keys it reads) aren't keys.
 12. A command names one intent (`closeUser`, `grantRole`); a catch-all `updateUser` would mix several intents' guards.
 13. Commands import neither `$app/*` nor any database's `client.ts`, so `cli/` and tests can call them ([02](./02-cli-separation.md)). Lint enforces it in command files.
@@ -43,7 +43,7 @@
 
 ### Writes
 
-23. An update to a soft-delete group repeats the group's `At` being null in its `WHERE` (05 rule 29), even after a guard checked it.
+23. An update to a soft-delete group has `[verb]At IS NULL` in its `WHERE` (05 rule 29), even after a guard checked it.
 24. A delete across tables deletes children first (05 rule 24).
 25. A cascade (closing a user revokes their roles) runs in the same transaction as the write that triggers it, with its clock and actor.
 

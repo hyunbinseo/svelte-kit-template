@@ -34,18 +34,18 @@
 ### Logout
 
 16. `logout` is a remote form, since SvelteKit's CSRF check rejects a cross-site `POST` but not a `GET`. It revokes the session with `revokeUserSession` (`user_logged_out`, by its user), deletes the cookie, and redirects (`303`) home. Without a session, or when `revokeUserSession` returns a code, it still deletes the cookie and redirects.
-17. `revokeUserSession` fails with a code when the session isn't active, or the actor isn't a user or `null` ([06](./06-commands.md) rule 18).
+17. `revokeUserSession` fails with a code when the session isn't active, or the actor isn't a user or `null` ([06](./06-commands.md) rule 17).
 
 ### Purge
 
-18. `purgeUserSessions`, a CLI-only command (06 rule 15), deletes sessions more than 4 days past their expiry or revocation and returns the count, so with a daily run none outlives 5 days: 개인정보 is destroyed 지체 없이 once its purpose ends ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제21조 ①), which [표준 개인정보 보호지침](https://www.law.go.kr/행정규칙/표준개인정보보호지침) 제10조 ① reads as within 5 days.
+18. `purgeUserSessions`, a CLI-only command (06 rule 14), deletes sessions more than 4 days past their expiry or revocation and returns the count, so with a daily run none outlives 5 days: 개인정보 is destroyed 지체 없이 once its purpose ends ([개인정보 보호법](https://www.law.go.kr/법령/개인정보보호법) 제21조 ①), which [표준 개인정보 보호지침](https://www.law.go.kr/행정규칙/표준개인정보보호지침) 제10조 ① reads as within 5 days.
 19. `cli/db/purge.ts` (08 rule 26) runs it and prints its count.
 20. It runs daily through 08 rule 27's sample units.
 
 ### Tests
 
 21. `seedUser` and `seedUserSession` live in `src/db/server/app/testing.ts` ([09](./09-e2e-harness.md) rule 19). `seedUserSession` returns the cookie value with the row.
-22. Unit tests cover token parsing (canonical and each malformed form) and each command (06 rule 26).
+22. Unit tests cover token parsing (canonical and each malformed form) and each command (06 rule 25).
 23. E2E tests cover the cookie lifecycle on `/account`: kept, extended, and deleted for each failed case (rule 10), and logout.
 
 ## Files

@@ -46,7 +46,7 @@
 
 ### Columns
 
-26. Timestamps are `[verb]At`, `integer({ mode: 'timestamp_ms' })`, with no default, SQL or `$defaultFn`, so `Insert` requires them: commands pass the time they read (06 rule 16).
+26. Timestamps are `[verb]At`, `integer({ mode: 'timestamp_ms' })`, with no default, SQL or `$defaultFn`, so `Insert` requires them: commands pass the time they read (06 rule 15).
 27. Actors are `[verb]By`, a nullable foreign key to `user`; `null` means the system, or no user yet. So a user referenced as an actor can't be deleted (rule 24).
 28. Soft delete is a `[verb]At`/`[verb]By`/`[verb]Reason` group: a set `At` marks the row soft-deleted and requires `Reason`; `By` is its actor (rule 27). `Reason` and `By` stay null while `At` is.
 29. A soft-deleted row is never restored; restoring means inserting a new row, and updates to a group match only rows whose `At` is null (06 Commands). Raw SQL can still restore one (rule 34); accepted.

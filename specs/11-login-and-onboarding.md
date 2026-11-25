@@ -26,13 +26,13 @@
 
 10. `/login` and both its forms are guarded by `requireLoggedOut`, so a signed-in browser can't orphan its session with a new one. It shows the contact form, and the code form while the login cookie exists, so a reload keeps the step.
 11. `startLogin` fails with `login_pending` while the contact has an unexpired login without a successful attempt, even one with no attempts left, so a contact gets at most one code, and so at most the attempt limit of guesses, per code lifetime. Checking only pending logins would let spent attempts unlock a new code at once: unbounded guessing. A user who loses the cookie waits out the lifetime, anyone can block a contact's login by requesting a code, and `login_pending` reveals a login in progress; accepted, as rate limits are a project's.
-12. `sendLoginCode` runs after `startLogin` commits ([06](./06-commands.md) rule 29). If it throws, `discardLogin` deletes the login if it has no attempts, the error is reported, and the form asks to retry, so the contact can request again at once.
+12. `sendLoginCode` runs after `startLogin` commits ([06](./06-commands.md) rule 28). If it throws, `discardLogin` deletes the login if it has no attempts, the error is reported, and the form asks to retry, so the contact can request again at once.
 13. Sign-up is open by default. When closed, `startLogin` and `completeLogin` fail with `sign_up_closed` for a contact with no active user, so no code goes to a contact that can't sign up. That reveals whether a contact has an account; accepted.
 14. `sendLoginCode` prints the code, without the contact, to the console in every mode but `production`, where it throws until a project adds an email provider, so a code can't silently land in production logs.
 
 ### Verifying a Code
 
-15. `completeLogin` returns `login_not_found` without writing when the login isn't pending. Otherwise it records the attempt, then returns `code_mismatch` on a wrong code, the one guard failure that writes (06 rule 21). Hashes are compared as 10 rule 4 compares them.
+15. `completeLogin` returns `login_not_found` without writing when the login isn't pending. Otherwise it records the attempt, then returns `code_mismatch` on a wrong code, the one guard failure that writes (06 rule 20). Hashes are compared as 10 rule 4 compares them.
 16. On a match, it creates a new session, first creating the user if the contact has no active one, so an unverified email never becomes a user. It returns the session and whether the user is onboarded.
 17. On `code_mismatch`, the login cookie stays, for the attempts left. Every other outcome deletes it. `login_not_found` reads as an expired code.
 18. On success, the session cookie is set and the user is redirected (`303`) to `returnTo` or home, via `/onboarding` (carrying `returnTo`) if not onboarded.
@@ -50,7 +50,7 @@
 
 25. `/account` has a closing form (탈퇴) with a required confirmation, and so does `/onboarding`, so a user who never onboards (e.g. under 14) can still erase their contact. It calls `closeUser` with `user_requested`, by the user, then deletes the session cookie and redirects home.
 26. `closeUser` fails with `user_not_found` for a missing or closed user, and `actor_not_found` unless the actor is an active user or `null`.
-27. In one transaction (06 rule 25), it sets the closed group, sets `contact` to `null`, deletes the profile and the contact's logins (attempts first), and revokes the user's active sessions with `cascade_user_closed`.
+27. In one transaction (06 rule 24), it sets the closed group, sets `contact` to `null`, deletes the profile and the contact's logins (attempts first), and revokes the user's active sessions with `cascade_user_closed`.
 28. Closing is final. The same email can sign up again as a new user, since nothing links it to the closed one. Bans that keep a contact to block sign-up are a project's; accepted.
 
 ### Errors
@@ -64,7 +64,7 @@
 ### Tests
 
 31. `seedLogin` takes a secret and a code and returns the login cookie value, since the code reaches only the server console. `seedUserProfile` seeds onboarding.
-32. Unit tests cover `returnTo` parsing (`//x`, `/\x`, `/\t/x`, relative paths, absolute URLs, `/login`) and each command (06 rule 26).
+32. Unit tests cover `returnTo` parsing (`//x`, `/\x`, `/\t/x`, relative paths, absolute URLs, `/login`) and each command (06 rule 25).
 33. E2E tests cover requesting a code (a pending login and a cookie), a pending repeat, a correct code, a wrong one with attempts left and with none, an expired login, a new user through onboarding to `returnTo`, and closing, after which the same email signs up as a new user.
 
 ## Files
